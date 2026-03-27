@@ -1,8 +1,25 @@
-[gd_scene format=3 uid="uid://dd82ci0rmstnp"]
+[gd_scene load_steps=5 format=3 uid="uid://dd82ci0rmstnp"]
 
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://cv43af0pxy81y" path="res://scenes/actors/tree.tscn" id="1_glv2v"]
+[ext_resource type="PackedScene" uid="uid://hud_ring_display" path="res://scenes/ui/HUD.tscn" id="2_hud"]
+[ext_resource type="PackedScene" uid="uid://bvncys4wohest" path="res://scenes/ui/UpgradeUI.tscn" id="3_upgrade"]
 
 [node name="Main" type="Node" unique_id=2125892693]
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.121569, 0.160784, 0.109804, 1)
 
 [node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
-position = Vector2(292, 257)
+position = Vector2(640, 500)
+scale = Vector2(2, 2)
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="UpgradeUI" parent="." instance=ExtResource("3_upgrade")]
