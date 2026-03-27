@@ -1,0 +1,7 @@
+[gd_project]
+config_version=4
+
+[application]
+run/main_scene="res://Main.tscn"
+
+description="gamejam_for_team_corn project"
