@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://cv43af0pxy81y"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3dh50"]
+size = Vector2(60, 60)
+
+[sub_resource type="Gradient" id="Gradient_3dh50"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_mwoif"]
+gradient = SubResource("Gradient_3dh50")
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mwoif"]
+radius = 38.0
+height = 110.0
+
+[sub_resource type="Gradient" id="Gradient_8y28y"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_6qoma"]
+gradient = SubResource("Gradient_8y28y")
+
+[node name="tree" type="Node2D" unique_id=850654834]
+
+[node name="treeroot" type="RigidBody2D" parent="." unique_id=417502049]
+gravity_scale = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="treeroot" unique_id=1608856074]
+shape = SubResource("RectangleShape2D_3dh50")
+
+[node name="Sprite2D" type="Sprite2D" parent="treeroot" unique_id=283189642]
+position = Vector2(3, -9.536743e-07)
+scale = Vector2(0.2421875, 56)
+texture = SubResource("GradientTexture1D_mwoif")
+
+[node name="treehead" type="RigidBody2D" parent="." unique_id=623497244]
+gravity_scale = 0.0
+linear_damp = 1.5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="treehead" unique_id=2046942878]
+position = Vector2(0, -130)
+shape = SubResource("CapsuleShape2D_mwoif")
+
+[node name="Sprite2D" type="Sprite2D" parent="treehead" unique_id=187168219]
+position = Vector2(0, -126.5)
+scale = Vector2(1, 1.578125)
+texture = SubResource("GradientTexture2D_6qoma")
+
+[node name="DampedSpringJoint2D" type="DampedSpringJoint2D" parent="." unique_id=953085573]
+position = Vector2(0, -75)
+node_a = NodePath("../treeroot")
+node_b = NodePath("../treehead")
+length = 43.0
+stiffness = 23.3

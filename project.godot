@@ -17,8 +17,12 @@ description="gamejam_for_team_corn project"
 [display]
 
 window/size/viewport_width=640
-window/size/viewport_height=1080
+window/size/viewport_height=360
 
 [gd_project]
 
 config_version=4
+
+[physics]
+
+2d/default_gravity=0.0
