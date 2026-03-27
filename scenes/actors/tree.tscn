@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://cv43af0pxy81y"]
 
+[ext_resource type="Script" uid="uid://cd3xa3q7rk70p" path="res://scenes/actors/treehead.gd" id="1_mwoif"]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3dh50"]
 size = Vector2(60, 60)
 
@@ -19,8 +21,7 @@ gradient = SubResource("Gradient_8y28y")
 
 [node name="tree" type="Node2D" unique_id=850654834]
 
-[node name="treeroot" type="RigidBody2D" parent="." unique_id=417502049]
-gravity_scale = 0.0
+[node name="treeroot" type="StaticBody2D" parent="." unique_id=365445988]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treeroot" unique_id=1608856074]
 shape = SubResource("RectangleShape2D_3dh50")
@@ -30,12 +31,22 @@ position = Vector2(3, -9.536743e-07)
 scale = Vector2(0.2421875, 56)
 texture = SubResource("GradientTexture1D_mwoif")
 
-[node name="treehead" type="RigidBody2D" parent="." unique_id=623497244]
-gravity_scale = 0.0
-linear_damp = 1.5
+[node name="treehead" type="RigidBody2D" parent="." unique_id=623497244 node_paths=PackedStringArray("tree_root")]
+gravity_scale = 0.673
+can_sleep = false
+linear_damp = 0.5
+script = ExtResource("1_mwoif")
+tree_root = NodePath("../treeroot")
+max_drag_dist = 100.0
+grab_radius = 150.0
+spring_stiffness = null
+spring_damping = null
+bend_factor = null
+angular_stiffness = null
+angular_damping = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treehead" unique_id=2046942878]
-position = Vector2(0, -130)
+position = Vector2(0, -126.5)
 shape = SubResource("CapsuleShape2D_mwoif")
 
 [node name="Sprite2D" type="Sprite2D" parent="treehead" unique_id=187168219]
@@ -43,9 +54,4 @@ position = Vector2(0, -126.5)
 scale = Vector2(1, 1.578125)
 texture = SubResource("GradientTexture2D_6qoma")
 
-[node name="DampedSpringJoint2D" type="DampedSpringJoint2D" parent="." unique_id=953085573]
-position = Vector2(0, -75)
-node_a = NodePath("../treeroot")
-node_b = NodePath("../treehead")
-length = 43.0
-stiffness = 23.3
+[node name="Camera2D" type="Camera2D" parent="." unique_id=288142139]

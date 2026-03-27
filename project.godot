@@ -16,8 +16,9 @@ description="gamejam_for_team_corn project"
 
 [display]
 
-window/size/viewport_width=640
-window/size/viewport_height=360
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/borderless=true
 
 [gd_project]
 
