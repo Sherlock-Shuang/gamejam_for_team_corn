@@ -1,0 +1,29 @@
+# Godot temporary and build caches
+.export/**
+.import/**
+.local/**
+.godot/**
+# Ignore keep file in .godot caches if somehow generated
+.godot
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Unity
+Library/
+Temp/
+
+# Git keep placeholders should be committed
+# No exclusion for .gitkeep files in project dirs
