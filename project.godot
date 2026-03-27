@@ -10,15 +10,25 @@ config_version=5
 
 [application]
 
+config/name="gamejam"
 run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
 
 [display]
 
-window/size/viewport_width=640
-window/size/viewport_height=1080
+window/size/viewport_width=1280
+window/size/viewport_height=720
 
 [gd_project]
 
 config_version=4
+
+[global_group]
+
+Tree=""
+
+[physics]
+
+2d/default_gravity=0.0
+2d/default_gravity_vector=Vector2(0, 0)
