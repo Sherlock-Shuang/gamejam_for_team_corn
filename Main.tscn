@@ -8,7 +8,7 @@
 script = ExtResource("1_main")
 
 [node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
-position = Vector2(640, 361)
+position = Vector2(943, 556)
 
 [node name="WaveManager" type="Node2D" parent="." unique_id=1479777663]
 script = ExtResource("3_r0du0")
