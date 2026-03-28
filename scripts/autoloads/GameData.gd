@@ -4,11 +4,17 @@ extends Node
 #  所有游戏数值集中管理，策划改一个数字就能影响全局。
 # ═══════════════════════════════════════════════════════════════
 
-# ── 运行时状态 ──
+# ── 局内运行时状态 (单局游戏) ──
 var current_level: int = 1
 var current_exp: float = 0.0
 var current_hp: float = 100.0
 var current_wave: int = 0
+
+# ── 局外进度状态 (年轮界面) ──
+var current_max_stage: int = 1                         # 当前解锁的最大关卡数（年轮数）
+var skill_history_per_stage: Dictionary = {}           # 格式: { stage_id : [ "skill_a", "skill_b" ] }
+var current_playing_stage: int = 1                     # 玩家当前正在挑战哪一关
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  玩家基础属性
@@ -242,9 +248,20 @@ func get_enemy_stats(enemy_id: String) -> Dictionary:
 	push_warning("GameData: 未知敌人 ID -> " + enemy_id)
 	return {}
 
-## 重置运行时状态 (新一局开始时调用)
-func reset():
+## 记录在某关获得的技能
+func record_skill_for_stage(stage_id: int, skill_id: String):
+	if not skill_history_per_stage.has(stage_id):
+		skill_history_per_stage[stage_id] = []
+	if not skill_history_per_stage[stage_id].has(skill_id):
+		skill_history_per_stage[stage_id].append(skill_id)
+
+## 重置单局状态 (进入新关卡前调用，保留局外进度)
+func reset_for_new_game():
 	current_level = 1
 	current_exp = 0.0
 	current_hp = player_base_stats["max_hp"]
 	current_wave = 0
+	
+	# 下面的代码兼容之前的 Main.gd 里的旧版 reset 调用
+func reset():
+	reset_for_new_game()

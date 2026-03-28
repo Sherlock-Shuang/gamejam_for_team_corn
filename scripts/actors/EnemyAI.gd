@@ -17,6 +17,28 @@ var target_tree: Node2D = null
 var current_health: float
 var tween: Tween
 
+# ==========================================
+# 对象池重置接口：每次从对象池取出时必须调用
+# ==========================================
+func reset() -> void:
+	# 1. 恢复生命与战斗数值
+	current_health = max_health
+	speed_multiplier = 1.0
+	velocity = Vector2.ZERO
+	cached_repulsion = Vector2.ZERO
+	
+	# 2. 恢复物理与视觉状态
+	set_physics_process(true)
+	if has_node("ColorRect"):
+		$ColorRect.color = Color(1.0, 0.0, 0.0, 1.0) # 还原初始红色
+		
+	# 3. 彻底清理上一轮残留的 Tween 动画，防止“灵异位移”
+	if tween:
+		tween.kill()
+		tween = null
+var frame_count: int = 0
+var cached_repulsion: Vector2 = Vector2.ZERO
+
 func _ready() -> void:
 	current_health = max_health
 	# 利用分组，全局安全地获取树的引用
@@ -25,13 +47,6 @@ func _ready() -> void:
 	if trees.size() > 0:
 		target_tree = trees[0]
 
-func reset() -> void:
-	current_health = max_health
-	set_physics_process(true)
-	velocity = Vector2.ZERO
-	if tween:
-		tween.kill()
-		tween = null
 
 func _physics_process(delta: float) -> void:
 	# 如果树死了（或者还没生成），原地待命
@@ -45,35 +60,56 @@ func _physics_process(delta: float) -> void:
 	var seek_force = dir_to_tree * speed * attraction_weight
 
 	# ==========================================
-	# 2. 计算斥力：避免同类重叠
+	# 2. 计算斥力：避免同类重叠 (交错优化大法)
 	# ==========================================
-	var repulsion_force = Vector2.ZERO
-	var neighbors = separation_area.get_overlapping_bodies() # 获取传感器内的所有物体
-	
-	for neighbor in neighbors:
-		# 排除自己，且只对其他同类（CharacterBody2D）产生斥力
-		if neighbor != self and neighbor is CharacterBody2D:
-			var dist_vector = global_position - neighbor.global_position
-			var dist = dist_vector.length()
-			
-			# 距离越近，斥力越巨大 (反比例函数)
-			if dist > 0.1: 
-				repulsion_force += (dist_vector.normalized() / dist) * speed * 5.0
+	# 让几百个怪物不要挤在同一帧计算 O(N^2) 的重叠！分散到不同的帧去算
+	frame_count += 1
+	if frame_count % 5 == 0:
+		cached_repulsion = Vector2.ZERO
+		var neighbors = separation_area.get_overlapping_bodies() # 获取传感器内的所有物体
+		
+		for neighbor in neighbors:
+			# 排除自己，且只对其他同类（CharacterBody2D）产生斥力
+			if neighbor != self and neighbor is CharacterBody2D:
+				var dist_vector = global_position - neighbor.global_position
+				var dist = dist_vector.length()
+				
+				# 距离越近，斥力越巨大 (反比例函数)
+				if dist > 0.1: 
+					cached_repulsion += (dist_vector.normalized() / dist) * speed * 5.0
 
-	# 限制斥力的最大阈值，防止虫群像爆炸一样飞出屏幕
-	if repulsion_force.length() > speed * 3:
-		repulsion_force = repulsion_force.normalized() * speed * 3
+		# 限制斥力的最大阈值，防止虫群像爆炸一样飞出屏幕
+		if cached_repulsion.length() > speed * 3:
+			cached_repulsion = cached_repulsion.normalized() * speed * 3
 
 	# ==========================================
 	# 3. 向量合成与平滑运动
 	# ==========================================
-	var desired_velocity = seek_force + (repulsion_force * repulsion_weight)
+	var desired_velocity = seek_force + (cached_repulsion * repulsion_weight)
+	
+	# 加入元素减速影响
+	var final_speed = desired_velocity.limit_length(speed) * speed_multiplier
 	
 	# 使用 lerp(线性插值) 模拟物理惯性和阻尼感，而不是瞬间转向
-	velocity = velocity.lerp(desired_velocity.limit_length(speed), 0.1)
+	velocity = velocity.lerp(final_speed, 0.1)
 
 	# 执行 Godot 内部移动逻辑
 	move_and_slide()
+
+# ==========================================
+# 元素与状态控制
+# ==========================================
+var speed_multiplier: float = 1.0
+
+func apply_slow(ratio: float, duration: float) -> void:
+	speed_multiplier = clampf(1.0 - ratio, 0.1, 1.0)
+	$ColorRect.color = Color(0.3, 0.6, 1.0, 1.0) # 变成蓝色
+	# 创建一个一次性定时器恢复速度
+	var timer = get_tree().create_timer(duration)
+	timer.timeout.connect(func():
+		$ColorRect.color = Color(1.0, 0.0, 0.0, 1.0) # 恢复红色
+		speed_multiplier = 1.0
+	)
 
 # ==========================================
 # 4. 战斗接口：专门暴露给树干调用的“受死”方法

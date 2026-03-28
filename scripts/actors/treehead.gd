@@ -1,30 +1,26 @@
 extends RigidBody2D
 
 # ==========================================
-# 基础配置
+# 基础配置 (路径已为你完美匹配)
 # ==========================================
 @onready var trunk_line: Line2D = $"../TrunkLine"
 @onready var crown_target: Marker2D = $CrownTarget
 
+# 【重要】假设 hitbox 下面的多边形叫 Shape1 到 Shape4，如果名字不对请修改这里！
+@onready var hit_shapes = [$hitbox/Shape1, $hitbox/Shape2, $hitbox/Shape3, $hitbox/Shape4]
 
-
-@export var tree_root: Node2D
+@export var tree_root: Node2D # <--- 【注意】在检查器里，把 treeroot 节点拖给它！
 @export var grab_radius: float = 200
 @export var max_drag_angle_deg: float = 60.0 
 
-
 # ==========================================
-# 【手感参数 1】拉扯张力与阻力感 (Tension)
+# 【手感参数】保留了你的高爆发设定
 # ==========================================
-@export var base_pull_speed: float = 20.0     # 基础拉拽速度
-@export var edge_resistance: float = 0.95     # 边缘张力阻力 (拉到极限时越来越难拉)
-
-# ==========================================
-# 【手感参数 2】假目标与过冲鞭打 (Overshoot)
-# ==========================================
+@export var base_pull_speed: float = 20.0     
+@export var edge_resistance: float = 0.95     
 @export var angular_stiffness: float = 990000.0 
-@export var angular_damping_whip: float = 9000.0    # 松手瞬间极低阻尼 (让它狂甩)
-@export var angular_damping_settle: float = 30000.0  # 甩完高阻尼 (让它稳住)
+@export var angular_damping_whip: float = 9000.0    
+@export var angular_damping_settle: float = 30000.0 
 @export var whip_recover_time: float = 0.3        
 @export var whip_overshoot_ratio: float = 1.2     
 
@@ -37,13 +33,16 @@ extends RigidBody2D
 var is_dragging: bool = false
 var time_since_release: float = 999.0 
 var fake_target_angle: float = 0.0 
+var curve_segments: int = 15 
+
+# 追踪当前的阶段 (0 对应 Shape1, 3 对应 Shape4)
+var current_stage_index: int = 0 
 
 func _ready() -> void:
 	can_sleep = false 
-	print("[TreeHead] Ready! Ultimate Whip Physics & Combat Engaged!")
+	_set_hitbox_active(false)
+	print("[treehead] 物理打手已就绪！")
 	
-var curve_segments: int = 15 
-
 func _process(delta: float) -> void:
 	if not is_instance_valid(trunk_line) or not is_instance_valid(tree_root) or not is_instance_valid(crown_target):
 		return
@@ -51,59 +50,63 @@ func _process(delta: float) -> void:
 	trunk_line.clear_points()
 	
 	# ==========================================
-	# 🔥 核心魔法：二次贝塞尔曲线 (Quadratic Bezier)
+	# 🔥 核心修改：反转画线方向，解决贴图颠倒！
 	# ==========================================
-	# 1. 获取全局的 起点(树根) 和 终点(树冠)
-	var p0 = tree_root.global_position
-	var p2 = crown_target.global_position
+	# 1. 交换起点和终点：从【树冠】开始画，画到【树根】结束
+	var p0 = crown_target.global_position  # 起点变成树冠
+	var p2 = tree_root.global_position     # 终点变成树根
 	
-	# 2. 寻找“控制点 (p1)”：这就是决定树干往哪边弯曲的灵魂！
-	# 为了让树根看起来是死死扎在土里（笔直向上），我们把控制点放在树根的正上方。
 	var dist = p0.distance_to(p2)
-	# Vector2.UP (0, -1) 代表正上方。0.6 是弯曲系数，你可以微调这个数字改变弯曲的弧度。
-	var p1 = p0 + Vector2.UP * (dist * 0.6) 
 	
-	# 3. 坐标系转换 (转为 Line2D 的局部坐标)
+	# 2. 寻找“控制点 (p1)”：
+	# 【极其重要】：因为现在树根变成了 p2，所以控制点必须基于 p2 向上偏移！
+	var p1 = p2 + Vector2.UP * (dist * 0.6) 
+	
+	# 3. 坐标系转换
 	p0 = trunk_line.to_local(p0)
 	p1 = trunk_line.to_local(p1)
 	p2 = trunk_line.to_local(p2)
 	
 	# 4. 循环生成曲线上的点
 	for i in range(curve_segments + 1):
-		var t = float(i) / float(curve_segments) # t 的范围是 0.0 到 1.0
-		
-		# 贝塞尔曲线的数学插值公式
+		var t = float(i) / float(curve_segments) 
 		var q0 = p0.lerp(p1, t)
 		var q1 = p1.lerp(p2, t)
 		var curve_point = q0.lerp(q1, t)
-		
-		# 将算好的点塞进 Line2D
 		trunk_line.add_point(curve_point)
 		
 func _input(event: InputEvent) -> void:
+	# 测试后门：按键盘 1, 2, 3, 4
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_1: evolve_test(0)
+		elif event.keycode == KEY_2: evolve_test(1)
+		elif event.keycode == KEY_3: evolve_test(2)
+		elif event.keycode == KEY_4: evolve_test(3)
+	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		var dist = global_position.distance_to(get_global_mouse_position())
 		if event.pressed:
 			if dist <= grab_radius:
 				is_dragging = true
+				_set_hitbox_active(false) # 拖拽时收起刀刃
 				get_viewport().set_input_as_handled()
 		else:
 			if is_dragging:
 				is_dragging = false
-				# 计算假目标，准备鞭打！
 				var current_pull_angle = wrapf(global_transform.get_rotation(), -PI, PI)
 				fake_target_angle = -current_pull_angle * whip_overshoot_ratio
 				time_since_release = 0.0 
+				
+				_set_hitbox_active(true) # 💥 松手瞬间，亮出刀刃
+				
 				get_viewport().set_input_as_handled()
 
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
-	if not tree_root:
-		return
+	if not tree_root: return
 
 	var anchor_pos = tree_root.global_position
 
 	if is_dragging:
-		# --- 状态 A：玩家拖拽中 (带动态阻力的粘滞跟随) ---
 		var mouse_pos = get_global_mouse_position()
 		var delta_pos = mouse_pos - anchor_pos
 		var current_angle = state.transform.get_rotation()
@@ -123,13 +126,29 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 			state.angular_velocity = 0.0
 
 	else:
-		# --- 状态 B：松手回弹 (过冲瞄准 + 两段式阻尼) ---
+		# --- 状态 B：松手回弹 ---
 		time_since_release += state.step 
 		
 		var current_angle = state.transform.get_rotation()
 		state.transform = Transform2D(current_angle, anchor_pos)
 		state.linear_velocity = Vector2.ZERO
 
+		# 计算当前角度离原点 (0度) 有多远
+		var angle_to_zero = wrapf(current_angle, -PI, PI)
+		
+		# ==========================================
+		# 🛑 终极静止锁：放宽判定条件，直接“拔电源”！
+		# ==========================================
+		# 当时间过了，角度小于 0.1 弧度(约5度)，转速小于 5 时：
+		if time_since_release >= whip_recover_time and abs(angle_to_zero) < 0.1 and abs(state.angular_velocity) < 5.0:
+			state.transform = Transform2D(0.0, anchor_pos) # 强制完全立正
+			state.angular_velocity = 0.0                   # 强制引擎彻底熄火
+			_set_hitbox_active(false)                      # 收起刀刃
+			return # <--- 【核心魔法】直接 return 退出！绝对不允许它执行下面的物理运算！
+
+		# ==========================================
+		# 如果还没停稳，继续计算弹力...
+		# ==========================================
 		var progress = clamp(time_since_release / whip_recover_time, 0.0, 1.0)
 		var ease_progress = progress * (2.0 - progress) 
 		var current_dynamic_target = lerp(fake_target_angle, 0.0, ease_progress)
@@ -139,43 +158,35 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		var torque = -angular_stiffness * angle_diff - dynamic_angular_damping * state.angular_velocity
 		state.apply_torque(torque)
 		
-					 # 强制熄火
+		# 🛡️ 强制安全锁
+		state.angular_velocity = clamp(state.angular_velocity, -100.0, 100.0)
+		
+		if progress >= 1.0 and abs(angle_diff) < 0.05 and abs(state.angular_velocity) < 2.0:
+			state.transform = Transform2D(0.0, anchor_pos) 
+			state.angular_velocity = 0.0                   
+			_set_hitbox_active(false)                      
 
-# ==========================================
-# 状态 C：割草打击判定 (Area 打 Area)
-# ==========================================
+func _set_hitbox_active(is_active: bool) -> void:
+	for i in range(hit_shapes.size()):
+		if i == current_stage_index:
+			hit_shapes[i].set_deferred("disabled", not is_active)
+		else:
+			hit_shapes[i].set_deferred("disabled", true) 
+
+func evolve_test(stage: int) -> void:
+	current_stage_index = stage
+	var controller = $".."
+	if controller.has_method("evolve_to_stage"):
+		controller.evolve_to_stage(stage)
+
 func _on_hitbox_area_entered(area: Area2D) -> void:
-	# 第一步：核对身份。用分组（Group）判断撞到的是不是敌人
 	if area.is_in_group("Enemy"):
-		
-		# 第二步：测速。获取当前树干狂飙的“角速度”绝对值
 		var current_whip_speed = abs(angular_velocity)
-		
-		# 如果速度够快，说明是在剧烈弹射中！
 		if current_whip_speed > damage_velocity_threshold:
 			var enemy_body = area.get_parent()
-			if enemy_body and enemy_body.has_method("take_damage"):
-				var damage = (current_whip_speed - damage_velocity_threshold) * damage_multiplier
-				
-				# 🎯 核心修改 1：把原本的 take_damage(damage) 改为传入两个参数！
-				# 传入 global_position 让敌人知道攻击是从哪里来的，从而向外飞出
-				enemy_body.take_damage(damage, global_position)
+			if enemy_body and enemy_body.has_method("die"):
+				enemy_body.die()
 
-				# 🎯 核心修改 2：触发果汁感 (Juice) —— 打击停顿
-				trigger_hit_stop()
-				
+				# 💡 果汁感 (Juice) 预留口：
+				# 这里就是你之后写 Engine.time_scale = 0.05 制造打击顿挫感的地方！
 				# print("Hit! 瞬间抽击速度: ", current_whip_speed)
-
-# ==========================================
-# 表现层：打击顿挫感 (Hit Stop)
-# ==========================================
-func trigger_hit_stop() -> void:
-	# 瞬间将全局时间缩放降至极低，产生“卡肉感”
-	Engine.time_scale = 0.05
-	
-	# 创建一个计时器，注意必须乘以当前的 time_scale，否则 0.1 秒会被拉长成 2 秒
-	await get_tree().create_timer(0.1 * Engine.time_scale).timeout 
-	
-	# 恢复正常时间
-	Engine.time_scale = 1.0
-	
