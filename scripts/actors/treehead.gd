@@ -3,9 +3,15 @@ extends RigidBody2D
 # ==========================================
 # 基础配置
 # ==========================================
+@onready var trunk_line: Line2D = $"../TrunkLine"
+@onready var crown_target: Marker2D = $CrownTarget
+
+
+
 @export var tree_root: Node2D
 @export var grab_radius: float = 200
 @export var max_drag_angle_deg: float = 60.0 
+
 
 # ==========================================
 # 【手感参数 1】拉扯张力与阻力感 (Tension)
@@ -16,8 +22,8 @@ extends RigidBody2D
 # ==========================================
 # 【手感参数 2】假目标与过冲鞭打 (Overshoot)
 # ==========================================
-@export var angular_stiffness: float = 1600000.0 
-@export var angular_damping_whip: float = 14000.0    # 松手瞬间极低阻尼 (让它狂甩)
+@export var angular_stiffness: float = 990000.0 
+@export var angular_damping_whip: float = 9000.0    # 松手瞬间极低阻尼 (让它狂甩)
 @export var angular_damping_settle: float = 30000.0  # 甩完高阻尼 (让它稳住)
 @export var whip_recover_time: float = 0.3        
 @export var whip_overshoot_ratio: float = 1.2     
@@ -25,7 +31,7 @@ extends RigidBody2D
 # ==========================================
 # 【战斗参数】伤害判定阈值
 # ==========================================
-@export var damage_velocity_threshold: float = 8.0   # 角速度超过 8 才有杀伤力
+@export var damage_velocity_threshold: float = 3.0   # 角速度超过 8 才有杀伤力
 
 var is_dragging: bool = false
 var time_since_release: float = 999.0 
@@ -34,7 +40,45 @@ var fake_target_angle: float = 0.0
 func _ready() -> void:
 	can_sleep = false 
 	print("[TreeHead] Ready! Ultimate Whip Physics & Combat Engaged!")
+	
+var curve_segments: int = 15 
 
+func _process(delta: float) -> void:
+	if not is_instance_valid(trunk_line) or not is_instance_valid(tree_root) or not is_instance_valid(crown_target):
+		return
+		
+	trunk_line.clear_points()
+	
+	# ==========================================
+	# 🔥 核心魔法：二次贝塞尔曲线 (Quadratic Bezier)
+	# ==========================================
+	# 1. 获取全局的 起点(树根) 和 终点(树冠)
+	var p0 = tree_root.global_position
+	var p2 = crown_target.global_position
+	
+	# 2. 寻找“控制点 (p1)”：这就是决定树干往哪边弯曲的灵魂！
+	# 为了让树根看起来是死死扎在土里（笔直向上），我们把控制点放在树根的正上方。
+	var dist = p0.distance_to(p2)
+	# Vector2.UP (0, -1) 代表正上方。0.6 是弯曲系数，你可以微调这个数字改变弯曲的弧度。
+	var p1 = p0 + Vector2.UP * (dist * 0.6) 
+	
+	# 3. 坐标系转换 (转为 Line2D 的局部坐标)
+	p0 = trunk_line.to_local(p0)
+	p1 = trunk_line.to_local(p1)
+	p2 = trunk_line.to_local(p2)
+	
+	# 4. 循环生成曲线上的点
+	for i in range(curve_segments + 1):
+		var t = float(i) / float(curve_segments) # t 的范围是 0.0 到 1.0
+		
+		# 贝塞尔曲线的数学插值公式
+		var q0 = p0.lerp(p1, t)
+		var q1 = p1.lerp(p2, t)
+		var curve_point = q0.lerp(q1, t)
+		
+		# 将算好的点塞进 Line2D
+		trunk_line.add_point(curve_point)
+		
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		var dist = global_position.distance_to(get_global_mouse_position())
@@ -93,24 +137,26 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		var dynamic_angular_damping = lerp(angular_damping_whip, angular_damping_settle, progress)
 		var torque = -angular_stiffness * angle_diff - dynamic_angular_damping * state.angular_velocity
 		state.apply_torque(torque)
+		
+					 # 强制熄火
 
 # ==========================================
 # 状态 C：割草打击判定 (Area 打 Area)
 # ==========================================
 func _on_hitbox_area_entered(area: Area2D) -> void:
-	# 确保撞到的是敌人的 Hurtbox (记得在检查器里给 Hurtbox 加上 "Enemy" 分组)
+	# 第一步：核对身份。用分组（Group）判断撞到的是不是敌人
 	if area.is_in_group("Enemy"):
+		
+		# 第二步：测速。获取当前树干狂飙的“角速度”绝对值
 		var current_whip_speed = abs(angular_velocity)
 		
-		# 如果抽打速度足够快！
+		# 如果速度够快，说明是在剧烈弹射中！
 		if current_whip_speed > damage_velocity_threshold:
-			# Hurtbox 的爸爸就是 Enemy (CharacterBody2D)，呼叫它去死！
-			var enemy_body = area.get_parent() 
-			
-			# 👉 元素法球/被动吸血触发口：通知所有人砍中了一刀！伤害假设暂定为树头转速
-			var dmg = current_whip_speed
-			SignalBus.on_enemy_hit.emit(dmg, enemy_body.global_position, enemy_body)
-			
-			if enemy_body.has_method("die"):
+			# 修正：area是敌人的hurtbox(Area2D)，需要获取其父节点(敌人本体)
+			var enemy_body = area.get_parent()
+			if enemy_body and enemy_body.has_method("die"):
 				enemy_body.die()
 
+				# 💡 果汁感 (Juice) 预留口：
+				# 这里就是你之后写 Engine.time_scale = 0.05 制造打击顿挫感的地方！
+				# print("Hit! 瞬间抽击速度: ", current_whip_speed)
