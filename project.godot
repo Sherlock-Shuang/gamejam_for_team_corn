@@ -2,6 +2,7 @@ config_version=5
 
 [application]
 
+config/name="gamejam"
 run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
@@ -17,19 +18,24 @@ GameData="*res://scripts/autoloads/GameData.gd"
 SignalBus="*res://scripts/autoloads/SignalBus.gd"
 GameData="*res://scripts/autoloads/GameData.gd"
 
+[autoload]
+
+PoolManager="*uid://cm34wutvf7jeu"
+
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/size/window_width_override=1280
-window/size/window_height_override=720
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
 
 [gd_project]
 
 config_version=4
 
+[global_group]
+
+Tree=""
+
 [physics]
 
 2d/default_gravity=0.0
+2d/default_gravity_vector=Vector2(0, 0)
