@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cv43af0pxy81y"]
 
 [ext_resource type="Texture2D" uid="uid://ye7ybpsld35l" path="res://assets/sprites/trees/1h.png" id="1_8y28y"]
+[ext_resource type="Script" uid="uid://ckui70y0665x" path="res://scenes/actors/tree.gd" id="1_63up5"]
 [ext_resource type="Texture2D" uid="uid://c3w8mq6n51idb" path="res://assets/sprites/trees/1r.png" id="1_jl7e1"]
 [ext_resource type="Script" uid="uid://btpncue5mmtf3" path="res://scripts/actors/treehead.gd" id="1_mwoif"]
 [ext_resource type="Texture2D" uid="uid://clv77gnhfxkw6" path="res://assets/sprites/trees/2r.png" id="2_ujhgd"]
@@ -19,8 +20,10 @@ radius = 12.0
 height = 60.0
 
 [node name="tree" type="Node2D" unique_id=850654834 groups=["Tree"]]
+script = ExtResource("1_63up5")
 
 [node name="treeroot" type="StaticBody2D" parent="." unique_id=365445988]
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treeroot" unique_id=1608856074]
 position = Vector2(5.5, -10.5)
@@ -90,21 +93,18 @@ texture = ExtResource("9_h4xil")
 collision_layer = 4
 collision_mask = 2
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=1048735965]
+[node name="Shape1" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=1048735965]
 polygon = PackedVector2Array(-1, -194, -46, -143, -7, -18, 78, -149, 14, -212)
 
-[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=308933481]
-visible = false
+[node name="Shape2" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=308933481]
 polygon = PackedVector2Array(1, -254, -98, -217, -134, -153, -141, -70, 141, -78, 138, -194)
 disabled = true
 
-[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=2122913082]
-visible = false
+[node name="Shape3" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=2122913082]
 polygon = PackedVector2Array(5, -284, -156, -228, -168, -96, 136, -93, 175, -147, 137, -235)
 disabled = true
 
-[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=108090300]
-visible = false
+[node name="Shape4" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=108090300]
 polygon = PackedVector2Array(17, -303, -81, -284, -192, -218, -173, -88, 177, -76, 197, -157, 139, -264)
 disabled = true
 
