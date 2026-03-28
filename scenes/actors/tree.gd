@@ -4,7 +4,7 @@ extends Node2D
 @onready var head_sprites = [$treehead/HeadSprite1, $treehead/HeadSprite2, $treehead/HeadSprite3, $treehead/HeadSprite4]
 @onready var trunk_line: Line2D = $TrunkLine
 
-var trunk_widths: Array[float] = [10.0, 20.0, 30.0, 40.0] 
+var trunk_widths: Array[float] = [10.0, 40.0, 50.0, 60.0] 
 
 # 🔥 新增：用来记忆你在编辑器里调好的大小
 var base_root_scales: Array[Vector2] = []
