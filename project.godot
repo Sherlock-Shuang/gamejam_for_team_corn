@@ -10,6 +10,7 @@ config_version=5
 
 [application]
 
+config/name="树独"
 run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
@@ -18,6 +19,7 @@ description="gamejam_for_team_corn project"
 
 SignalBus="*res://scripts/autoloads/SignalBus.gd"
 GameData="*res://scripts/autoloads/GameData.gd"
+PoolManager="*res://scripts/autoloads/PoolManager.gd"
 
 [display]
 
