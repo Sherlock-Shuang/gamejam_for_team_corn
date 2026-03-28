@@ -14,6 +14,10 @@ func _ready() -> void:
 	if trees.size() > 0:
 		target_tree = trees[0]
 		
+	# 【实名防卡顿机制】：开局瞬间，在幕后默默实例化 300 个虫群放到池子里备用
+	# 这样子后期刷怪绝对没有任何创建场景树的开销！
+	PoolManager.prewarm(PoolManager.enemy_scene, 300, get_tree().current_scene)
+		
 	# 初始化波次循环计时器
 	timer.wait_time = wave_interval
 	timer.timeout.connect(_on_wave_timeout)

@@ -120,7 +120,11 @@ func _get_nearest_target() -> Node2D:
 	var nearest_enemy = null
 	
 	for e in enemies:
-		if is_instance_valid(e):
+		# 极其关键的三个过滤条件：
+		# 1. 它必须是活着的有效节点
+		# 2. 它不能是被对象池回收后处于 DISABLED 冰封状态的怪物
+		# 3. 它必须拥有 die() 方法（排除误加了分组的 Area2D / Hurtbox 等子节点）
+		if is_instance_valid(e) and e.process_mode != Node.PROCESS_MODE_DISABLED and e.has_method("die"):
 			var dist = e.global_position.distance_to(tree_owner.global_position)
 			if dist < closest_dist:
 				closest_dist = dist

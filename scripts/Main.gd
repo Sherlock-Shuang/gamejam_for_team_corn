@@ -15,7 +15,6 @@ func _ready():
 
 	# 初始化数据
 	GameData.reset()
-<<<<<<< HEAD
 	
 	# 装载核心引擎：把《技能执行器》组件挂载到树身上
 	var skill_executor_script = load("res://scripts/components/SkillExecutor.gd")
@@ -33,11 +32,9 @@ func _ready():
 	# 监听返回年轮主界面请求 (代替了之前的退出)
 	SignalBus.on_return_requested.connect(_on_return_requested)
 
-
 	# 监听敌人死亡事件
 	SignalBus.on_enemy_died.connect(_on_enemy_died)
 
->>>>>>> 51011e9f6138dfe41ec476f3d24976c919935fab
 	# ====== 经验自动增长测试 ======
 	var timer = Timer.new()
 	timer.wait_time = 0.1
@@ -103,24 +100,21 @@ func _level_up():
 	print("[Main] 升级了！当前等级: ", GameData.current_level)
 	SignalBus.on_level_up.emit(GameData.current_level)
 	
-	# 👉【Demo 演示代码】当你在局内升到 3 级，就当做“通关”本年轮
-	if GameData.current_level >= 3:
-		print("[Main] 🌲 恭喜通关当前年轮！正在解锁下一个年轮周期并返回...")
-		if GameData.current_max_stage == GameData.current_playing_stage:
-			GameData.current_max_stage += 1 # 局外最大解锁数 +1
-		# 延迟1秒返回，让玩家看到升级
-		get_tree().create_timer(1.0).timeout.connect(func(): SignalBus.on_return_requested.emit())
+	# 👉【Demo 已关闭】不再自动通关，你可以一直玩下去测试了
+	# if GameData.current_level >= 3:
+	# 	print("[Main] 🌲 恭喜通关当前年轮！正在解锁下一个年轮周期并返回...")
+	# 	if GameData.current_max_stage == GameData.current_playing_stage:
+	# 		GameData.current_max_stage += 1 # 局外最大解锁数 +1
+	# 	# 延迟1秒返回，让玩家看到升级
+	# 	get_tree().create_timer(1.0).timeout.connect(func(): SignalBus.on_return_requested.emit())
+	pass
 		
 func _on_skill_chosen(skill_id: String):
 	print("[Main] 收到进化指令: ", skill_id)
-<<<<<<< HEAD
 	
 	# 👉 对接到局外存储：记录这把在这一圈年轮上拿到的能力！
 	GameData.record_skill_for_stage(GameData.current_playing_stage, skill_id)
 	
-=======
-
->>>>>>> 51011e9f6138dfe41ec476f3d24976c919935fab
 	# 技能让树木变得更大，并暂时提升攻速！
 	var tween = create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	var target_scale = Vector2(2.0, 2.0) + Vector2(0.12, 0.12) * GameData.current_level
@@ -130,7 +124,6 @@ func _on_skill_chosen(skill_id: String):
 	if attack_timer.wait_time > 0.15:
 		attack_timer.wait_time -= 0.05
 
-<<<<<<< HEAD
 # ── 打开升级选择 UI ─────────────────────────────────────────────
 func _on_open_upgrade_ui():
 	print("[Main] 升级UI请求：暂停攻击计时器")
@@ -147,7 +140,7 @@ func _input(event: InputEvent):
 	# Escape 键暂时用作返回
 	if event.is_action_pressed("ui_cancel"):
 		SignalBus.on_return_requested.emit()
-=======
+
 func _on_enemy_died(exp_value: float, position: Vector2):
 	print("[Main] 敌人死亡，获得经验: ", exp_value)
 
@@ -164,4 +157,3 @@ func _on_enemy_died(exp_value: float, position: Vector2):
 	# 检查是否升级
 	if GameData.current_exp >= needed:
 		_level_up()
->>>>>>> 51011e9f6138dfe41ec476f3d24976c919935fab

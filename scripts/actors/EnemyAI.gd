@@ -13,7 +13,19 @@ extends CharacterBody2D
 # 缓存树的引用，避免每帧去查找
 var target_tree: Node2D = null
 
+# 因为被对象池直接拿走没被消灭，再次出场时重置状态
+func reset() -> void:
+	speed_multiplier = 1.0
+	velocity = Vector2.ZERO
+	cached_repulsion = Vector2.ZERO
+	if has_node("ColorRect"):
+		$ColorRect.color = Color(1.0, 0.0, 0.0, 1.0) # 还原初始颜色
+
+var frame_count: int = 0
+var cached_repulsion: Vector2 = Vector2.ZERO
+
 func _ready() -> void:
+	frame_count = randi() % 5
 	# 利用分组，全局安全地获取树的引用
 	# (确保你的主角树根节点或者整体加了 "Tree" 这个分组)
 	var trees = get_tree().get_nodes_in_group("Tree")
@@ -32,29 +44,32 @@ func _physics_process(delta: float) -> void:
 	var seek_force = dir_to_tree * speed * attraction_weight
 
 	# ==========================================
-	# 2. 计算斥力：避免同类重叠
+	# 2. 计算斥力：避免同类重叠 (交错优化大法)
 	# ==========================================
-	var repulsion_force = Vector2.ZERO
-	var neighbors = separation_area.get_overlapping_bodies() # 获取传感器内的所有物体
-	
-	for neighbor in neighbors:
-		# 排除自己，且只对其他同类（CharacterBody2D）产生斥力
-		if neighbor != self and neighbor is CharacterBody2D:
-			var dist_vector = global_position - neighbor.global_position
-			var dist = dist_vector.length()
-			
-			# 距离越近，斥力越巨大 (反比例函数)
-			if dist > 0.1: 
-				repulsion_force += (dist_vector.normalized() / dist) * speed * 5.0
+	# 让几百个怪物不要挤在同一帧计算 O(N^2) 的重叠！分散到不同的帧去算
+	frame_count += 1
+	if frame_count % 5 == 0:
+		cached_repulsion = Vector2.ZERO
+		var neighbors = separation_area.get_overlapping_bodies() # 获取传感器内的所有物体
+		
+		for neighbor in neighbors:
+			# 排除自己，且只对其他同类（CharacterBody2D）产生斥力
+			if neighbor != self and neighbor is CharacterBody2D:
+				var dist_vector = global_position - neighbor.global_position
+				var dist = dist_vector.length()
+				
+				# 距离越近，斥力越巨大 (反比例函数)
+				if dist > 0.1: 
+					cached_repulsion += (dist_vector.normalized() / dist) * speed * 5.0
 
-	# 限制斥力的最大阈值，防止虫群像爆炸一样飞出屏幕
-	if repulsion_force.length() > speed * 3:
-		repulsion_force = repulsion_force.normalized() * speed * 3
+		# 限制斥力的最大阈值，防止虫群像爆炸一样飞出屏幕
+		if cached_repulsion.length() > speed * 3:
+			cached_repulsion = cached_repulsion.normalized() * speed * 3
 
 	# ==========================================
 	# 3. 向量合成与平滑运动
 	# ==========================================
-	var desired_velocity = seek_force + (repulsion_force * repulsion_weight)
+	var desired_velocity = seek_force + (cached_repulsion * repulsion_weight)
 	
 	# 加入元素减速影响
 	var final_speed = desired_velocity.limit_length(speed) * speed_multiplier
@@ -95,5 +110,5 @@ func die() -> void:
 	# TODO: 交给队友 —— 在这里实例化掉落的经验球 (Nutrient)
 	# TODO: 交给队友 —— 在这里触发死亡音效或粒子特效
 
-	# 无情销毁自己
-	queue_free()
+	# 回收到池子里！（替代原先掉帧的 queue_free）
+	PoolManager.return_instance(self)

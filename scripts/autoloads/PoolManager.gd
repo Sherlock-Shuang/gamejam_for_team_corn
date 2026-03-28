@@ -7,6 +7,23 @@ extends Node
 # 数据结构：字典。Key 为路径(String)或 PackedScene，Value 为 Array[Node]
 var _pools: Dictionary = {}
 
+## 【性能终极优化】：预热池子（开局调用一次，把几百个怪瞬间藏好）
+func prewarm(scene: PackedScene, count: int, parent_node: Node) -> void:
+	var path_key = scene.resource_path
+	if not _pools.has(path_key):
+		_pools[path_key] = []
+		
+	var arr = _pools[path_key]
+	for i in range(count):
+		var enemy = scene.instantiate()
+		enemy.set_meta("pool_key", path_key)
+		enemy.process_mode = Node.PROCESS_MODE_DISABLED
+		if enemy.has_method("hide"):
+			enemy.hide()
+		parent_node.add_child(enemy)
+		arr.append(enemy)
+	print("[PoolManager] 已成功预热 (Pre-warm) 了 %d 个实体进入对象池。" % count)
+
 ## 获取一个对象池实例
 func get_instance(res_path_or_scene) -> Node:
 	var path_key = ""
@@ -33,10 +50,14 @@ func get_instance(res_path_or_scene) -> Node:
 	while pool_array.size() > 0:
 		instance = pool_array.pop_back()
 		if is_instance_valid(instance):
-			# 恢复节点状态
+			# 恢复节点状态 (解除冻结冰封状态)
 			instance.process_mode = Node.PROCESS_MODE_INHERIT
-			if instance is CanvasItem or instance is Node2D or instance is Node3D:
+			if instance.has_method("show"):
 				instance.show()
+			
+			# 如果节点带有 reset 自定义函数，则在这里初始化它
+			if instance.has_method("reset"):
+				instance.reset()
 			break
 		else:
 			instance = null
@@ -68,12 +89,10 @@ func return_instance(node: Node):
 	if pool_array.has(node):
 		return
 		
-	# 拔出场景树，或者直接禁用 (为了避免复杂的 add/remove 消耗，推荐保留在树里但是隐藏)
-	if node.get_parent():
-		node.get_parent().remove_child(node)
-		
+	# 【性能优化核心】：坚决不用 remove_child 拔出场景树了！
+	# 只将它冻结逻辑计算，并隐藏显示，直接塞回待机队列。
 	node.process_mode = Node.PROCESS_MODE_DISABLED
-	if node is CanvasItem or node is Node2D or node is Node3D:
+	if node.has_method("hide"):
 		node.hide()
 		
 	pool_array.append(node)
@@ -81,8 +100,12 @@ func return_instance(node: Node):
 # --- 兼容旧代码的方法 ---
 var enemy_scene: PackedScene = preload("res://scenes/actors/Enemy.tscn")
 func get_enemy(spawn_pos: Vector2) -> Node2D:
-	var enemy = enemy_scene.instantiate()
+	# 核心：不能直接 instantiate，必须从我们自定义的字典池子里捞！
+	var enemy = get_instance(enemy_scene)
+	
+	# 如果它是全新生成的还没爸爸，或者由于其他原因掉出树外，才走巨耗时的 add_child 
+	if not enemy.is_inside_tree():
+		get_tree().current_scene.add_child(enemy)
+		
 	enemy.global_position = spawn_pos
-	# 将生成的怪物直接挂载到当前主场景的根节点下
-	get_tree().current_scene.add_child(enemy)
 	return enemy
