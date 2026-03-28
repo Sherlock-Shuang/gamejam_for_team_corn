@@ -1,45 +1,14 @@
 [gd_scene format=3 uid="uid://c5w7d4pgmtqas"]
 
 [ext_resource type="PackedScene" uid="uid://n4i7ihpqv5ai" path="res://scenes/actors/Tree.tscn" id="1_glv2v"]
-[ext_resource type="PackedScene" uid="uid://cdhho7v71cumv" path="res://scenes/actors/Enemy.tscn" id="2_uu6xs"]
+[ext_resource type="Script" uid="uid://cxw1lcyncjxl1" path="res://scripts/components/WaveManager.gd" id="3_r0du0"]
 
 [node name="Main" type="Node2D" unique_id=919412338]
 y_sort_enabled = true
 
 [node name="Tree" parent="." unique_id=543650301 instance=ExtResource("1_glv2v")]
 
-[node name="Enemy" parent="." unique_id=1243736495 instance=ExtResource("2_uu6xs")]
-position = Vector2(-154, 58)
+[node name="WaveManager" type="Node" parent="." unique_id=508826990]
+script = ExtResource("3_r0du0")
 
-[node name="Enemy2" parent="." unique_id=1284909816 instance=ExtResource("2_uu6xs")]
-position = Vector2(-124, -57)
-
-[node name="Enemy3" parent="." unique_id=842501390 instance=ExtResource("2_uu6xs")]
-position = Vector2(150, 71)
-
-[node name="Enemy4" parent="." unique_id=75051980 instance=ExtResource("2_uu6xs")]
-position = Vector2(206, -120)
-
-[node name="Enemy5" parent="." unique_id=2121564670 instance=ExtResource("2_uu6xs")]
-position = Vector2(120, 91)
-
-[node name="Enemy6" parent="." unique_id=36189479 instance=ExtResource("2_uu6xs")]
-position = Vector2(-50, 146)
-
-[node name="Enemy7" parent="." unique_id=1010208074 instance=ExtResource("2_uu6xs")]
-position = Vector2(-302, -215)
-
-[node name="Enemy8" parent="." unique_id=697593195 instance=ExtResource("2_uu6xs")]
-position = Vector2(-303, 143)
-
-[node name="Enemy9" parent="." unique_id=1058791660 instance=ExtResource("2_uu6xs")]
-position = Vector2(21, -251)
-
-[node name="Enemy10" parent="." unique_id=840245638 instance=ExtResource("2_uu6xs")]
-position = Vector2(403, 83)
-
-[node name="Enemy11" parent="." unique_id=509328846 instance=ExtResource("2_uu6xs")]
-position = Vector2(184, 260)
-
-[node name="Enemy12" parent="." unique_id=1609040433 instance=ExtResource("2_uu6xs")]
-position = Vector2(-127, -262)
+[node name="WaveTimer" type="Timer" parent="WaveManager" unique_id=1899181150]

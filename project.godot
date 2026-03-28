@@ -15,6 +15,10 @@ run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
 
+[autoload]
+
+PoolManager="*uid://cm34wutvf7jeu"
+
 [display]
 
 window/size/viewport_width=1280
