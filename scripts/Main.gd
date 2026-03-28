@@ -16,8 +16,21 @@ func _ready():
 	# 初始化数据
 	GameData.reset()
 	
+	# 装载核心引擎：把《技能执行器》组件挂载到树身上
+	var skill_executor_script = load("res://scripts/components/SkillExecutor.gd")
+	var skill_executor = skill_executor_script.new()
+	skill_executor.name = "SkillExecutor"
+	tree.add_child(skill_executor)
+	print("[Main] SkillExecutor 已成功挂载到 PlayerTree 下。")
+	
 	# 监听玩家的选择
 	SignalBus.on_upgrade_selected.connect(_on_skill_chosen)
+	
+	# 监听升级UI打开请求 (Dev A 触发 → Main 暂停攻击计时器 → Dev B 的UI弹出)
+	SignalBus.open_upgrade_ui.connect(_on_open_upgrade_ui)
+	
+	# 监听返回年轮主界面请求 (代替了之前的退出)
+	SignalBus.on_return_requested.connect(_on_return_requested)
 	
 	# ====== 经验自动增长测试 ======
 	var timer = Timer.new()
@@ -83,9 +96,20 @@ func _level_up():
 	
 	print("[Main] 升级了！当前等级: ", GameData.current_level)
 	SignalBus.on_level_up.emit(GameData.current_level)
-
+	
+	# 👉【Demo 演示代码】当你在局内升到 3 级，就当做“通关”本年轮
+	if GameData.current_level >= 3:
+		print("[Main] 🌲 恭喜通关当前年轮！正在解锁下一个年轮周期并返回...")
+		if GameData.current_max_stage == GameData.current_playing_stage:
+			GameData.current_max_stage += 1 # 局外最大解锁数 +1
+		# 延迟1秒返回，让玩家看到升级
+		get_tree().create_timer(1.0).timeout.connect(func(): SignalBus.on_return_requested.emit())
+		
 func _on_skill_chosen(skill_id: String):
 	print("[Main] 收到进化指令: ", skill_id)
+	
+	# 👉 对接到局外存储：记录这把在这一圈年轮上拿到的能力！
+	GameData.record_skill_for_stage(GameData.current_playing_stage, skill_id)
 	
 	# 技能让树木变得更大，并暂时提升攻速！
 	var tween = create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
@@ -95,3 +119,20 @@ func _on_skill_chosen(skill_id: String):
 	# 升级后让攻击变快一点，让玩家有正反馈
 	if attack_timer.wait_time > 0.15:
 		attack_timer.wait_time -= 0.05
+
+# ── 打开升级选择 UI ─────────────────────────────────────────────
+func _on_open_upgrade_ui():
+	print("[Main] 升级UI请求：暂停攻击计时器")
+	attack_timer.paused = true
+	# UpgradeUI 自己监听 open_upgrade_ui 信号并显示，Main 不直接操作它
+
+# ── 返回年轮主界面 ────────────────────────────────────────────────────
+func _on_return_requested():
+	print("[Main] 收到返回请求，正在退回年轮...")
+	get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
+
+# ── 键盘快捷键 ─────────────────────────────────────────────────
+func _input(event: InputEvent):
+	# Escape 键暂时用作返回
+	if event.is_action_pressed("ui_cancel"):
+		SignalBus.on_return_requested.emit()

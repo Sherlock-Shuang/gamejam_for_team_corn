@@ -56,20 +56,38 @@ func _physics_process(delta: float) -> void:
 	# ==========================================
 	var desired_velocity = seek_force + (repulsion_force * repulsion_weight)
 	
+	# 加入元素减速影响
+	var final_speed = desired_velocity.limit_length(speed) * speed_multiplier
+	
 	# 使用 lerp(线性插值) 模拟物理惯性和阻尼感，而不是瞬间转向
-	velocity = velocity.lerp(desired_velocity.limit_length(speed), 0.1)
+	velocity = velocity.lerp(final_speed, 0.1)
 
 	# 执行 Godot 内部移动逻辑
 	move_and_slide()
 
 # ==========================================
+# 元素与状态控制
+# ==========================================
+var speed_multiplier: float = 1.0
+
+func apply_slow(ratio: float, duration: float) -> void:
+	speed_multiplier = clampf(1.0 - ratio, 0.1, 1.0)
+	$ColorRect.color = Color(0.3, 0.6, 1.0, 1.0) # 变成蓝色
+	# 创建一个一次性定时器恢复速度
+	var timer = get_tree().create_timer(duration)
+	timer.timeout.connect(func():
+		$ColorRect.color = Color(1.0, 0.0, 0.0, 1.0) # 恢复红色
+		speed_multiplier = 1.0
+	)
+
+# ==========================================
 # 4. 战斗接口：专门暴露给树干调用的“受死”方法
 # ==========================================
 func die() -> void:
-	print("💥 虫群被碾碎了！")
+	print("💥 虫群被碾碎了！掉落经验。")
 	
-	# TODO: 交给队友 —— 在这里实例化掉落的经验球 (Nutrient)
-	# TODO: 交给队友 —— 在这里触发死亡音效或粒子特效
+	# 抛出死亡事件 (让 Dev B 的逻辑知道)
+	SignalBus.on_enemy_died.emit(1.0, global_position)
 	
-	# 无情销毁自己
+	# 无情销毁自己，后续改成 PoolManager
 	queue_free()

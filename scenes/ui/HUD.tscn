@@ -100,3 +100,30 @@ text = "WAVE 1"
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.85, 0.65, 0.3, 0.9)
 vertical_alignment = 1
+
+[node name="TopRightAnchor" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TopRightAnchor"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -118.0
+offset_bottom = 57.0
+grow_horizontal = 0
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_top = 20
+
+[node name="ReturnButton" type="Button" parent="TopRightAnchor/MarginContainer"]
+layout_mode = 2
+text = "[ 返回年轮 ]"
+theme_override_colors/font_color = Color(0.8, 0.9, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+

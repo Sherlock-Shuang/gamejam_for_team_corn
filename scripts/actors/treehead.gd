@@ -106,5 +106,11 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		if current_whip_speed > damage_velocity_threshold:
 			# Hurtbox 的爸爸就是 Enemy (CharacterBody2D)，呼叫它去死！
 			var enemy_body = area.get_parent() 
+			
+			# 👉 元素法球/被动吸血触发口：通知所有人砍中了一刀！伤害假设暂定为树头转速
+			var dmg = current_whip_speed
+			SignalBus.on_enemy_hit.emit(dmg, enemy_body.global_position, enemy_body)
+			
 			if enemy_body.has_method("die"):
 				enemy_body.die()
+

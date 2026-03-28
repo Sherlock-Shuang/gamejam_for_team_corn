@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://dd82ci0rmstnp"]
 
-[ext_resource type="PackedScene" uid="uid://cv43af0pxy81y" path="res://scenes/actors/tree.tscn" id="1_glv2v"]
+[ext_resource type="PackedScene" path="res://scenes/actors/tree.tscn" id="1_glv2v"]
 [ext_resource type="Script" uid="uid://buhao6amga72b" path="res://scripts/Main.gd" id="1_main"]
 
 [node name="Main" type="Node" unique_id=2125892693]
 script = ExtResource("1_main")
 
 [node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
-position = Vector2(640, 361)
+position = Vector2(742, 416)
