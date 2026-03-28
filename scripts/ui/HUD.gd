@@ -9,6 +9,7 @@ extends CanvasLayer
 @onready var level_label: Label = $HUDMargin/HUDContainer/RingContainer/LevelLabel
 @onready var wave_label: Label = $HUDMargin/HUDContainer/WaveLabel
 @onready var stage_label: Label = $HUDMargin/HUDContainer/StageLabel
+@onready var return_button: Button = $TopRightAnchor/MarginContainer/ReturnButton
 
 # 血量颜色渐变: 绿(满血) → 黄(半血) → 红(低血)
 var hp_color_full: Color = Color(0.2, 0.7, 0.15)    # 翠绿
@@ -21,6 +22,9 @@ func _ready():
 	SignalBus.on_exp_gained.connect(_on_exp_gained)
 	SignalBus.on_level_up.connect(_on_level_up)
 	SignalBus.on_wave_started.connect(_on_wave_started)
+	
+	# 退出按鈕：pressed 信号 → SignalBus → 后续用来返回年轮主选单
+	return_button.pressed.connect(func(): SignalBus.on_return_requested.emit())
 	
 	# 初始化显示
 	_update_hp_display(1.0)
