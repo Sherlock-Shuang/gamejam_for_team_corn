@@ -1,41 +1,57 @@
 [gd_scene format=3 uid="uid://cv43af0pxy81y"]
 
+[ext_resource type="Texture2D" uid="uid://ye7ybpsld35l" path="res://assets/sprites/trees/1h.png" id="1_8y28y"]
+[ext_resource type="Texture2D" uid="uid://c3w8mq6n51idb" path="res://assets/sprites/trees/1r.png" id="1_jl7e1"]
 [ext_resource type="Script" uid="uid://btpncue5mmtf3" path="res://scripts/actors/treehead.gd" id="1_mwoif"]
+[ext_resource type="Texture2D" uid="uid://clv77gnhfxkw6" path="res://assets/sprites/trees/2r.png" id="2_ujhgd"]
+[ext_resource type="Texture2D" uid="uid://c7x8e2ev4qj4x" path="res://assets/sprites/trees/3r.png" id="3_mb5r6"]
+[ext_resource type="Texture2D" uid="uid://tmiegv8qj1qy" path="res://assets/sprites/trees/4r.png" id="4_5fpp0"]
+[ext_resource type="Texture2D" uid="uid://c0hflga007htj" path="res://assets/sprites/trees/l.png" id="4_bkd26"]
+[ext_resource type="Texture2D" uid="uid://is3cdd233wnu" path="res://assets/sprites/trees/2h.png" id="7_ffmh2"]
+[ext_resource type="Texture2D" uid="uid://crhans3u5rkaa" path="res://assets/sprites/trees/3h.png" id="8_63up5"]
+[ext_resource type="Texture2D" uid="uid://dto44xndknqd2" path="res://assets/sprites/trees/4h.png" id="9_h4xil"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3dh50"]
-size = Vector2(60, 60)
-
-[sub_resource type="Gradient" id="Gradient_3dh50"]
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_mwoif"]
-gradient = SubResource("Gradient_3dh50")
+size = Vector2(123, 39)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mwoif"]
-radius = 38.0
-height = 110.0
-
-[sub_resource type="Gradient" id="Gradient_8y28y"]
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_6qoma"]
-gradient = SubResource("Gradient_8y28y")
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8y28y"]
-radius = 64.0
-height = 234.0
+radius = 12.0
+height = 60.0
 
 [node name="tree" type="Node2D" unique_id=850654834 groups=["Tree"]]
 
 [node name="treeroot" type="StaticBody2D" parent="." unique_id=365445988]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treeroot" unique_id=1608856074]
+position = Vector2(5.5, -10.5)
 shape = SubResource("RectangleShape2D_3dh50")
 
-[node name="Sprite2D" type="Sprite2D" parent="treeroot" unique_id=283189642]
-position = Vector2(3, -9.536743e-07)
-scale = Vector2(0.2421875, 56)
-texture = SubResource("GradientTexture1D_mwoif")
+[node name="RootSprite1" type="Sprite2D" parent="treeroot" unique_id=283189642]
+position = Vector2(1.0000001, -96.99999)
+scale = Vector2(-0.17966169, 0.1546981)
+texture = ExtResource("1_jl7e1")
+
+[node name="RootSprite2" type="Sprite2D" parent="treeroot" unique_id=793451113]
+visible = false
+position = Vector2(1.0000001, -96.99999)
+scale = Vector2(-0.17966169, 0.1546981)
+texture = ExtResource("2_ujhgd")
+
+[node name="RootSprite3" type="Sprite2D" parent="treeroot" unique_id=2013059854]
+visible = false
+position = Vector2(1.0000001, -96.99999)
+scale = Vector2(-0.17966169, 0.1546981)
+texture = ExtResource("3_mb5r6")
+
+[node name="RootSprite4" type="Sprite2D" parent="treeroot" unique_id=1383649761]
+visible = false
+position = Vector2(1.0000001, -96.99999)
+scale = Vector2(-0.17966169, 0.1546981)
+texture = ExtResource("4_5fpp0")
 
 [node name="treehead" type="RigidBody2D" parent="." unique_id=623497244 node_paths=PackedStringArray("tree_root")]
+z_index = 2
+collision_mask = 0
 gravity_scale = 0.0
 can_sleep = false
 linear_damp = 0.5
@@ -43,21 +59,70 @@ script = ExtResource("1_mwoif")
 tree_root = NodePath("../treeroot")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treehead" unique_id=2046942878]
-position = Vector2(-1, -188)
+position = Vector2(0, -132)
 shape = SubResource("CapsuleShape2D_mwoif")
+metadata/_edit_group_ = true
 
-[node name="Sprite2D" type="Sprite2D" parent="treehead" unique_id=187168219]
-position = Vector2(1, -184)
-scale = Vector2(1, 1.578125)
-texture = SubResource("GradientTexture2D_6qoma")
+[node name="HeadSprite1" type="Sprite2D" parent="treehead" unique_id=187168219]
+position = Vector2(-8.000002, -127)
+scale = Vector2(0.1920189, 0.15904239)
+texture = ExtResource("1_8y28y")
+
+[node name="HeadSprite2" type="Sprite2D" parent="treehead" unique_id=1434424522]
+visible = false
+position = Vector2(-3.0000005, -131)
+scale = Vector2(0.2, 0.166)
+texture = ExtResource("7_ffmh2")
+
+[node name="HeadSprite3" type="Sprite2D" parent="treehead" unique_id=837389224]
+visible = false
+position = Vector2(-3, -144)
+scale = Vector2(0.23, 0.191)
+texture = ExtResource("8_63up5")
+
+[node name="HeadSprite4" type="Sprite2D" parent="treehead" unique_id=1492413980]
+visible = false
+position = Vector2(-15, -147)
+scale = Vector2(0.25, 0.207)
+texture = ExtResource("9_h4xil")
 
 [node name="hitbox" type="Area2D" parent="treehead" unique_id=1376484867]
+collision_layer = 4
+collision_mask = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="treehead/hitbox" unique_id=1581523542]
-position = Vector2(4, -169)
-shape = SubResource("CapsuleShape2D_8y28y")
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=1048735965]
+polygon = PackedVector2Array(-1, -194, -46, -143, -7, -18, 78, -149, 14, -212)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=308933481]
+visible = false
+polygon = PackedVector2Array(1, -254, -98, -217, -134, -153, -141, -70, 141, -78, 138, -194)
+disabled = true
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=2122913082]
+visible = false
+polygon = PackedVector2Array(5, -284, -156, -228, -168, -96, 136, -93, 175, -147, 137, -235)
+disabled = true
+
+[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=108090300]
+visible = false
+polygon = PackedVector2Array(17, -303, -81, -284, -192, -218, -173, -88, 177, -76, 197, -157, 139, -264)
+disabled = true
+
+[node name="CrownTarget" type="Marker2D" parent="treehead" unique_id=1001491027]
+position = Vector2(-1, -119)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=288142139]
 zoom = Vector2(1.3, 1.3)
+
+[node name="TrunkLine" type="Line2D" parent="." unique_id=724937465]
+z_index = 1
+position = Vector2(-4, 44.000004)
+scale = Vector2(2.3718748, 3.3968272)
+points = PackedVector2Array(0, -46, 0, -31.802505, 0, -20.478851)
+width = 7.0
+default_color = Color(1.177762, 1.0069458, 0.9192293, 1)
+texture = ExtResource("4_bkd26")
+texture_mode = 2
+joint_mode = 2
 
 [connection signal="area_entered" from="treehead/hitbox" to="treehead" method="_on_hitbox_area_entered"]

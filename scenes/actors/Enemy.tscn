@@ -12,6 +12,8 @@ radius = 29.0
 size = Vector2(44, 44)
 
 [node name="Enemy" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
+collision_layer = 2
+collision_mask = 6
 motion_mode = 1
 script = ExtResource("1_jq30h")
 
@@ -31,6 +33,8 @@ shape = SubResource("CircleShape2D_4i4j6")
 shape = SubResource("CircleShape2D_ay0ne")
 
 [node name="hurtbox" type="Area2D" parent="." unique_id=1683098082 groups=["Enemy"]]
+collision_layer = 2
+collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hurtbox" unique_id=1426947378]
 shape = SubResource("RectangleShape2D_jq30h")
