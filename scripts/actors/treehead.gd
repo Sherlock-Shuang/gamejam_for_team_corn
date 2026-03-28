@@ -179,14 +179,35 @@ func evolve_test(stage: int) -> void:
 	if controller.has_method("evolve_to_stage"):
 		controller.evolve_to_stage(stage)
 
+# ==========================================
+# 状态 C：割草打击判定 (Area 打 Area)
+# ==========================================
 func _on_hitbox_area_entered(area: Area2D) -> void:
 	if area.is_in_group("Enemy"):
 		var current_whip_speed = abs(angular_velocity)
 		if current_whip_speed > damage_velocity_threshold:
 			var enemy_body = area.get_parent()
-			if enemy_body and enemy_body.has_method("die"):
-				enemy_body.die()
+			
+			# 1. 检查是否有 take_damage 方法（走正规扣血流程，而不是直接秒杀）
+			if enemy_body and enemy_body.has_method("take_damage"):
+				# 2. 根据挥鞭速度计算动态伤害
+				var damage = (current_whip_speed - damage_velocity_threshold) * damage_multiplier
+				
+				# 3. 【核心修复】传入伤害值，并且把树干的 global_position 传过去！
+				enemy_body.take_damage(damage, global_position)
 
-				# 💡 果汁感 (Juice) 预留口：
-				# 这里就是你之后写 Engine.time_scale = 0.05 制造打击顿挫感的地方！
-				# print("Hit! 瞬间抽击速度: ", current_whip_speed)
+				# 4. 触发果汁感 (Juice) —— 打击停顿
+				trigger_hit_stop()
+
+# ==========================================
+# 表现层：打击顿挫感 (Hit Stop)
+# ==========================================
+func trigger_hit_stop() -> void:
+	# 瞬间将全局时间缩放降至极低，产生强烈的“卡肉感”
+	Engine.time_scale = 0.05
+	
+	# 创建一个计时器，注意必须乘以当前的 time_scale，否则现实中的 0.1 秒会在游戏里变成 2 秒
+	await get_tree().create_timer(0.1 * Engine.time_scale).timeout 
+	
+	# 恢复正常时间
+	Engine.time_scale = 1.0
