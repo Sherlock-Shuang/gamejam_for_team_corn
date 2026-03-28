@@ -12,6 +12,11 @@ config/name="树独"
 SignalBus="*res://scripts/autoloads/SignalBus.gd"
 GameData="*res://scripts/autoloads/GameData.gd"
 
+[autoload]
+
+SignalBus="*res://scripts/autoloads/SignalBus.gd"
+GameData="*res://scripts/autoloads/GameData.gd"
+
 [display]
 
 window/size/viewport_width=1280
