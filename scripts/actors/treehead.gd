@@ -7,6 +7,7 @@ extends RigidBody2D
 @export var grab_radius: float = 200
 @export var max_drag_angle_deg: float = 60.0 
 
+
 # ==========================================
 # 【手感参数 1】拉扯张力与阻力感 (Tension)
 # ==========================================
@@ -25,7 +26,7 @@ extends RigidBody2D
 # ==========================================
 # 【战斗参数】伤害判定阈值
 # ==========================================
-@export var damage_velocity_threshold: float = 8.0   # 角速度超过 8 才有杀伤力
+@export var damage_velocity_threshold: float = 3.0   # 角速度超过 8 才有杀伤力
 
 var is_dragging: bool = false
 var time_since_release: float = 999.0 
@@ -98,13 +99,19 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 # 状态 C：割草打击判定 (Area 打 Area)
 # ==========================================
 func _on_hitbox_area_entered(area: Area2D) -> void:
-	# 确保撞到的是敌人的 Hurtbox (记得在检查器里给 Hurtbox 加上 "Enemy" 分组)
+	# 第一步：核对身份。用分组（Group）判断撞到的是不是敌人
 	if area.is_in_group("Enemy"):
+		
+		# 第二步：测速。获取当前树干狂飙的“角速度”绝对值
 		var current_whip_speed = abs(angular_velocity)
 		
-		# 如果抽打速度足够快！
+		# 如果速度够快，说明是在剧烈弹射中！
 		if current_whip_speed > damage_velocity_threshold:
-			# Hurtbox 的爸爸就是 Enemy (CharacterBody2D)，呼叫它去死！
-			var enemy_body = area.get_parent() 
-			if enemy_body.has_method("die"):
+			# 修正：area是敌人的hurtbox(Area2D)，需要获取其父节点(敌人本体)
+			var enemy_body = area.get_parent()
+			if enemy_body and enemy_body.has_method("die"):
 				enemy_body.die()
+
+				# 💡 果汁感 (Juice) 预留口：
+				# 这里就是你之后写 Engine.time_scale = 0.05 制造打击顿挫感的地方！
+				# print("Hit! 瞬间抽击速度: ", current_whip_speed)

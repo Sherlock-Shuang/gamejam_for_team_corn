@@ -2,9 +2,16 @@
 
 [ext_resource type="PackedScene" uid="uid://cv43af0pxy81y" path="res://scenes/actors/tree.tscn" id="1_glv2v"]
 [ext_resource type="Script" uid="uid://buhao6amga72b" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://cxw1lcyncjxl1" path="res://scripts/components/WaveManager.gd" id="3_r0du0"]
 
 [node name="Main" type="Node" unique_id=2125892693]
 script = ExtResource("1_main")
 
 [node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
 position = Vector2(640, 361)
+
+[node name="WaveManager" type="Node2D" parent="." unique_id=1479777663]
+script = ExtResource("3_r0du0")
+
+[node name="WaveTimer" type="Timer" parent="WaveManager" unique_id=589680546]
+autostart = true

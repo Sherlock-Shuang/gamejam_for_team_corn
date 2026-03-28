@@ -67,9 +67,15 @@ func _physics_process(delta: float) -> void:
 # ==========================================
 func die() -> void:
 	print("💥 虫群被碾碎了！")
-	
+
+	# 从 GameData 获取当前敌人的经验值（这里先用固定值，后续可以从配置读取）
+	var exp_drop = 1.0
+
+	# 发送敌人死亡信号，通知系统掉落经验
+	SignalBus.on_enemy_died.emit(exp_drop, global_position)
+
 	# TODO: 交给队友 —— 在这里实例化掉落的经验球 (Nutrient)
 	# TODO: 交给队友 —— 在这里触发死亡音效或粒子特效
-	
+
 	# 无情销毁自己
 	queue_free()

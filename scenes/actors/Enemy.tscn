@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cdhho7v71cumv"]
 
-[ext_resource type="Script" path="res://scripts/actors/EnemyAI.gd" id="1_jq30h"]
+[ext_resource type="Script" uid="uid://cwtrqm1e1jukb" path="res://scripts/actors/EnemyAI.gd" id="1_jq30h"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_4i4j6"]
 radius = 17.029387
@@ -11,7 +11,7 @@ radius = 29.0
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
 size = Vector2(44, 44)
 
-[node name="Enemy" type="CharacterBody2D" unique_id=1243736495]
+[node name="Enemy" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
 motion_mode = 1
 script = ExtResource("1_jq30h")
 
@@ -30,7 +30,7 @@ shape = SubResource("CircleShape2D_4i4j6")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SeparationArea" unique_id=1473732722]
 shape = SubResource("CircleShape2D_ay0ne")
 
-[node name="hurtbox" type="Area2D" parent="." unique_id=1683098082]
+[node name="hurtbox" type="Area2D" parent="." unique_id=1683098082 groups=["Enemy"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hurtbox" unique_id=1426947378]
 shape = SubResource("RectangleShape2D_jq30h")

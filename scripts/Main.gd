@@ -12,13 +12,16 @@ var attack_timer: Timer
 
 func _ready():
 	print("[Main] 游戏启动，正在建立各系统连接...")
-	
+
 	# 初始化数据
 	GameData.reset()
-	
+
 	# 监听玩家的选择
 	SignalBus.on_upgrade_selected.connect(_on_skill_chosen)
-	
+
+	# 监听敌人死亡事件
+	SignalBus.on_enemy_died.connect(_on_enemy_died)
+
 	# ====== 经验自动增长测试 ======
 	var timer = Timer.new()
 	timer.wait_time = 0.1
@@ -86,12 +89,29 @@ func _level_up():
 
 func _on_skill_chosen(skill_id: String):
 	print("[Main] 收到进化指令: ", skill_id)
-	
+
 	# 技能让树木变得更大，并暂时提升攻速！
 	var tween = create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	var target_scale = Vector2(2.0, 2.0) + Vector2(0.12, 0.12) * GameData.current_level
 	tween.tween_property(tree, "scale", target_scale, 0.8)
-	
+
 	# 升级后让攻击变快一点，让玩家有正反馈
 	if attack_timer.wait_time > 0.15:
 		attack_timer.wait_time -= 0.05
+
+func _on_enemy_died(exp_value: float, position: Vector2):
+	print("[Main] 敌人死亡，获得经验: ", exp_value)
+
+	# 增加经验值
+	GameData.current_exp += exp_value
+
+	# 计算经验进度
+	var needed = GameData.get_exp_to_next_level(GameData.current_level)
+	var ratio = GameData.current_exp / needed
+
+	# 通知 HUD 更新经验条
+	SignalBus.on_exp_gained.emit(ratio)
+
+	# 检查是否升级
+	if GameData.current_exp >= needed:
+		_level_up()
