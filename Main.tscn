@@ -1,7 +1,14 @@
-[gd_scene format=3 uid="uid://dd82ci0rmstnp"]
+[gd_scene format=3 uid="uid://c5w7d4pgmtqas"]
 
-[ext_resource type="PackedScene" uid="uid://cv43af0pxy81y" path="res://scenes/actors/tree.tscn" id="1_glv2v"]
+[ext_resource type="PackedScene" uid="uid://n4i7ihpqv5ai" path="res://scenes/actors/Tree.tscn" id="1_glv2v"]
+[ext_resource type="Script" uid="uid://cxw1lcyncjxl1" path="res://scripts/components/WaveManager.gd" id="3_r0du0"]
 
-[node name="Main" type="Node" unique_id=2125892693]
+[node name="Main" type="Node2D" unique_id=919412338]
+y_sort_enabled = true
 
-[node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
+[node name="Tree" parent="." unique_id=543650301 instance=ExtResource("1_glv2v")]
+
+[node name="WaveManager" type="Node" parent="." unique_id=508826990]
+script = ExtResource("3_r0du0")
+
+[node name="WaveTimer" type="Timer" parent="WaveManager" unique_id=1899181150]
