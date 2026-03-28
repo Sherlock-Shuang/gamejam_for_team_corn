@@ -6,19 +6,32 @@ extends CharacterBody2D
 @export var speed: float = 120.0
 @export var attraction_weight: float = 1.0  # 向心引力权重
 @export var repulsion_weight: float = 2.0   # 互斥力权重（调大可以让虫群散得更开）
+@export var max_health: float = 10.0        # 最大生命值
+@export var exp_drop: float = 1.0           # 死亡时掉落的经验值
 
 # 引用我们在第一步建好的传感器 (用于推开同类)
 @onready var separation_area: Area2D = $SeparationArea
 
 # 缓存树的引用，避免每帧去查找
 var target_tree: Node2D = null
+var current_health: float
+var tween: Tween
 
 func _ready() -> void:
+	current_health = max_health
 	# 利用分组，全局安全地获取树的引用
 	# (确保你的主角树根节点或者整体加了 "Tree" 这个分组)
 	var trees = get_tree().get_nodes_in_group("Tree")
 	if trees.size() > 0:
 		target_tree = trees[0]
+
+func reset() -> void:
+	current_health = max_health
+	set_physics_process(true)
+	velocity = Vector2.ZERO
+	if tween:
+		tween.kill()
+		tween = null
 
 func _physics_process(delta: float) -> void:
 	# 如果树死了（或者还没生成），原地待命
@@ -65,17 +78,40 @@ func _physics_process(delta: float) -> void:
 # ==========================================
 # 4. 战斗接口：专门暴露给树干调用的“受死”方法
 # ==========================================
-func die() -> void:
+# 【新增参数】强制要求伤害来源传入它的位置 (attack_source_position)
+func take_damage(damage: float, attack_source_position: Vector2) -> void:
+	current_health -= damage
+	if current_health <= 0:
+		die(attack_source_position) # 把坐标传给 die
+
+func die(attack_source_position: Vector2) -> void:
 	print("💥 虫群被碾碎了！")
 
-	# 从 GameData 获取当前敌人的经验值（这里先用固定值，后续可以从配置读取）
-	var exp_drop = 1.0
-
-	# 发送敌人死亡信号，通知系统掉落经验
+	# 发送敌人死亡信号
 	SignalBus.on_enemy_died.emit(exp_drop, global_position)
 
-	# TODO: 交给队友 —— 在这里实例化掉落的经验球 (Nutrient)
-	# TODO: 交给队友 —— 在这里触发死亡音效或粒子特效
+	# 触发击飞动画，继续传递攻击源坐标
+	play_death_animation(attack_source_position)
 
-	# 无情销毁自己
-	queue_free()
+# 【核心修改】利用传入的坐标计算真实的物理击飞方向
+func play_death_animation(attack_source_position: Vector2) -> void:
+	set_physics_process(false)
+	
+	# 替换掉原来的随机方向！
+	# 向量相减：用敌人的位置(global_position) 减去 攻击源的位置(attack_source_position)
+	var knockback_direction = (global_position - attack_source_position).normalized()
+	
+	# 防错：如果两者坐标完全重叠（极小概率），给一个默认向上的力
+	if knockback_direction == Vector2.ZERO:
+		knockback_direction = Vector2.UP
+		
+	var knockback_distance = 400.0
+	var knockback_duration = 0.4
+	
+	tween = create_tween()
+	# 加上缓动曲线（TRANS_EXPO + EASE_OUT），让击飞呈现出“起步爆弹、后续摩擦减速”的真实感
+	tween.tween_property(self, "global_position", global_position + knockback_direction * knockback_distance, knockback_duration)\
+		.set_trans(Tween.TRANS_EXPO)\
+		.set_ease(Tween.EASE_OUT)
+	tween.tween_callback(func(): PoolManager.return_enemy(self))
+	

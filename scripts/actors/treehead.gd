@@ -32,6 +32,7 @@ extends RigidBody2D
 # 【战斗参数】伤害判定阈值
 # ==========================================
 @export var damage_velocity_threshold: float = 3.0   # 角速度超过 8 才有杀伤力
+@export var damage_multiplier: float = 1.0           # 伤害倍率
 
 var is_dragging: bool = false
 var time_since_release: float = 999.0 
@@ -152,11 +153,29 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		
 		# 如果速度够快，说明是在剧烈弹射中！
 		if current_whip_speed > damage_velocity_threshold:
-			# 修正：area是敌人的hurtbox(Area2D)，需要获取其父节点(敌人本体)
 			var enemy_body = area.get_parent()
-			if enemy_body and enemy_body.has_method("die"):
-				enemy_body.die()
+			if enemy_body and enemy_body.has_method("take_damage"):
+				var damage = (current_whip_speed - damage_velocity_threshold) * damage_multiplier
+				
+				# 🎯 核心修改 1：把原本的 take_damage(damage) 改为传入两个参数！
+				# 传入 global_position 让敌人知道攻击是从哪里来的，从而向外飞出
+				enemy_body.take_damage(damage, global_position)
 
-				# 💡 果汁感 (Juice) 预留口：
-				# 这里就是你之后写 Engine.time_scale = 0.05 制造打击顿挫感的地方！
+				# 🎯 核心修改 2：触发果汁感 (Juice) —— 打击停顿
+				trigger_hit_stop()
+				
 				# print("Hit! 瞬间抽击速度: ", current_whip_speed)
+
+# ==========================================
+# 表现层：打击顿挫感 (Hit Stop)
+# ==========================================
+func trigger_hit_stop() -> void:
+	# 瞬间将全局时间缩放降至极低，产生“卡肉感”
+	Engine.time_scale = 0.05
+	
+	# 创建一个计时器，注意必须乘以当前的 time_scale，否则 0.1 秒会被拉长成 2 秒
+	await get_tree().create_timer(0.1 * Engine.time_scale).timeout 
+	
+	# 恢复正常时间
+	Engine.time_scale = 1.0
+	
