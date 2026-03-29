@@ -9,8 +9,11 @@
 [ext_resource type="Texture2D" uid="uid://tmiegv8qj1qy" path="res://assets/sprites/trees/4r.png" id="4_5fpp0"]
 [ext_resource type="Texture2D" uid="uid://c0hflga007htj" path="res://assets/sprites/trees/l.png" id="4_bkd26"]
 [ext_resource type="Texture2D" uid="uid://is3cdd233wnu" path="res://assets/sprites/trees/2h.png" id="7_ffmh2"]
+[ext_resource type="AudioStream" uid="uid://dps816cxcekne" path="res://assets/audio/sfx/命中（抽打肉）.wav" id="7_h4xil"]
 [ext_resource type="Texture2D" uid="uid://crhans3u5rkaa" path="res://assets/sprites/trees/3h.png" id="8_63up5"]
+[ext_resource type="AudioStream" uid="uid://bxewq427j7ah5" path="res://assets/audio/sfx/释放（破空）2.wav" id="8_exg44"]
 [ext_resource type="Texture2D" uid="uid://dto44xndknqd2" path="res://assets/sprites/trees/4h.png" id="9_h4xil"]
+[ext_resource type="AudioStream" uid="uid://bphtnq431nuqx" path="res://assets/audio/sfx/蓄力3.wav" id="12_mpiro"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3dh50"]
 size = Vector2(188, 60)
@@ -67,10 +70,8 @@ linear_damp = 0.5
 script = ExtResource("1_mwoif")
 tree_root = NodePath("../treeroot")
 grab_radius = 300.0
-thrust_charge_dist = 200.0
-max_compress_ratio = 0.3
-max_thrust_scale = 3.0
-thrust_duration = 0.22
+"击中_sfx" = ExtResource("7_h4xil")
+"释放破空_sfx" = ExtResource("8_exg44")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treehead" unique_id=2046942878]
 position = Vector2(0, -132)
@@ -130,6 +131,9 @@ disabled = true
 
 [node name="CrownTarget" type="Marker2D" parent="treehead" unique_id=1001491027]
 position = Vector2(0, -152)
+
+[node name="ChargeAudio" type="AudioStreamPlayer" parent="treehead" unique_id=817998397]
+stream = ExtResource("12_mpiro")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=288142139]
 offset = Vector2(0, -200)

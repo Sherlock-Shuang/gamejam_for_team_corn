@@ -3,13 +3,15 @@
 [ext_resource type="PackedScene" uid="uid://cv43af0pxy81y" path="res://scenes/actors/tree.tscn" id="1_glv2v"]
 [ext_resource type="Script" uid="uid://buhao6amga72b" path="res://scripts/Main.gd" id="1_main"]
 [ext_resource type="AudioStream" uid="uid://ci1k52pmn1eo8" path="res://assets/audio/music/BGM（紧张）0.wav" id="2_cm0pq"]
+[ext_resource type="AudioStream" uid="uid://dbxm3ldsyddt2" path="res://assets/audio/sfx/升级提示2.wav" id="3_lgr22"]
 [ext_resource type="Script" uid="uid://cxw1lcyncjxl1" path="res://scripts/components/WaveManager.gd" id="3_r0du0"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="4_hud"]
-[ext_resource type="PackedScene" path="res://scenes/ui/UpgradeUI.tscn" id="5_upg"]
+[ext_resource type="PackedScene" uid="uid://bvncys4wohest" path="res://scenes/ui/UpgradeUI.tscn" id="5_upg"]
 
 [node name="Main" type="Node" unique_id=2125892693]
 script = ExtResource("1_main")
 bg_1 = ExtResource("2_cm0pq")
+"升级_sfx" = ExtResource("3_lgr22")
 
 [node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
 position = Vector2(943, 556)

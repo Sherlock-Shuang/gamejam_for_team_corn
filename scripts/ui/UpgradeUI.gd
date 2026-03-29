@@ -7,9 +7,10 @@ extends CanvasLayer
 @onready var card_container: HBoxContainer = $CenterContainer/VBoxContainer/HBoxContainer
 @onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel
 
+@export var 升级_sfx: AudioStream
+
 func _ready():
 	hide()
-	
 	# 监听升级信号 → 自动弹出面板
 	if SignalBus.on_level_up.is_connected(_on_level_up):
 		SignalBus.on_level_up.disconnect(_on_level_up)
@@ -21,9 +22,15 @@ func _on_level_up(_new_level: int):
 func show_upgrade():
 	get_tree().paused = true
 	show()
+
+	# 👇 【新增：在这里播放升级提示音】
+	if 升级_sfx:
+		# 这里不需要随机音高，正常原声播放即可
+		AudioManager.play_sfx(升级_sfx, 25)  # 音量可以根据需要调整
 	
 	var cards = card_container.get_children()
 	var choices = GameData.get_random_skills(cards.size())
+
 	if choices.is_empty():
 		hide()
 		get_tree().paused = false

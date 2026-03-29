@@ -12,6 +12,8 @@ extends Node
 @export var bg_2 :AudioStream
 @export var bg_3 :AudioStream
 
+@export var 升级_sfx :AudioStream
+
 var attack_timer: Timer
 # --- 关卡时间控制 ---
 var level_timer: float = 30.0
@@ -64,6 +66,7 @@ func _ready():
 
 
 func _level_up():
+	
 	GameData.current_level += 1
 	GameData.current_exp = 0.0
 	

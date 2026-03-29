@@ -50,9 +50,10 @@ var base_hit_shape_scales: Array[Vector2] = []
 # ==========================================
 # 音乐参数
 # ==========================================
+@onready var charge_audio: AudioStreamPlayer = $ChargeAudio
 @export var 蓄力_sfx : AudioStream
-@export var 释放_sfx : AudioStream
 @export var 击中_sfx : AudioStream
+@export var 释放破空_sfx : AudioStream
 
 var is_dragging: bool = false
 var time_since_release: float = 999.0 
@@ -204,11 +205,22 @@ func _input(event: InputEvent) -> void:
 		if event.pressed:
 			if dist <= grab_radius:
 				is_dragging = true
+				
+				# 🔥 按下鼠标瞬间：开始播放蓄力音效
+				charge_audio.play() 
+				
 				get_viewport().set_input_as_handled()
 		else:
 			if is_dragging:
 				is_dragging = false
 				time_since_release = 0.0 
+				
+				# 🔥 松开鼠标瞬间：立刻强行掐断蓄力音效
+				charge_audio.stop() 
+				
+				# 👇 【就是这里！】统一播放释放破空的音效
+				# 使用我们之前升级过的 AudioManager，0.0是正常音量，true代表开启轻微的随机音高，让手感更好
+				AudioManager.play_sfx(释放破空_sfx, -10.0, false)
 				
 				# 🔥 松手的瞬间：锁定伤害！
 				if is_thrust_charging:
@@ -217,7 +229,7 @@ func _input(event: InputEvent) -> void:
 					
 					is_thrust_charging = false
 					is_thrust_releasing = true
-					AudioManager.play_sfx(释放_sfx, true)
+					# ⚠️ 注意：把你原来这句 AudioManager.play_sfx(释放_sfx) 删掉，因为我们在上面已经统一播放了！
 					_set_hitbox_active(true)
 				else:
 					# 横扫招式：根据当前的弯曲角度计算
@@ -229,8 +241,6 @@ func _input(event: InputEvent) -> void:
 					
 					fake_target_angle = -current_angle * whip_overshoot_ratio
 					_set_hitbox_active(true)
-					
-				get_viewport().set_input_as_handled()
 
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if not tree_root: return
@@ -247,7 +257,6 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		else:
 			var current_angle = state.transform.get_rotation()
 			var max_rad = deg_to_rad(max_drag_angle_deg)
-			AudioManager.play_sfx(蓄力_sfx, true)
 			
 			if delta_pos.length() > 0.001:
 				var raw_target = delta_pos.angle() + PI / 2.0
@@ -313,6 +322,7 @@ func evolve_test(stage: int) -> void:
 
 func _on_hitbox_area_entered(area: Area2D) -> void:
 	if area.is_in_group("Enemy"):
+		AudioManager.play_sfx(击中_sfx, 0.0, true, 3)
 		var enemy_body = area.get_parent()
 		if not enemy_body or not enemy_body.has_method("take_damage"): return
 		
@@ -329,8 +339,9 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 			# 真正的最终伤害 = 玩家自身基础攻击力 + 刚才松手瞬间锁定好的蓄力段位伤害
 			var final_damage = base_atk + locked_attack_damage
 			
-			enemy_body.take_damage(final_damage, global_position)
-			AudioManager.play_sfx(击中_sfx, 0.45) 
+			# 参数说明: (音频文件, 音量微调, 开启随机音调, 同屏最多允许同时播 3 个)
+			
+			enemy_body.take_damage(final_damage, global_position) 
 			trigger_hit_stop()
 
 func trigger_hit_stop() -> void:
