@@ -34,6 +34,18 @@ func _process(delta):
 	# 动态居中 Camera
 	if has_node("Camera2D"):
 		$Camera2D.position = center
+		
+	# 标题呼吸动画
+	if subtitle and subtitle.text == "悬停选择年轮节点，点击进入挑战":
+		var alpha = (sin(time_elapsed * 2.0) + 1.0) / 2.0 * 0.5 + 0.5
+		subtitle.modulate = Color(1, 1, 1, alpha)
+	else:
+		subtitle.modulate = Color(1, 1, 1, 1)
+
+	var title = $UI/Control/Title
+	if title:
+		var float_y = sin(time_elapsed * 1.5) * 5.0
+		title.position.y = 80.0 + float_y
 	
 	# 检测鼠标位置并推算指向哪一圈
 	var mouse_pos = get_global_mouse_position()
