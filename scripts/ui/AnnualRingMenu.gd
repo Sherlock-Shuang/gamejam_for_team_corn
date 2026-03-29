@@ -1,153 +1,170 @@
 extends Node2D
 # ═══════════════════════════════════════════════════════════════
 #  AnnualRingMenu.gd — 年轮选关界面 (大地图)
-#  通过 _draw() 纯代码渲染同心圆年轮，作为美术贴图介入前的完整逻辑演示。
+#  通过 5 层树木年轮的 _small / _big 贴图切换实现关卡选择。
 # ═══════════════════════════════════════════════════════════════
 
-var center: Vector2 = Vector2(960, 540) # 屏幕中心（稍后在 _process 中动态获取视口大小以自适应）
-var base_radius: float = 150.0          # 最内圈起始半径 (放大)
-var ring_spacing: float = 160.0         # 每圈之间的距离 (放大)
-var ring_thickness: float = 65.0        # 年轮线条的粗细 (放大)
-
-var hovered_stage: int = -1             # 当前鼠标悬停在哪一关
+var center: Vector2 = Vector2(960, 540)
+var hovered_stage: int = -1
 var time_elapsed: float = 0.0
+
+@onready var ring_container: Node2D = $RingContainer
+@onready var shell: Sprite2D = $RingContainer/Shell
+@onready var endless_crack: Sprite2D = $RingContainer/EndlessCrack
+@onready var layers = {
+	1: $RingContainer/Layer1,
+	2: $RingContainer/Layer2,
+	3: $RingContainer/Layer3,
+	4: $RingContainer/Layer4
+}
+
+# 纹理池 (对应 .tscn 中的 ExtResource ID)
+var textures_small = {}
+var textures_big = {}
+
+# 判定半径 最终精准版：直接应用用户指定的精确区间
+const BASE_RADII = {
+	"ENDLESS": 60.0,
+	1: 130.0,
+	2: 200.0,
+	3: 270.0,
+	4: 330.0
+}
 
 @onready var subtitle = $UI/Control/Subtitle
 @onready var quit_button = $UI/Control/QuitButton
 
 func _ready():
-	print("[Menu] 欢迎来到树独年轮选单。当前最大关卡: ", GameData.current_max_stage)
+	print("[Menu] 欢迎来到精准版年轮界面。解锁关卡: ", GameData.current_max_stage)
 	quit_button.pressed.connect(func(): get_tree().quit())
-	GameData.is_endless_mode = false # 确保普通模式为主
+	GameData.is_endless_mode = false
+	
+	# 初始化纹理缓存
+	textures_small = {
+		1: load("res://assets/sprites/UI/wood/1small.png"),
+		2: load("res://assets/sprites/UI/wood/2_small.png"),
+		3: load("res://assets/sprites/UI/wood/3_small.png"),
+		4: load("res://assets/sprites/UI/wood/4_small.png"),
+		-2: load("res://assets/sprites/UI/wood/hurt_small.png")
+	}
+	textures_big = {
+		1: load("res://assets/sprites/UI/wood/1_big.png"),
+		2: load("res://assets/sprites/UI/wood/2_big.png"),
+		3: load("res://assets/sprites/UI/wood/3_big.png"),
+		4: load("res://assets/sprites/UI/wood/4_big.png"),
+		-2: load("res://assets/sprites/UI/wood/hurt_big.png")
+	}
+	
+	# 初始化显示状态 (锁定即隐藏)
+	_update_layer_visibility()
+	
+	# 确保容器状态
+	ring_container.scale = Vector2(1.3, 1.3)
+	
+	_update_positions()
 
 func _process(delta):
 	time_elapsed += delta
+	_update_positions()
 	
-	# 动态获取视口中心，以适应全屏和不同分辨率拉伸
+	# 副标题呼吸动效
+	if subtitle:
+		var alpha = (sin(time_elapsed * 2.0) + 1.0) / 2.0 * 0.4 + 0.3 # 保持浅色基调
+		subtitle.modulate.a = alpha
+	
+	# 鼠标判定逻辑
+	var mouse_pos = get_global_mouse_position()
+	var dist = mouse_pos.distance_to(center) / ring_container.scale.x
+	
+	var current_hover = -1
+	# 修正：将开启门槛从 > 4 降至 >= 4，确保通关后能稳定触发
+	var can_show_endless = GameData.is_endless_unlocked and GameData.current_max_stage >= 4
+	
+	if can_show_endless and dist < BASE_RADII["ENDLESS"]:
+		current_hover = -2
+	elif dist < BASE_RADII[1]:
+		current_hover = 1
+	elif dist < BASE_RADII[2]:
+		current_hover = 2
+	elif dist < BASE_RADII[3]:
+		current_hover = 3
+	elif dist < BASE_RADII[4]:
+		current_hover = 4
+	
+	# 只能悬停已解锁关卡
+	if current_hover != -2 and current_hover > GameData.current_max_stage:
+		current_hover = -1
+		
+	if current_hover != hovered_stage:
+		_on_hover_changed(current_hover)
+
+func _update_positions():
 	var viewport_size = get_viewport_rect().size
 	center = viewport_size / 2.0
-	
-	# 同步背景的尺寸（如果是通过代码控制的背景节点，也可通过 anchors 控制，这里加个保险）
+	if ring_container:
+		ring_container.position = center
 	if has_node("Background"):
 		$Background.size = viewport_size
-		
-	# 动态居中 Camera
 	if has_node("Camera2D"):
 		$Camera2D.position = center
-		
-	# 标题呼吸动画
-	if subtitle and subtitle.text == "悬停选择年轮节点，点击进入挑战":
-		var alpha = (sin(time_elapsed * 2.0) + 1.0) / 2.0 * 0.5 + 0.5
-		subtitle.modulate = Color(1, 1, 1, alpha)
-	else:
-		subtitle.modulate = Color(1, 1, 1, 1)
 
-	var title = $UI/Control/Title
-	if title:
-		var float_y = sin(time_elapsed * 1.5) * 5.0
-		title.position.y = 80.0 + float_y
+func _on_hover_changed(new_stage: int):
+	_set_node_state(hovered_stage, false)
+	hovered_stage = new_stage
+	_set_node_state(hovered_stage, true)
 	
-	# 检测鼠标位置并推算指向哪一圈
-	var mouse_pos = get_global_mouse_position()
-	var dist = mouse_pos.distance_to(center)
-	
-	# 推算所在的 stage_id (1, 2, 3...)
-	# 公式: index = (dist - base_radius + spacing/2) / spacing
-	var est_stage = int(round((dist - base_radius) / ring_spacing)) + 1
-	
-	# 范围判定：只允许选中已解锁的关卡 (1 ~ current_max_stage)
-	if est_stage >= 1 and est_stage <= GameData.current_max_stage:
-		# 做个距离容差判定，避免点在条带外也算
-		var target_r = base_radius + (est_stage - 1) * ring_spacing
-		if abs(dist - target_r) <= ring_thickness / 2.0 * 1.5:
-			if hovered_stage != est_stage:
-				hovered_stage = est_stage
-				subtitle.text = "点击进入 关卡 " + str(hovered_stage)
-				queue_redraw()
-		else:
-			_clear_hover()
-	elif GameData.is_endless_unlocked and dist < base_radius * 0.8:
-		# 点击内心区域进入无尽模式
-		if hovered_stage != -2:
-			hovered_stage = -2
-			subtitle.text = "【 深渊裂缝：无尽模式 】"
-			queue_redraw()
+	if hovered_stage == -2:
+		subtitle.text = "【 深渊裂痕：开启无尽挑战 】"
+	elif hovered_stage != -1:
+		subtitle.text = "点击进入 关卡 " + str(hovered_stage)
 	else:
-		_clear_hover()
-			
-	# 由于外圈（当前最高进度）有呼吸动画，所以每帧都要求重绘
-	queue_redraw()
-
-func _clear_hover():
-	if hovered_stage != -1:
-		hovered_stage = -1
 		subtitle.text = "悬停选择年轮节点，点击进入挑战"
-		queue_redraw()
+
+func _set_node_state(stage_id: int, active: bool):
+	if stage_id == -1: return
+	
+	var node: Sprite2D = null
+	if stage_id == -2: node = endless_crack
+	elif layers.has(stage_id): node = layers[stage_id]
+	
+	if node and textures_small.has(stage_id) and textures_big.has(stage_id):
+		node.texture = textures_big[stage_id] if active else textures_small[stage_id]
+		
+		# 细微的呼吸/亮度提升
+		var tween = create_tween().set_parallel(true)
+		var target_mod = Color(1.2, 1.2, 1.15, 1.0) if active else Color.WHITE
+		tween.tween_property(node, "modulate", target_mod, 0.15)
+
+func _update_layer_visibility():
+	if endless_crack:
+		# 修改为 >= 4，保证通关当前最后关卡后开启
+		endless_crack.visible = GameData.is_endless_unlocked and GameData.current_max_stage >= 4
+		
+	for stage_id in layers.keys():
+		var layer = layers[stage_id]
+		# 严格逻辑：未通过前置关卡，外部年轮直接不可见
+		layer.visible = (stage_id <= GameData.current_max_stage)
 
 func _input(event):
+	if event is InputEventKey and event.pressed:
+		# R 键：重置进度为第一关
+		if event.keycode == KEY_R:
+			print("[Debug] 重置进度为第一关！")
+			GameData.current_max_stage = 1
+			GameData.is_endless_unlocked = false
+			_update_layer_visibility()
+			
+		# U 键：一键解锁全图及无尽模式
+		elif event.keycode == KEY_U:
+			print("[Debug] 一键全图全解锁！")
+			GameData.current_max_stage = 5 # 设为 5 以显示全部 4 层并满足 >= 4 开启裂缝
+			GameData.is_endless_unlocked = true
+			_update_layer_visibility()
+		
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if hovered_stage >= 1:
-			print("[Menu] 发车！进入关卡: Stage ", hovered_stage)
 			GameData.current_playing_stage = hovered_stage
 			get_tree().change_scene_to_file("res://Main.tscn")
 		elif hovered_stage == -2:
-			print("[Menu] 发车！进入无尽模式！")
 			GameData.is_endless_mode = true
 			get_tree().change_scene_to_file("res://scenes/ui/EndlessSelectUI.tscn")
-
-func _draw():
-	# 从最内圈画到最外圈
-	for stage_id in range(1, GameData.current_max_stage + 1):
-		var r = base_radius + (stage_id - 1) * ring_spacing
-		
-		# 基础颜色：老棕色（老树皮）
-		var color = Color(0.35, 0.25, 0.15, 1.0) 
-		
-		# 特殊状态一：是最外圈的“当前可打关卡”，赋予生机勃勃的浅绿色/金黄色呼吸灯
-		if stage_id == GameData.current_max_stage:
-			var alpha_wave = (sin(time_elapsed * 3.0) + 1.0) / 2.0 * 0.4 + 0.6  # 0.6 ~ 1.0 呼吸
-			color = Color(0.65, 0.75, 0.2, alpha_wave)
-		
-		# 特殊状态二：鼠标正在悬停它，给予高亮
-		if stage_id == hovered_stage:
-			color = color.lightened(0.3)
-			
-		# 画出这圈纯色的圆环
-		draw_arc(center, r, 0, TAU, 64, color, ring_thickness, true)
-		
-		# ── 重点：绘制在这关拿到的“技能历史印记” ──
-		if GameData.skill_history_per_stage.has(stage_id):
-			var skills = GameData.skill_history_per_stage[stage_id]
-			var count = skills.size()
-			if count > 0:
-				var angle_step = TAU / float(count)
-				for i in range(count):
-					# 为了美观，给每圈一个特定的起步旋转角度
-					var angle_offset = stage_id * 0.5 
-					var angle = angle_offset + i * angle_step
-					var marker_pos = center + Vector2.RIGHT.rotated(angle) * r
-					
-					# 画一个镶嵌在年轮里的青蓝色小发光点表示获得了技能
-					draw_circle(marker_pos, 10.0, Color(0.1, 0.9, 0.8))
-					draw_circle(marker_pos, 5.0, Color(1.0, 1.0, 1.0))
-					
-					var skill_id = skills[i]
-					if GameData.skill_pool.has(skill_id):
-						var skill_name = GameData.skill_pool[skill_id]["name"]
-						draw_string(ThemeDB.fallback_font, marker_pos + Vector2(15, 6), skill_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.9, 1.0, 0.5))
-	
-	# 绘制无尽模式的大刀裂痕
-	if GameData.is_endless_unlocked:
-		var max_r = base_radius + (GameData.current_max_stage - 1) * ring_spacing
-		var crack_p1 = center - Vector2(max_r + 40, 0).rotated(0.3)
-		var crack_p2 = center + Vector2(max_r + 40, 0).rotated(0.3)
-		
-		# 给裂缝一个发光脉冲
-		var pulse = (sin(time_elapsed * 5.0) + 1.0) / 2.0 * 0.5 + 0.5
-		var crack_color = Color(0.9, 0.1, 0.1, pulse)
-		draw_line(crack_p1, crack_p2, crack_color, 8.0)
-		draw_line(crack_p1, crack_p2, Color.WHITE, 2.0)
-		
-		# 核心高亮
-		if hovered_stage == -2:
-			draw_circle(center, base_radius * 0.8, Color(0.9, 0.2, 0.2, 0.4))
