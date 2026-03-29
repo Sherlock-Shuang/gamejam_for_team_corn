@@ -13,9 +13,11 @@ func _ready():
 	SignalBus.on_upgrade_selected.connect(_on_skill_unlocked)
 	SignalBus.on_enemy_hit.connect(_on_enemy_hit)
 	
-	# 如果想提前开启技能测试，可以解开这句：
-	# _on_skill_unlocked("thorn_shot")
-	# _on_skill_unlocked("ice_enchant")
+	# 无尽模式下，出门自带所有神装技能！
+	if GameData.is_endless_mode:
+		print("[SkillExecutor] 无尽模式启动，加载全库技能！")
+		for skill_id in GameData.skill_pool.keys():
+			_on_skill_unlocked(skill_id)
 
 func _on_skill_unlocked(skill_id: String):
 	if not GameData.skill_pool.has(skill_id):
@@ -77,10 +79,12 @@ func _fire_thorn():
 	tween.tween_property(thorn, "global_position", final_pos, 0.5)
 	
 	# 简单范围判定
-	tween.parallel().tween_method(func(progress):
+	tween.parallel().tween_method(func(_progress):
 		if not is_instance_valid(nearest): return
+		if not is_instance_valid(thorn): return
 		if thorn.global_position.distance_to(nearest.global_position) < 30.0:
-			nearest.die() # 中毒秒杀做演示
+			if nearest.has_method("die"):
+				nearest.die(thorn.global_position) # 传入攻击源坐标
 			thorn.queue_free()
 	, 0.0, 1.0, 0.5)
 	

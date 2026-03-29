@@ -76,8 +76,8 @@ func _process(delta: float) -> void:
 		trunk_line.add_point(curve_point)
 		
 func _input(event: InputEvent) -> void:
-	# 测试后门：按键盘 1, 2, 3, 4
-	if event is InputEventKey and event.pressed:
+	# 测试后门：仅在无尽模式可以这样切换，非无尽模式下根据关卡自动固定
+	if event is InputEventKey and event.pressed and GameData.is_endless_mode:
 		if event.keycode == KEY_1: evolve_test(0)
 		elif event.keycode == KEY_2: evolve_test(1)
 		elif event.keycode == KEY_3: evolve_test(2)

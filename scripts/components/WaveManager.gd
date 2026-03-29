@@ -10,9 +10,7 @@ var target_tree: Node2D = null
 
 func _ready() -> void:
 	# 寻找靶子树
-	var trees = get_tree().get_nodes_in_group("Tree")
-	if trees.size() > 0:
-		target_tree = trees[0]
+	_find_target_tree()
 		
 	# 初始化波次循环计时器
 	timer.wait_time = wave_interval
@@ -22,9 +20,20 @@ func _ready() -> void:
 	# 游戏开始立刻触发第一波
 	_on_wave_timeout()
 
+func _find_target_tree():
+	var trees = get_tree().get_nodes_in_group("Tree")
+	if trees.size() > 0:
+		target_tree = trees[0]
+	else:
+		target_tree = null
+
+
 func _on_wave_timeout() -> void:
 	if not is_instance_valid(target_tree):
-		return
+		_find_target_tree()
+		if not is_instance_valid(target_tree):
+			return
+
 		
 	# 遍历这波需要生成的所有怪物
 	for i in range(enemies_per_wave):

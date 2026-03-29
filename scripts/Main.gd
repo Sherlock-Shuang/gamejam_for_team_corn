@@ -8,13 +8,29 @@ extends Node
 @onready var hud = $HUD
 @onready var upgrade_ui = $UpgradeUI
 
-var attack_timer: Timer
+# --- 关卡时间控制 ---
+var level_timer: float = 30.0
+var is_level_active: bool = true
 
 func _ready():
+	# 确保从其他场景（或被特效卡主时间的时候）返回时，时间流速和暂停状态是正常的
+	Engine.time_scale = 1.0
+	get_tree().paused = false
+
+	
 	print("[Main] 游戏启动，正在建立各系统连接...")
 
 	# 初始化数据
 	GameData.reset()
+	
+	# 根据当前正在游玩的关卡，让树苗直接长到对应的第二/第三种形态
+	if tree.has_method("evolve_to_stage"):
+		if GameData.is_endless_mode:
+			tree.evolve_to_stage(GameData.selected_sapling - 1)
+		else:
+			# 强制把当前关卡的索引（从1开始）减1作为进化阶段
+			tree.evolve_to_stage(GameData.current_playing_stage - 1)
+
 	
 	# 装载核心引擎：把《技能执行器》组件挂载到树身上
 	var skill_executor_script = load("res://scripts/components/SkillExecutor.gd")
@@ -35,63 +51,8 @@ func _ready():
 	# 监听敌人死亡事件
 	SignalBus.on_enemy_died.connect(_on_enemy_died)
 
-	# ====== 经验自动增长测试 ======
-	var timer = Timer.new()
-	timer.wait_time = 0.1
-	timer.autostart = true
-	add_child(timer)
-	timer.timeout.connect(_test_add_experience)
-	
-	# ====== 自动攻击演示测试 ======
-	attack_timer = Timer.new()
-	attack_timer.wait_time = 0.8  # 攻速：0.8秒一发
-	attack_timer.autostart = true
-	add_child(attack_timer)
-	attack_timer.timeout.connect(_test_auto_attack)
-
-func _test_auto_attack():
-	# 生成一个临时的菱形作为“攻击投掷物”
-	var projectile = Polygon2D.new()
-	# 绘制一个简单的四边形
-	projectile.polygon = PackedVector2Array([
-		Vector2(-10, 0), Vector2(0, -10), Vector2(10, 0), Vector2(0, 10)
-	])
-	# 随机一点酷炫的“自然魔法”颜色
-	projectile.color = [Color(0.6, 1.0, 0.3), Color(0.3, 0.9, 0.8), Color(1.0, 0.9, 0.2)].pick_random()
-	
-	# 从树的心发射
-	projectile.global_position = tree.global_position
-	add_child(projectile)
-	
-	# 随机一个方向飞出去
-	var angle = randf() * TAU
-	var direction = Vector2.RIGHT.rotated(angle)
-	var distance = 500.0  # 飞行距离
-	
-	# 做个简单的飞行与渐隐动画
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(projectile, "position", projectile.global_position + direction * distance, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(projectile, "scale", Vector2(1.5, 1.5), 0.6)
-	tween.tween_property(projectile, "modulate", Color(1, 1, 1, 0), 0.6)
-	
-	# 动画结束自动删除节点，保护内存！(类似 Dev A 写的对象池思维)
-	tween.chain().tween_callback(projectile.queue_free)
-
-# 模拟获得经验
-func _test_add_experience():
-	# 每次增加一点点经验
-	var exp_to_add = 0.5
-	GameData.current_exp += exp_to_add
-	
-	var needed = GameData.get_exp_to_next_level(GameData.current_level)
-	var ratio = GameData.current_exp / needed
-	
-	# 通知 HUD 更新！
-	SignalBus.on_exp_gained.emit(ratio)
-	
-	# 如果经验满了 -> 升级
-	if GameData.current_exp >= needed:
-		_level_up()
+	# 监听暂停请求
+	SignalBus.on_pause_requested.connect(_on_pause_requested)
 
 func _level_up():
 	GameData.current_level += 1
@@ -99,15 +60,6 @@ func _level_up():
 	
 	print("[Main] 升级了！当前等级: ", GameData.current_level)
 	SignalBus.on_level_up.emit(GameData.current_level)
-	
-	# 👉【Demo 已关闭】不再自动通关，你可以一直玩下去测试了
-	# if GameData.current_level >= 3:
-	# 	print("[Main] 🌲 恭喜通关当前年轮！正在解锁下一个年轮周期并返回...")
-	# 	if GameData.current_max_stage == GameData.current_playing_stage:
-	# 		GameData.current_max_stage += 1 # 局外最大解锁数 +1
-	# 	# 延迟1秒返回，让玩家看到升级
-	# 	get_tree().create_timer(1.0).timeout.connect(func(): SignalBus.on_return_requested.emit())
-	pass
 		
 func _on_skill_chosen(skill_id: String):
 	print("[Main] 收到进化指令: ", skill_id)
@@ -120,14 +72,9 @@ func _on_skill_chosen(skill_id: String):
 	var target_scale = Vector2(2.0, 2.0) + Vector2(0.12, 0.12) * GameData.current_level
 	tween.tween_property(tree, "scale", target_scale, 0.8)
 
-	# 升级后让攻击变快一点，让玩家有正反馈
-	if attack_timer.wait_time > 0.15:
-		attack_timer.wait_time -= 0.05
-
 # ── 打开升级选择 UI ─────────────────────────────────────────────
 func _on_open_upgrade_ui():
 	print("[Main] 升级UI请求：暂停攻击计时器")
-	attack_timer.paused = true
 	# UpgradeUI 自己监听 open_upgrade_ui 信号并显示，Main 不直接操作它
 
 # ── 返回年轮主界面 ────────────────────────────────────────────────────
@@ -136,10 +83,125 @@ func _on_return_requested():
 	get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
 
 # ── 键盘快捷键 ─────────────────────────────────────────────────
-func _input(event: InputEvent):
-	# Escape 键暂时用作返回
+func _input(event      : InputEvent):
+	# Escape 键呼出暂停菜单
 	if event.is_action_pressed("ui_cancel"):
-		SignalBus.on_return_requested.emit()
+		_on_pause_requested()
+
+# ── 倒计时与通关逻辑 ───────────────────────────────────────────
+func _process(delta):
+	if not is_level_active: return
+	
+	if GameData.is_endless_mode:
+		level_timer += delta
+		if hud.has_method("update_timer"):
+			hud.update_timer(level_timer)
+		return
+		
+	if level_timer > 0:
+		level_timer -= delta
+		if hud.has_method("update_timer"):
+			hud.update_timer(max(level_timer, 0.0))
+			
+		if level_timer <= 0:
+			_level_completed()
+
+func _level_completed():
+	is_level_active = false
+	print("[Main] 关卡 30s 倒计时结束，通关！")
+		
+	# 如果是第一次打过当前最高关卡，则解锁下一关
+	if GameData.current_playing_stage == GameData.current_max_stage:
+		if GameData.current_max_stage < GameData.MAX_STAGES:
+			GameData.current_max_stage += 1
+		GameData.save_game()
+	
+	if GameData.current_playing_stage >= GameData.MAX_STAGES:
+		# 解锁无尽模式并去结局界面
+		GameData.is_endless_unlocked = true
+		GameData.save_game()
+		_show_level_clear_popup(true)
+	else:
+		_show_level_clear_popup(false)
+
+func _show_level_clear_popup(is_final: bool):
+	var popup = CanvasLayer.new()
+	popup.layer = 100
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.05, 0.05, 0.05, 0.85) # 纯净的半透明黑色，高级感拉满
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	popup.add_child(bg)
+	
+	var center = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	popup.add_child(center)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 50)
+	center.add_child(vbox)
+	
+	var label = Label.new()
+	label.text = "关卡 " + str(GameData.current_playing_stage) + " 历练完成"
+	label.add_theme_font_size_override("font_size", 56)
+	label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(label)
+	
+	var btn_container = VBoxContainer.new()
+	btn_container.add_theme_constant_override("separation", 20)
+	vbox.add_child(btn_container)
+	
+	if is_final:
+		label.text = "最终试炼通过！\n神秘的无尽模式已现形..."
+		var btn_end = Button.new()
+		btn_end.text = " 见证最终生长 (进入结局) "
+		btn_end.add_theme_font_size_override("font_size", 40)
+		btn_end.custom_minimum_size = Vector2(400, 100)
+		btn_end.pressed.connect(func():
+			get_tree().paused = false
+			get_tree().change_scene_to_file("res://scenes/ui/EndingScene.tscn")
+		)
+		btn_container.add_child(btn_end)
+	else:
+		# 下一关按钮
+		var btn_next = Button.new()
+		btn_next.text = " 继续扎根：下一关 "
+		btn_next.add_theme_font_size_override("font_size", 40)
+		btn_next.add_theme_color_override("font_color", Color(0.9, 1.0, 0.5))
+		btn_next.custom_minimum_size = Vector2(400, 100)
+		btn_next.pressed.connect(func():
+			get_tree().paused = false
+			# 如果还能往后打，直接把当前游玩关卡+1
+			GameData.current_playing_stage = min(GameData.current_playing_stage + 1, GameData.MAX_STAGES)
+			get_tree().change_scene_to_file("res://Main.tscn")
+		)
+		btn_container.add_child(btn_next)
+		
+		# 返回年轮按钮
+		var btn_return = Button.new()
+		btn_return.text = " 返回年轮选关 "
+		btn_return.add_theme_font_size_override("font_size", 28)
+		btn_return.custom_minimum_size = Vector2(400, 80)
+		btn_return.pressed.connect(func():
+			get_tree().paused = false
+			get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
+		)
+		btn_container.add_child(btn_return)
+		
+	# 暂停游戏物理，等待玩家点击
+	get_tree().paused = true
+	popup.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(popup)
+
+
+func _on_pause_requested():
+	if is_level_active:
+		print("[Main] 暂停游戏并呼出菜单")
+		# 实例化 PauseMenu (如果尚未打开的话)
+		var pause_menu = load("res://scenes/ui/PauseMenu.tscn").instantiate()
+		add_child(pause_menu)
+		get_tree().paused = true
 
 func _on_enemy_died(exp_value: float, position: Vector2):
 	print("[Main] 敌人死亡，获得经验: ", exp_value)

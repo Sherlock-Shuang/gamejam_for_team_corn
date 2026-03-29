@@ -3,6 +3,9 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/tree.tscn" id="1_glv2v"]
 [ext_resource type="Script" uid="uid://buhao6amga72b" path="res://scripts/Main.gd" id="1_main"]
 [ext_resource type="Script" uid="uid://cxw1lcyncjxl1" path="res://scripts/components/WaveManager.gd" id="3_r0du0"]
+[ext_resource type="PackedScene" uid="uid://hud_ring_display" path="res://scenes/ui/HUD.tscn" id="4_hud"]
+[ext_resource type="PackedScene" uid="uid://bvncys4wohest" path="res://scenes/ui/UpgradeUI.tscn" id="5_upg"]
+
 
 [node name="Main" type="Node" unique_id=2125892693]
 script = ExtResource("1_main")
@@ -15,3 +18,7 @@ script = ExtResource("3_r0du0")
 
 [node name="WaveTimer" type="Timer" parent="WaveManager" unique_id=589680546]
 autostart = true
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="UpgradeUI" parent="." instance=ExtResource("5_upg")]

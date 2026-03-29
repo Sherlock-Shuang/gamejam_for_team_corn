@@ -42,16 +42,25 @@ var cached_repulsion: Vector2 = Vector2.ZERO
 func _ready() -> void:
 	current_health = max_health
 	# 利用分组，全局安全地获取树的引用
-	# (确保你的主角树根节点或者整体加了 "Tree" 这个分组)
+	_find_target_tree()
+
+
+func _find_target_tree():
 	var trees = get_tree().get_nodes_in_group("Tree")
 	if trees.size() > 0:
 		target_tree = trees[0]
+	else:
+		target_tree = null
+
 
 
 func _physics_process(delta: float) -> void:
-	# 如果树死了（或者还没生成），原地待命
+	# 如果树死了（或者还没生成），尝试重新查找
 	if not is_instance_valid(target_tree):
-		return
+		_find_target_tree()
+		if not is_instance_valid(target_tree):
+			return
+
 
 	# ==========================================
 	# 1. 计算引力：趋向树干

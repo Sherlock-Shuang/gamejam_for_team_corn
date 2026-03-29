@@ -14,6 +14,46 @@ var current_wave: int = 0
 var current_max_stage: int = 1                         # 当前解锁的最大关卡数（年轮数）
 var skill_history_per_stage: Dictionary = {}           # 格式: { stage_id : [ "skill_a", "skill_b" ] }
 var current_playing_stage: int = 1                     # 玩家当前正在挑战哪一关
+var is_endless_unlocked: bool = false                  # 是否解锁无尽模式
+var is_endless_mode: bool = false                      # 当前是否在打无尽模式
+var selected_sapling: int = 1                          # 无尽模式下选择的形态
+
+const SAVE_PATH = "user://tree_survivor_save.json"
+const MAX_STAGES = 4
+
+func _ready():
+	load_game()
+
+# --- 存档系统 ---
+func save_game():
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		var data = {
+			"current_max_stage": current_max_stage,
+			"skill_history_per_stage": skill_history_per_stage,
+			"is_endless_unlocked": is_endless_unlocked
+		}
+		file.store_string(JSON.stringify(data))
+
+func load_game():
+	if FileAccess.file_exists(SAVE_PATH):
+		var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+		if file:
+			var content = file.get_as_text()
+			var json = JSON.new()
+			var error = json.parse(content)
+			if error == OK:
+				var data = json.get_data()
+				if typeof(data) == TYPE_DICTIONARY:
+					current_max_stage = data.get("current_max_stage", 1)
+					is_endless_unlocked = data.get("is_endless_unlocked", false)
+					
+					var saved_history = data.get("skill_history_per_stage", {})
+					skill_history_per_stage.clear()
+					for k in saved_history.keys():
+						# JSON 解析的 key 必然是字符串，转回 int
+						var stage_id = k.to_int()
+						skill_history_per_stage[stage_id] = saved_history[k]
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -254,6 +294,7 @@ func record_skill_for_stage(stage_id: int, skill_id: String):
 		skill_history_per_stage[stage_id] = []
 	if not skill_history_per_stage[stage_id].has(skill_id):
 		skill_history_per_stage[stage_id].append(skill_id)
+		save_game() # 获得技能也保存进度
 
 ## 重置单局状态 (进入新关卡前调用，保留局外进度)
 func reset_for_new_game():
@@ -262,6 +303,6 @@ func reset_for_new_game():
 	current_hp = player_base_stats["max_hp"]
 	current_wave = 0
 	
-	# 下面的代码兼容之前的 Main.gd 里的旧版 reset 调用
+# 下面的代码兼容之前的 Main.gd 里的旧版 reset 调用
 func reset():
 	reset_for_new_game()

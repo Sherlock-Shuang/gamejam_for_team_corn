@@ -5,17 +5,20 @@ extends Node2D
 # ═══════════════════════════════════════════════════════════════
 
 var center: Vector2 = Vector2(960, 540) # 屏幕中心
-var base_radius: float = 80.0           # 最内圈起始半径
-var ring_spacing: float = 70.0          # 每圈之间的距离
-var ring_thickness: float = 30.0        # 年轮线条的粗细
+var base_radius: float = 100.0          # 最内圈起始半径
+var ring_spacing: float = 110.0         # 每圈之间的距离
+var ring_thickness: float = 45.0        # 年轮线条的粗细
 
 var hovered_stage: int = -1             # 当前鼠标悬停在哪一关
 var time_elapsed: float = 0.0
 
 @onready var subtitle = $UI/Subtitle
+@onready var quit_button = $UI/QuitButton
 
 func _ready():
 	print("[Menu] 欢迎来到树独年轮选单。当前最大关卡: ", GameData.current_max_stage)
+	quit_button.pressed.connect(func(): get_tree().quit())
+	GameData.is_endless_mode = false # 确保普通模式为主
 
 func _process(delta):
 	time_elapsed += delta
@@ -39,6 +42,12 @@ func _process(delta):
 				queue_redraw()
 		else:
 			_clear_hover()
+	elif GameData.is_endless_unlocked and dist < base_radius * 0.8:
+		# 点击内心区域进入无尽模式
+		if hovered_stage != -2:
+			hovered_stage = -2
+			subtitle.text = "【 深渊裂缝：无尽模式 】"
+			queue_redraw()
 	else:
 		_clear_hover()
 			
@@ -53,10 +62,14 @@ func _clear_hover():
 
 func _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		if hovered_stage != -1:
+		if hovered_stage >= 1:
 			print("[Menu] 发车！进入关卡: Stage ", hovered_stage)
 			GameData.current_playing_stage = hovered_stage
 			get_tree().change_scene_to_file("res://Main.tscn")
+		elif hovered_stage == -2:
+			print("[Menu] 发车！进入无尽模式！")
+			GameData.is_endless_mode = true
+			get_tree().change_scene_to_file("res://scenes/ui/EndlessSelectUI.tscn")
 
 func _draw():
 	# 从最内圈画到最外圈
@@ -91,5 +104,26 @@ func _draw():
 					var marker_pos = center + Vector2.RIGHT.rotated(angle) * r
 					
 					# 画一个镶嵌在年轮里的青蓝色小发光点表示获得了技能
-					draw_circle(marker_pos, 8.0, Color(0.1, 0.9, 0.8))
-					draw_circle(marker_pos, 4.0, Color(1.0, 1.0, 1.0))
+					draw_circle(marker_pos, 10.0, Color(0.1, 0.9, 0.8))
+					draw_circle(marker_pos, 5.0, Color(1.0, 1.0, 1.0))
+					
+					var skill_id = skills[i]
+					if GameData.skill_pool.has(skill_id):
+						var skill_name = GameData.skill_pool[skill_id]["name"]
+						draw_string(ThemeDB.fallback_font, marker_pos + Vector2(15, 6), skill_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(0.9, 1.0, 0.5))
+	
+	# 绘制无尽模式的大刀裂痕
+	if GameData.is_endless_unlocked:
+		var max_r = base_radius + (GameData.current_max_stage - 1) * ring_spacing
+		var crack_p1 = center - Vector2(max_r + 40, 0).rotated(0.3)
+		var crack_p2 = center + Vector2(max_r + 40, 0).rotated(0.3)
+		
+		# 给裂缝一个发光脉冲
+		var pulse = (sin(time_elapsed * 5.0) + 1.0) / 2.0 * 0.5 + 0.5
+		var crack_color = Color(0.9, 0.1, 0.1, pulse)
+		draw_line(crack_p1, crack_p2, crack_color, 8.0)
+		draw_line(crack_p1, crack_p2, Color.WHITE, 2.0)
+		
+		# 核心高亮
+		if hovered_stage == -2:
+			draw_circle(center, base_radius * 0.8, Color(0.9, 0.2, 0.2, 0.4))
