@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://duxbf1uclbto3"]
+
+[ext_resource type="Script" uid="uid://cg21f4hne38ag" path="res://scripts/actors/BeaverAI.gd" id="1_bk3m8"]
+[ext_resource type="Texture2D" uid="uid://buwhbg2p2btcp" path="res://assets/sprites/enemies/beaver_4.png" id="2_l2t3b"]
+[ext_resource type="Texture2D" uid="uid://dfjufobaf4f2p" path="res://assets/sprites/enemies/beaver_5.png" id="3_nl3yw"]
+[ext_resource type="Texture2D" uid="uid://biwxp2xeutuk7" path="res://assets/sprites/enemies/beaver_6.png" id="4_qqcos"]
+[ext_resource type="Texture2D" uid="uid://3iyyrm4b5koc" path="res://assets/sprites/enemies/beaver_1.png" id="5_qewqu"]
+[ext_resource type="Texture2D" uid="uid://bm6ou75ctlxfl" path="res://assets/sprites/enemies/beaver_2.png" id="6_m6byr"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_4i4j6"]
+radius = 42.0119
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ay0ne"]
+radius = 76.1643
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_68yk5"]
+radius = 10.753391
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
+size = Vector2(84, 86)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dqsgq"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_l2t3b")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_nl3yw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_qqcos")
+}],
+"loop": true,
+"name": &"attack",
+"speed": 3.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_qewqu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_m6byr")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 4.0
+}]
+
+[node name="EnemyBeaver" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
+collision_layer = 2
+collision_mask = 6
+motion_mode = 1
+script = ExtResource("1_bk3m8")
+attack_range = 200.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1403090462]
+shape = SubResource("CircleShape2D_4i4j6")
+
+[node name="SeparationArea" type="Area2D" parent="." unique_id=2039210838]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SeparationArea" unique_id=1473732722]
+shape = SubResource("CircleShape2D_ay0ne")
+
+[node name="HitBox" type="Area2D" parent="." unique_id=1311532308]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitBox" unique_id=1107987729]
+scale = Vector2(7.8399987, 7.6400023)
+shape = SubResource("CircleShape2D_68yk5")
+
+[node name="Hurtox" type="Area2D" parent="." unique_id=1683098082 groups=["Enemy"]]
+collision_layer = 2
+collision_mask = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtox" unique_id=1426947378]
+shape = SubResource("RectangleShape2D_jq30h")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=263200]
+scale = Vector2(0.16497275, 0.17659917)
+sprite_frames = SubResource("SpriteFrames_dqsgq")
+animation = &"attack"
+autoplay = "walk"
+frame_progress = 0.41860557

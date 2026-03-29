@@ -4,9 +4,17 @@ extends Node2D
 @onready var head_sprites = [$treehead/HeadSprite1, $treehead/HeadSprite2, $treehead/HeadSprite3, $treehead/HeadSprite4]
 @onready var trunk_line: Line2D = $TrunkLine
 
-var trunk_widths: Array[float] = [10.0, 40.0, 50.0, 60.0] 
+# 🛡️ 新增：获取你刚建好的 4 个受伤判定框
+@onready var hurtbox_shapes = [
+	$HurtBox/CollisionShape2D1,
+	$HurtBox/CollisionShape2D2,
+	$HurtBox/CollisionShape2D3,
+	$HurtBox/CollisionShape2D4
+]
 
-# 🔥 新增：用来记忆你在编辑器里调好的大小
+var trunk_widths: Array[float] = [10.0, 40.0, 60.0, 80.0] 
+
+# 🔥 用来记忆你在编辑器里调好的大小
 var base_root_scales: Array[Vector2] = []
 var base_head_scales: Array[Vector2] = []
 
@@ -16,7 +24,7 @@ func _ready() -> void:
 		base_root_scales.append(root_sprites[i].scale)
 		base_head_scales.append(head_sprites[i].scale)
 		
-	# 强制初始化为阶段 0
+	# 强制初始化为阶段 0 (幼苗阶段)
 	evolve_to_stage(0)
 
 func evolve_to_stage(stage_index: int) -> void:
@@ -25,8 +33,14 @@ func evolve_to_stage(stage_index: int) -> void:
 		
 	for i in range(4):
 		var is_current = (i == stage_index)
+		# 1. 切换视觉贴图
 		root_sprites[i].visible = is_current
 		head_sprites[i].visible = is_current
+		
+		# 2. 🛡️ 切换物理判定框 (Godot 核心安全写法)
+		# 使用 set_deferred 确保在物理计算的空闲帧关闭/开启碰撞，绝不报错！
+		# 注意：disabled 为 true 表示关闭碰撞，所以我们传入 !is_current
+		hurtbox_shapes[i].set_deferred("disabled", !is_current)
 		
 	if is_instance_valid(trunk_line):
 		trunk_line.width = trunk_widths[stage_index]
@@ -34,7 +48,7 @@ func evolve_to_stage(stage_index: int) -> void:
 	$treehead.current_stage_index = stage_index
 	
 	# ==========================================
-	# 修复后的 Q 弹动画：再也不会变巨大了！
+	# 修复后的 Q 弹动画：充满生命力的 Juice 表现
 	# ==========================================
 	var tween = create_tween().set_parallel(true)
 	
@@ -46,7 +60,7 @@ func evolve_to_stage(stage_index: int) -> void:
 	head_sprites[stage_index].scale = target_head_scale * 0.5
 	root_sprites[stage_index].scale = target_root_scale * 0.5
 	
-	# 弹回到你设定的目标大小 (而不是死板的 1.0)！
+	# 弹回到你设定的目标大小
 	tween.tween_property(head_sprites[stage_index], "scale", target_head_scale, 0.5).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(root_sprites[stage_index], "scale", target_root_scale, 0.5).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 

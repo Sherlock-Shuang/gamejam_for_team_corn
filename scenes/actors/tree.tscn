@@ -13,24 +13,28 @@
 [ext_resource type="Texture2D" uid="uid://dto44xndknqd2" path="res://assets/sprites/trees/4h.png" id="9_h4xil"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3dh50"]
-size = Vector2(123, 39)
+size = Vector2(188, 60)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mwoif"]
 radius = 12.0
 height = 60.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_63up5"]
+radius = 20.604177
+
 [node name="tree" type="Node2D" unique_id=850654834 groups=["Tree"]]
 script = ExtResource("1_63up5")
 
 [node name="treeroot" type="StaticBody2D" parent="." unique_id=365445988]
+z_index = 1
+collision_layer = 4
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treeroot" unique_id=1608856074]
-position = Vector2(5.5, -10.5)
+position = Vector2(-7, 7)
 shape = SubResource("RectangleShape2D_3dh50")
 
 [node name="RootSprite1" type="Sprite2D" parent="treeroot" unique_id=283189642]
-visible = false
 position = Vector2(1.0000001, -96.99999)
 scale = Vector2(-0.24, 0.155)
 texture = ExtResource("1_jl7e1")
@@ -48,8 +52,9 @@ scale = Vector2(-0.28, 0.255)
 texture = ExtResource("3_mb5r6")
 
 [node name="RootSprite4" type="Sprite2D" parent="treeroot" unique_id=1383649761]
-position = Vector2(3, -171)
-scale = Vector2(-0.28, 0.255)
+visible = false
+position = Vector2(0, -198)
+scale = Vector2(-0.33, 0.305)
 texture = ExtResource("4_5fpp0")
 
 [node name="treehead" type="RigidBody2D" parent="." unique_id=623497244 node_paths=PackedStringArray("tree_root")]
@@ -60,8 +65,10 @@ can_sleep = false
 linear_damp = 0.5
 script = ExtResource("1_mwoif")
 tree_root = NodePath("../treeroot")
+grab_radius = 300.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treehead" unique_id=2046942878]
+visible = false
 position = Vector2(0, -132)
 shape = SubResource("CapsuleShape2D_mwoif")
 metadata/_edit_group_ = true
@@ -79,14 +86,14 @@ scale = Vector2(0.23, 0.191)
 texture = ExtResource("7_ffmh2")
 
 [node name="HeadSprite3" type="Sprite2D" parent="treehead" unique_id=837389224]
-position = Vector2(0, -153)
-scale = Vector2(0.27, 0.25)
+position = Vector2(2, -179)
+scale = Vector2(0.3, 0.3)
 texture = ExtResource("8_63up5")
 
 [node name="HeadSprite4" type="Sprite2D" parent="treehead" unique_id=1492413980]
 visible = false
-position = Vector2(-3, -175)
-scale = Vector2(0.36, 0.3)
+position = Vector2(-11, -203)
+scale = Vector2(0.4, 0.4)
 texture = ExtResource("9_h4xil")
 
 [node name="hitbox" type="Area2D" parent="treehead" unique_id=1376484867]
@@ -104,14 +111,16 @@ polygon = PackedVector2Array(1, -254, -98, -217, -134, -153, -141, -70, 141, -78
 disabled = true
 
 [node name="Shape3" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=2122913082]
+visible = false
 position = Vector2(3, 10)
-scale = Vector2(1.2, 1.2)
+scale = Vector2(1.35, 1.35)
 polygon = PackedVector2Array(5, -284, -156, -228, -168, -96, 136, -93, 175, -147, 137, -235)
 disabled = true
 
 [node name="Shape4" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=108090300]
 visible = false
-scale = Vector2(1.3, 1.3)
+position = Vector2(-7, 6)
+scale = Vector2(1.5, 1.5)
 polygon = PackedVector2Array(17, -303, -81, -284, -192, -218, -173, -88, 177, -76, 197, -157, 139, -264)
 disabled = true
 
@@ -119,6 +128,7 @@ disabled = true
 position = Vector2(0, -152)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=288142139]
+offset = Vector2(0, -200)
 zoom = Vector2(1.3, 1.3)
 
 [node name="TrunkLine" type="Line2D" parent="." unique_id=724937465]
@@ -131,5 +141,31 @@ default_color = Color(1.177762, 1.0069458, 0.9192293, 1)
 texture = ExtResource("4_bkd26")
 texture_mode = 2
 joint_mode = 2
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=616521395]
+
+[node name="CollisionShape2D1" type="CollisionShape2D" parent="HurtBox" unique_id=2006727376]
+visible = false
+position = Vector2(-2, -102)
+scale = Vector2(0.4861854, -2.8972795)
+shape = SubResource("CircleShape2D_63up5")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="HurtBox" unique_id=887704042]
+visible = false
+position = Vector2(-4, -151)
+scale = Vector2(2.042057, 5.085929)
+shape = SubResource("CircleShape2D_63up5")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="HurtBox" unique_id=1732775799]
+visible = false
+position = Vector2(-2, -178)
+scale = Vector2(-4.2854714, 6.5985126)
+shape = SubResource("CircleShape2D_63up5")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="HurtBox" unique_id=912886804]
+visible = false
+position = Vector2(2, -199)
+scale = Vector2(5.5438414, 7.85043)
+shape = SubResource("CircleShape2D_63up5")
 
 [connection signal="area_entered" from="treehead/hitbox" to="treehead" method="_on_hitbox_area_entered"]

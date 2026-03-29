@@ -16,6 +16,7 @@ var skill_history_per_stage: Dictionary = {}           # 格式: { stage_id : [ 
 var current_playing_stage: int = 1                     # 玩家当前正在挑战哪一关
 
 
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  玩家基础属性
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

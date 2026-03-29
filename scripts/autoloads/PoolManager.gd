@@ -1,125 +1,105 @@
 extends Node
 # ═══════════════════════════════════════════════════════════════
 #  PoolManager.gd — 全局对象池 (Autoload)
-#  专治反复 Instantiate() 造成的游戏掉帧。
+#  Game Jam 终极优化版：多怪物类型支持 + 纯状态冻结回收
 # ═══════════════════════════════════════════════════════════════
 
-# 数据结构：字典。Key 为路径(String)或 PackedScene，Value 为 Array[Node]
-var _pools: Dictionary = {}
+# 1. 预加载所有敌人场景
+var enemy_scenes: Dictionary = {
+	"fly": preload("res://scenes/actors/EnemyFly.tscn"),     # 确认路径正确
+	"beaver": preload("res://scenes/actors/EnemyBeaver.tscn") # 确认路径正确
+}
 
-## 【性能终极优化】：预热池子（开局调用一次，把几百个怪瞬间藏好）
-func prewarm(scene: PackedScene, count: int, parent_node: Node) -> void:
-	var path_key = scene.resource_path
-	if not _pools.has(path_key):
-		_pools[path_key] = []
-		
-	var arr = _pools[path_key]
+# 2. 对象池存储字典
+var _pools: Dictionary = {
+	"fly": [],
+	"beaver": []
+}
+
+func _ready() -> void:
+	# 游戏启动时偷偷把怪建好，藏在后台，防止第一波刷怪时卡顿
+	prewarm("fly", 50)
+	prewarm("beaver", 20)
+
+## 【性能终极优化】：预热池子
+func prewarm(enemy_type: String, count: int) -> void:
+	if not enemy_scenes.has(enemy_type): return
+	
+	var scene = enemy_scenes[enemy_type]
 	for i in range(count):
 		var enemy = scene.instantiate()
-		enemy.set_meta("pool_key", path_key)
+		
+		# 【神之一手】用 meta 打上基因标签，回收时一眼认出它是谁
+		enemy.set_meta("pool_key", enemy_type) 
+		
+		# 冻结计算，隐藏显示
 		enemy.process_mode = Node.PROCESS_MODE_DISABLED
-		if enemy.has_method("hide"):
-			enemy.hide()
-		parent_node.add_child(enemy)
-		arr.append(enemy)
-	print("[PoolManager] 已成功预热 (Pre-warm) 了 %d 个实体进入对象池。" % count)
+		enemy.hide()
+		
+		# 直接作为 PoolManager 的子节点，永远不 Remove！
+		add_child(enemy)
+		_pools[enemy_type].append(enemy)
+		
+	print("[PoolManager] 成功预热 %d 个 %s" % [count, enemy_type])
 
-## 获取一个对象池实例
-func get_instance(res_path_or_scene) -> Node:
-	var path_key = ""
-	var scene: PackedScene = null
-	
-	if typeof(res_path_or_scene) == TYPE_STRING:
-		path_key = res_path_or_scene
-		scene = load(path_key)
-	elif typeof(res_path_or_scene) == TYPE_OBJECT and res_path_or_scene is PackedScene:
-		path_key = res_path_or_scene.resource_path
-		scene = res_path_or_scene
-	else:
-		push_error("[PoolManager] 无效的资源池请求！")
+## 获取怪物（供 WaveManager 调用）
+func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
+	if not _pools.has(enemy_type):
+		push_error("[PoolManager] 找不到该怪物类型：" + enemy_type)
 		return null
 		
-	# 确保池子存在
-	if not _pools.has(path_key):
-		_pools[path_key] = []
-		
-	var pool_array = _pools[path_key]
-	var instance: Node = null
+	var pool_array = _pools[enemy_type]
+	var enemy: Node2D = null
 	
 	# 从池里取
 	while pool_array.size() > 0:
-		instance = pool_array.pop_back()
-		if is_instance_valid(instance):
-			# 恢复节点状态 (解除冻结冰封状态)
-			instance.process_mode = Node.PROCESS_MODE_INHERIT
-			if instance.has_method("show"):
-				instance.show()
-			
-			# 如果节点带有 reset 自定义函数，则在这里初始化它
-			if instance.has_method("reset"):
-				instance.reset()
+		enemy = pool_array.pop_back()
+		if is_instance_valid(enemy):
 			break
 		else:
-			instance = null
+			enemy = null
 			
-	# 如果池里没东西，或者全坏了，就新造一个
-	if not instance:
-		instance = scene.instantiate()
-		instance.set_meta("pool_key", path_key) # 印上归属印记
+	# 如果池子干了，临时加班造一个
+	if not enemy:
+		enemy = enemy_scenes[enemy_type].instantiate()
+		enemy.set_meta("pool_key", enemy_type)
+		add_child(enemy)
 		
-	return instance
+	# 唤醒怪物！
+	enemy.global_position = spawn_pos
+	enemy.process_mode = Node.PROCESS_MODE_INHERIT # 解除冰封
+	enemy.show()
+	
+	# 初始化血量和状态
+	if enemy.has_method("reset"):
+		enemy.reset()
+		
+	return enemy
 
-## 用完之后回收，请用此方法代替 queue_free()
-func return_instance(node: Node):
+## 回收怪物（供 EnemyAI 死亡击飞结束后调用）
+func return_enemy(node: Node) -> void:
 	if not is_instance_valid(node):
 		return
 		
+	# 读取基因标签，看看它该回哪个池子
 	var path_key = node.get_meta("pool_key", "")
-	if path_key == "":
-		push_warning("[PoolManager] 试图回收不属于池管理的对象！将直接 queue_free()。")
+	if path_key == "" or not _pools.has(path_key):
+		push_warning("[PoolManager] 试图回收非法对象，已直接销毁。")
 		node.queue_free()
 		return
 		
-	if not _pools.has(path_key):
-		_pools[path_key] = []
-		
 	var pool_array = _pools[path_key]
 	
-	# 避免重复回收
+	# 避免重复回收报错
 	if pool_array.has(node):
 		return
 		
-	# 【性能优化核心】：坚决不用 remove_child 拔出场景树了！
-	# 只将它冻结逻辑计算，并隐藏显示，直接塞回待机队列。
+	# 【性能优化核心】：坚决不用 remove_child！
 	node.process_mode = Node.PROCESS_MODE_DISABLED
-	if node.has_method("hide"):
-		node.hide()
+	node.hide()
+	
+	# 如果有动画发光残留，在这里重置（确保下次拿出来是干净的）
+	if node.has_node("AnimatedSprite2D"):
+		node.get_node("AnimatedSprite2D").modulate = Color(1, 1, 1, 1)
 		
 	pool_array.append(node)
-
-# --- 兼容旧代码的方法 ---
-var enemy_scene: PackedScene = preload("res://scenes/actors/Enemy.tscn")
-var enemy_pool: Array = []  # 对象池
-
-func get_enemy(spawn_pos: Vector2) -> Node2D:
-	var enemy: Node2D
-	if enemy_pool.size() > 0:
-		enemy = enemy_pool.pop_back()
-		enemy.global_position = spawn_pos
-		enemy.show()  # 确保可见
-		get_tree().current_scene.add_child(enemy)
-	else:
-		enemy = enemy_scene.instantiate()
-		enemy.global_position = spawn_pos
-		get_tree().current_scene.add_child(enemy)
-	
-	# 重置敌人状态
-	if enemy.has_method("reset"):
-		enemy.reset()
-	
-	return enemy
-
-func return_enemy(enemy: Node2D) -> void:
-	enemy.hide()  # 隐藏
-	enemy.get_parent().remove_child(enemy)
-	enemy_pool.append(enemy)
