@@ -23,6 +23,10 @@ const SAVE_PATH = "user://tree_survivor_save.json"
 const MAX_STAGES = 4
 const RIVER_Y_THRESHOLD: float = 200.0
 
+# 👇【新增】：用于存储不规则河流边界的数据
+var river_polygon: PackedVector2Array = []
+var river_transform: Transform2D = Transform2D()
+
 func _ready():
 	load_game()
 
@@ -301,15 +305,63 @@ func get_enemy_stats(enemy_id: String) -> Dictionary:
 	push_warning("GameData: 未知敌人 ID -> " + enemy_id)
 	return {}
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  地形判定：不规则河流算法
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 func is_in_river(position: Vector2) -> bool:
-	return position.y > RIVER_Y_THRESHOLD
+	# 兜底：如果没画多边形，退回到旧版 Y 轴判定
+	if river_polygon.is_empty():
+		return position.y > RIVER_Y_THRESHOLD
+		
+	# 将世界坐标转换成多边形的本地坐标
+	var local_pos = river_transform.affine_inverse() * position
+	# 核心：调用上帝视角的几何引擎，瞬间算出点是否在多边形内！
+	return Geometry2D.is_point_in_polygon(local_pos, river_polygon)
 
 func clamp_to_river_bank(position: Vector2, padding: float = 0.0) -> Vector2:
-	var safe_position = position
-	var bank_y = RIVER_Y_THRESHOLD - absf(padding)
-	if safe_position.y > bank_y:
-		safe_position.y = bank_y
-	return safe_position
+	# 兜底：如果没画多边形，用旧版方式推回
+	if river_polygon.is_empty():
+		var safe_position = position
+		var bank_y = RIVER_Y_THRESHOLD - absf(padding)
+		if safe_position.y > bank_y:
+			safe_position.y = bank_y
+		return safe_position
+
+	var local_pos = river_transform.affine_inverse() * position
+	
+	# 如果根本不在水里，直接返回原位置，啥也不用做
+	if not Geometry2D.is_point_in_polygon(local_pos, river_polygon):
+		return position 
+
+	# 如果掉水里了，寻找距离它最近的一段河岸线
+	var closest_dist: float = INF
+	var closest_point: Vector2 = local_pos
+	
+	for i in range(river_polygon.size()):
+		var p1 = river_polygon[i]
+		var p2 = river_polygon[(i + 1) % river_polygon.size()]
+		
+		# 算出掉水里的点，到当前河岸线段的最短距离点
+		var closest_on_segment = Geometry2D.get_closest_point_to_segment(local_pos, p1, p2)
+		var dist = local_pos.distance_squared_to(closest_on_segment)
+		if dist < closest_dist:
+			closest_dist = dist
+			closest_point = closest_on_segment
+
+	# 算出推上岸的方向（从落水点指向最近的岸边）
+	var out_dir = (closest_point - local_pos).normalized()
+	if out_dir == Vector2.ZERO:
+		out_dir = Vector2.UP # 万一重合，强制往上推
+		
+	# 推到岸边后，再往岸上多走一段安全距离 (padding)
+	var final_local = closest_point + out_dir * absf(padding)
+	
+	# 转换回世界坐标还给系统
+	return river_transform * final_local
+
+# ==========================================
+# (保留你原本在最底部的 record_skill_for_stage 等代码)
 
 ## 记录在某关获得的技能
 func record_skill_for_stage(stage_id: int, skill_id: String):
