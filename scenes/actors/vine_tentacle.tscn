@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://csc71ddqfuodi"]
+
+[ext_resource type="Script" uid="uid://diyiavnc0j2pb" path="res://vine_tentacle.gd" id="1_rmmdl"]
+[ext_resource type="Texture2D" uid="uid://dc5upblap50ib" path="res://assets/sprites/effects/vine.png" id="2_knnpa"]
+
+[node name="VineTentacle" type="Node2D" unique_id=784651947]
+script = ExtResource("1_rmmdl")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=756497569]
+scale = Vector2(1.1107126, 1.1308321)
+texture = ExtResource("2_knnpa")

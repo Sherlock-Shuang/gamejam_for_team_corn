@@ -15,10 +15,10 @@ radius = 67.357254
 radius = 76.1643
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_68yk5"]
-radius = 21.322458
+radius = 17.916048
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
-size = Vector2(84, 86)
+size = Vector2(83.230606, 81.15287)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_dqsgq"]
 animations = [{
@@ -84,12 +84,13 @@ collision_layer = 2
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1426947378]
-scale = Vector2(1.4950017, 1.3528963)
+position = Vector2(-0.5751226, -3.278832)
+scale = Vector2(1.3286176, 1.3109652)
 shape = SubResource("RectangleShape2D_jq30h")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=263200]
 position = Vector2(7.0000005, -7)
-scale = Vector2(0.28838134, 0.3037286)
+scale = Vector2(0.23993051, 0.23926114)
 sprite_frames = SubResource("SpriteFrames_dqsgq")
 animation = &"walk"
 autoplay = "walk"

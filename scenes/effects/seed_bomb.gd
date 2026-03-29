@@ -22,6 +22,7 @@ extends Node2D
 
 var damage_timer: Timer
 var active_radius: float = 150.0
+var launch_config: Dictionary = {}
 
 func _ready():
 	if anim == null or hitbox_area == null or collision_shape == null:
@@ -35,11 +36,16 @@ func _ready():
 	hitbox_area.collision_mask = 2
 
 # 发射接口：由大树的技能控制器调用
-func launch(start_pos: Vector2, target_pos: Vector2, damage: float, radius: float, tick_interval: float, life_time: float) -> void:
+func launch(start_pos: Vector2, target_pos: Vector2, damage: float, radius: float, tick_interval: float, life_time: float, config: Dictionary = {}) -> void:
 	global_position = start_pos
 	base_damage = damage
 	damage_interval = tick_interval
 	lifetime = life_time
+	launch_config = config.duplicate(true)
+	if config.has("fly_scale"):
+		fly_scale = float(config["fly_scale"])
+	if config.has("grown_scale"):
+		grown_scale = float(config["grown_scale"])
 	active_radius = radius
 	var new_shape = CircleShape2D.new()
 	new_shape.radius = radius
@@ -72,7 +78,7 @@ func _on_land() -> void:
 	
 	# 🌟【表现细节】：伴随成长动画，像弹簧一样“嘭”地膨胀回正常大小
 	var grow_tween = create_tween()
-	grow_tween.tween_property(anim, "scale", Vector2(grown_scale, grown_scale), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	grow_tween.tween_property(anim, "scale", Vector2(grown_scale, grown_scale), maxf(0.08, float(launch_config.get("grow_duration", 0.3)))).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	
 	# 死等动画播完
 	await anim.animation_finished

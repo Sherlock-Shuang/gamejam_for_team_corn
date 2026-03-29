@@ -23,6 +23,7 @@ var _linger_tick_left: float = 0.0
 @export var texture_base_radius: float = 50.0 # 贴图原半径：如果美术画的爆炸图是 100x100，这里填 50
 @export var linger_scale_ratio: float = 1.0
 @export var burst_overshoot_ratio: float = 1.2
+@export var scale_settle_duration: float = 0.1
 @export var flight_hit_radius: float = 42.0
 @export var flight_hit_damage_ratio: float = 0.35
 @export var linger_tick_interval: float = 0.2
@@ -89,6 +90,10 @@ func launch(start_pos: Vector2, target_pos: Vector2, radius: float, damage: floa
 		linger_duration = float(config["linger_duration"])
 	if config.has("linger_scale_ratio"):
 		linger_scale_ratio = float(config["linger_scale_ratio"])
+	if config.has("burst_overshoot_ratio"):
+		burst_overshoot_ratio = float(config["burst_overshoot_ratio"])
+	if config.has("scale_settle_duration"):
+		scale_settle_duration = float(config["scale_settle_duration"])
 	_flight_hit_enemy_ids.clear()
 	_linger_tick_left = 0.0
 	global_position = start_pos
@@ -181,7 +186,7 @@ func _explode(damage: float) -> void:
 	
 	# 阶段 1：瞬间炸开到动态计算出的大小
 	tween.tween_property(explosion_sprite, "scale", Vector2(peak_scale, peak_scale), explosion_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(explosion_sprite, "scale", Vector2(last_decay_scale, last_decay_scale), 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(explosion_sprite, "scale", Vector2(last_decay_scale, last_decay_scale), maxf(0.04, scale_settle_duration)).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(func():
 		state = 4
 		_linger_tick_left = 0.0

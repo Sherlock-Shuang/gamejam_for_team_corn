@@ -12,7 +12,7 @@ extends Node2D
 	$HurtBox/CollisionShape2D4
 ]
 
-var trunk_widths: Array[float] = [10.0, 40.0, 60.0, 80.0] 
+var trunk_widths: Array[float] = [10.0, 40.0, 70.0, 90.0] 
 
 # 🔥 用来记忆你在编辑器里调好的大小
 var base_root_scales: Array[Vector2] = []

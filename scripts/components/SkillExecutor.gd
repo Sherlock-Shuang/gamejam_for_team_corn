@@ -6,7 +6,9 @@ class_name SkillExecutor
 # ═══════════════════════════════════════════════════════════════
 
 var active_skills: Dictionary = {}
+var active_skill_levels: Dictionary = {}
 @onready var tree_owner = get_parent()
+const VINE_TENTACLE_SCENE = preload("res://scenes/actors/vine_tentacle.tscn")
 
 func _ready():
 	print("[SkillExecutor] 技能引擎已加载，开始监听天命总线...")
@@ -14,47 +16,53 @@ func _ready():
 	SignalBus.on_enemy_hit.connect(_on_enemy_hit)
 
 func _on_skill_unlocked(skill_id: String):
-	if not GameData.skill_pool.has(skill_id):
+	var payload = GameData.decode_upgrade_payload(skill_id)
+	var real_skill_id = str(payload.get("skill_id", ""))
+	var route_id = str(payload.get("route_id", ""))
+	if not GameData.skill_pool.has(real_skill_id):
 		return
-	
-	var data = GameData.skill_pool[skill_id]
+
+	var data = GameData.skill_pool[real_skill_id]
 	print("[SkillExecutor] 实装能力: ", data["name"])
-	
-	# 免得重复初始化
-	if active_skills.has(skill_id):
-		# 如果允许叠加，可以在这写叠加逻辑
-		return
-	
-	active_skills[skill_id] = data
-	GameData.register_current_run_skill(skill_id)
-	SignalBus.on_skill_actived.emit(skill_id)
-	
+
+	var upgrade_result = GameData.apply_skill_upgrade(real_skill_id, route_id)
+	var new_level = int(upgrade_result.get("skill_level", 1))
+	var prev_effects = upgrade_result.get("prev_effects", {})
+	var new_effects = upgrade_result.get("effects", {})
+	active_skill_levels[real_skill_id] = new_level
+	active_skills[real_skill_id] = data
+	SignalBus.on_skill_actived.emit(real_skill_id)
+
 	var category = data["category"]
 	if category == "衍生攻击":
-		_setup_derived_attack(data)
+		_setup_derived_attack(real_skill_id)
 	elif category == "基础数值":
-		_apply_base_stats(data)
+		_apply_base_stats(real_skill_id, prev_effects, new_effects)
 
 # ── 类别 A：衍生攻击 (定时开火型) ──────────────────────────────
-func _setup_derived_attack(skill_data: Dictionary):
-	var effects = skill_data["effects"]
-	
-	if skill_data["id"] == "thorn_shot":
+func _setup_derived_attack(skill_id: String):
+	var effects = _get_skill_effects(skill_id)
+	if skill_id == "thorn_shot":
 		var cd = effects.get("interval", 2.0)
 		_create_skill_timer("thorn_shot_timer", cd, _fire_thorn)
-	elif skill_data["id"] == "exploding_fruit":
+	elif skill_id == "exploding_fruit":
 		var cd = effects.get("interval", 4.0)
 		_create_skill_timer("bomb_fruit_timer", cd, _fire_bomb)
-	elif skill_data["id"] == "lightning_field":
+	elif skill_id == "lightning_field":
 		var cd = effects.get("interval", 5.0)
 		_create_skill_timer("lightning_field_timer", cd, _fire_lightning_field)
-	elif skill_data["id"] == "vine_spread":
-		_create_skill_timer("vine_spread_timer", 0.5, _cast_vine_spread)
-	elif skill_data["id"] == "seed_bomb":
+	elif skill_id == "vine_spread":
+		var cd = effects.get("interval", 4.0)
+		_create_skill_timer("vine_spread_timer", cd, _cast_vine_spread)
+	elif skill_id == "seed_bomb":
 		var cd = effects.get("interval", effects.get("delay", 1.5) + 1.0)
 		_create_skill_timer("seed_bomb_timer", cd, _cast_seed_bomb)
 
 func _create_skill_timer(timer_name: String, wait_time: float, callable_func: Callable):
+	var old_timer = get_node_or_null(timer_name)
+	if old_timer and old_timer is Timer:
+		old_timer.stop()
+		old_timer.queue_free()
 	var timer = Timer.new()
 	timer.name = timer_name
 	timer.wait_time = wait_time
@@ -62,49 +70,51 @@ func _create_skill_timer(timer_name: String, wait_time: float, callable_func: Ca
 	add_child(timer)
 	timer.timeout.connect(callable_func)
 
+func _get_skill_level(skill_id: String) -> int:
+	return int(active_skill_levels.get(skill_id, 1))
+
+func _get_skill_effects(skill_id: String) -> Dictionary:
+	return GameData.get_skill_effects(skill_id, _get_skill_level(skill_id))
+
 func _fire_thorn():
 	var nearest = _get_nearest_target()
-	if not nearest: return
-	
-	# 这里后续用真正的 Thorn.tscn，目前先拿纯色块代替
-	var thorn = Polygon2D.new()
-	thorn.polygon = PackedVector2Array([Vector2(-2, -10), Vector2(2, -10), Vector2(0, 5)])
-	thorn.color = Color(0.1, 0.8, 0.2)
-	thorn.global_position = tree_owner.global_position
-	# 因为需要物理运动，通常会挂在 current_scene。暂时先用简单的 Tween 模拟
+	if not nearest:
+		return
+	var thorn_scene_path = "res://scenes/effects/PoisonSting.tscn"
+	if not ResourceLoader.exists(thorn_scene_path):
+		push_warning("[SkillExecutor] 缺少场景: " + thorn_scene_path)
+		return
+	var thorn_scene = load(thorn_scene_path)
+	if thorn_scene == null:
+		push_warning("[SkillExecutor] PoisonSting 场景加载失败: " + thorn_scene_path)
+		return
+	var thorn = thorn_scene.instantiate()
 	get_tree().current_scene.add_child(thorn)
-	
-	var dir = (nearest.global_position - thorn.global_position).normalized()
-	thorn.rotation = dir.angle() + PI/2.0
-	
-	var tween = create_tween()
-	var final_pos = thorn.global_position + dir * 600.0
-	tween.tween_property(thorn, "global_position", final_pos, 0.5)
-	
-	# 简单范围判定
-	tween.parallel().tween_method(func(_progress):
-		if not is_instance_valid(nearest): return
-		if not is_instance_valid(thorn): return
-		if thorn.global_position.distance_to(nearest.global_position) < 30.0:
-			if nearest.has_method("take_damage"):
-				var base_atk = GameData.player_base_stats["attack_power"]
-				nearest.take_damage(base_atk * 0.8, thorn.global_position)
-			thorn.queue_free()
-	, 0.0, 1.0, 0.5)
-	
-	tween.tween_callback(thorn.queue_free)
+	var direction = (nearest.global_position - tree_owner.global_position).normalized()
+	var effects = _get_skill_effects("thorn_shot")
+	var final_damage = GameData.player_base_stats.get("attack_power", 10.0) * 0.8
+	final_damage = effects.get("poison_damage", final_damage)
+	var projectile_count = maxi(1, int(effects.get("projectile_count", 1)))
+	var spread_step = deg_to_rad(10.0)
+	var half = float(projectile_count - 1) * 0.5
+	for i in range(projectile_count):
+		var shot = thorn
+		if i > 0:
+			shot = thorn_scene.instantiate()
+			get_tree().current_scene.add_child(shot)
+		var offset_angle = (float(i) - half) * spread_step
+		var shot_dir = direction.rotated(offset_angle)
+		if shot.has_method("launch"):
+			shot.launch(tree_owner.global_position, shot_dir, final_damage, effects.get("speed_mult", 1.0), effects)
 
 func _fire_bomb():
-	# 从 GameData 获取特效数值
-	var skill_data = active_skills.get("exploding_fruit", null)
-	if skill_data == null: return
-	var effects = skill_data["effects"]
+	if not active_skills.has("exploding_fruit"):
+		return
+	var effects = _get_skill_effects("exploding_fruit")
 	var blast_radius = effects.get("radius", 150.0)
 	var final_damage = effects.get("explosion_damage", 20.0)
+	var cast_count = maxi(1, int(effects.get("cast_count", 1)))
 	
-	var target_pos = _pick_random_land_point_around(tree_owner.global_position, 80.0, 600.0)
-	
-	# 加载并实例化 fruit_root 场景
 	var fruit_scene_path = "res://scenes/effects/FruitRoot.tscn"
 	if not ResourceLoader.exists(fruit_scene_path):
 		push_warning("[SkillExecutor] 缺少场景: " + fruit_scene_path + "，请先在编辑器保存 fruit_root.tscn")
@@ -113,19 +123,16 @@ func _fire_bomb():
 	if fruit_scene == null:
 		push_warning("[SkillExecutor] fruit_root 场景加载失败: " + fruit_scene_path)
 		return
-	var fruit = fruit_scene.instantiate()
-	
-	# 将其添加到场景树中
-	get_tree().current_scene.add_child(fruit)
-	
-	# 调用果实的发射接口，直接传入最终伤害
-	fruit.launch(tree_owner.global_position, target_pos, blast_radius, final_damage)
+	for _i in range(cast_count):
+		var target_pos = _pick_random_land_point_around(tree_owner.global_position, 80.0, 600.0)
+		var fruit = fruit_scene.instantiate()
+		get_tree().current_scene.add_child(fruit)
+		fruit.launch(tree_owner.global_position, target_pos, blast_radius, final_damage)
 
 func _fire_lightning_field():
-	var skill_data = active_skills.get("lightning_field", null)
-	if skill_data == null:
+	if not active_skills.has("lightning_field"):
 		return
-	var effects = skill_data["effects"]
+	var effects = _get_skill_effects("lightning_field")
 	var blast_radius = effects.get("radius", 320.0)
 	var final_damage = effects.get("explosion_damage", 24.0)
 	var min_range = effects.get("cast_range_min", 120.0)
@@ -133,6 +140,7 @@ func _fire_lightning_field():
 	var speed_ratio = effects.get("speed_ratio", 0.4)
 	var linger_duration = effects.get("linger_duration", 2.5)
 	var linger_scale_ratio = effects.get("linger_scale_ratio", 0.85)
+	var cast_count = maxi(1, int(effects.get("cast_count", 1)))
 	var target_pos = tree_owner.global_position
 	var nearest = _get_nearest_target()
 	if is_instance_valid(nearest):
@@ -148,43 +156,65 @@ func _fire_lightning_field():
 	if field_scene == null:
 		push_warning("[SkillExecutor] LightningField 场景加载失败: " + field_scene_path)
 		return
-	var lightning_field = field_scene.instantiate()
-	get_tree().current_scene.add_child(lightning_field)
-	lightning_field.launch(
-		tree_owner.global_position,
-		target_pos,
-		blast_radius,
-		final_damage,
-		{
-			"speed_ratio": speed_ratio,
-			"linger_duration": linger_duration,
-			"linger_scale_ratio": linger_scale_ratio
-		}
-	)
+	for _i in range(cast_count):
+		var aim_pos = target_pos
+		if cast_count > 1:
+			aim_pos = _pick_random_land_point_around(target_pos, 20.0, 120.0)
+		var lightning_field = field_scene.instantiate()
+		get_tree().current_scene.add_child(lightning_field)
+		lightning_field.launch(
+			tree_owner.global_position,
+			aim_pos,
+			blast_radius,
+			final_damage,
+			{
+				"speed_ratio": speed_ratio,
+				"linger_duration": linger_duration,
+				"linger_scale_ratio": linger_scale_ratio,
+				"burst_overshoot_ratio": effects.get("burst_overshoot_ratio", 1.2),
+				"scale_settle_duration": effects.get("scale_settle_duration", 0.1)
+			}
+		)
 
 func _cast_vine_spread():
 	var skill = active_skills.get("vine_spread", null)
 	if skill == null:
 		return
-	var effects = skill["effects"]
-	var radius = effects.get("radius", 220.0)
-	var slow_percent = effects.get("slow_percent", 0.4)
-	var dps = effects.get("dps", 2.0)
-	var duration = effects.get("duration", 1.2)
-	var tick_damage = dps * 0.5
-	var hit_enemies = _get_active_enemies_in_radius(radius)
-	for enemy in hit_enemies:
-		if enemy.has_method("apply_slow"):
-			enemy.apply_slow(slow_percent, duration)
-		if enemy.has_method("take_damage"):
-			var base_atk = GameData.player_base_stats["attack_power"]
-			enemy.take_damage(base_atk * 0.35 + tick_damage, tree_owner.global_position)
+	var vine_level = _get_skill_level("vine_spread")
+	var effects = _get_skill_effects("vine_spread")
+	var target_count = int(effects.get("target_count", 3))
+	var search_radius = maxf(float(effects.get("search_radius", effects.get("radius", 350.0))), 520.0)
+	var base_damage = float(effects.get("damage", 100.0))
+	var atk = float(GameData.player_base_stats.get("attack_power", 10.0))
+	var final_damage = base_damage + atk * 0.5
+	var enemies_in_range = _get_active_enemies_in_radius(search_radius)
+	if enemies_in_range.is_empty():
+		var nearest = _get_nearest_target()
+		if is_instance_valid(nearest):
+			enemies_in_range = [nearest]
+		else:
+			return
+	if enemies_in_range.is_empty():
+		return
+	enemies_in_range.shuffle()
+	var grab_count = mini(enemies_in_range.size(), target_count)
+	print("[SkillExecutor] VineTentacle cast targets=", grab_count, " radius=", search_radius)
+	var scale_bonus = 1.0 + maxf(0.0, float(vine_level - 1)) * 0.22
+	var cast_config = effects.duplicate(true)
+	cast_config["tentacle_peak_scale"] = float(cast_config.get("tentacle_peak_scale", 1.2)) * scale_bonus
+	cast_config["tentacle_initial_scale_x"] = float(cast_config.get("tentacle_initial_scale_x", 0.5)) * (1.0 + maxf(0.0, float(vine_level - 1)) * 0.15)
+	for i in range(grab_count):
+		var target_enemy = enemies_in_range[i]
+		var tentacle = VINE_TENTACLE_SCENE.instantiate()
+		get_tree().current_scene.add_child(tentacle)
+		if tentacle.has_method("launch"):
+			tentacle.launch(target_enemy, final_damage, cast_config)
 
 func _cast_seed_bomb():
 	var skill = active_skills.get("seed_bomb", null)
 	if skill == null:
 		return
-	var effects = skill["effects"]
+	var effects = _get_skill_effects("seed_bomb")
 	var radius = effects.get("radius", 150.0)
 	var tick_interval = effects.get("damage_interval", 0.5)
 	var life_time = effects.get("lifetime", 10.0)
@@ -210,13 +240,13 @@ func _cast_seed_bomb():
 		return
 	var seed_bomb = seed_scene.instantiate()
 	get_tree().current_scene.add_child(seed_bomb)
-	seed_bomb.launch(tree_owner.global_position, target_pos, final_damage, radius, tick_interval, life_time)
+	seed_bomb.launch(tree_owner.global_position, target_pos, final_damage, radius, tick_interval, life_time, effects)
 
 # ── 类别 B：元素附魔 (基于每次普攻) ─────────────────────────────
 # 监听 treehead 发来的击中信号，判定有没有元素状态，直接附加给你
 func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D):
 	if active_skills.has("ice_enchant"):
-		var fx = active_skills["ice_enchant"]["effects"]
+		var fx = _get_skill_effects("ice_enchant")
 		if enemy_node and enemy_node.has_method("apply_slow"):
 			enemy_node.apply_slow(fx["slow_percent"], fx["slow_duration"])
 			
@@ -225,35 +255,69 @@ func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D):
 		pass
 
 # ── 类别 C：基础属性被动提升 ────────────────────────────────────
-func _apply_base_stats(skill_data: Dictionary):
-	var eff = skill_data["effects"]
-	var skill_id = skill_data.get("id", "")
-	if eff.has("max_hp_bonus"):
-		GameData.player_base_stats["max_hp"] += eff["max_hp_bonus"]
-		GameData.current_hp += eff["max_hp_bonus"]
+func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictionary):
+	if new_eff.has("max_hp_bonus"):
+		var prev_bonus = float(prev_eff.get("max_hp_bonus", 0.0))
+		var new_bonus = float(new_eff.get("max_hp_bonus", 0.0))
+		var add_bonus = maxf(0.0, new_bonus - prev_bonus)
+		GameData.player_base_stats["max_hp"] += add_bonus
+		GameData.current_hp += add_bonus
 		GameData.current_hp = minf(GameData.current_hp, GameData.player_base_stats["max_hp"])
 		SignalBus.on_player_hp_changed.emit(GameData.current_hp, GameData.player_base_stats["max_hp"])
 		if skill_id == "thick_bark" and tree_owner.has_method("apply_trunk_width_multiplier"):
-			tree_owner.apply_trunk_width_multiplier(eff.get("trunk_width_mult", 1.3))
-	if eff.has("hp_regen"):
-		GameData.player_base_stats["hp_regen"] += eff["hp_regen"]
+			var prev_mult = float(prev_eff.get("trunk_width_mult", 1.0))
+			var new_mult = float(new_eff.get("trunk_width_mult", 1.0))
+			var step_mult = 1.0
+			if prev_mult > 0.0:
+				step_mult = new_mult / prev_mult
+			tree_owner.apply_trunk_width_multiplier(step_mult)
+	if new_eff.has("hp_regen"):
+		var prev_regen = float(prev_eff.get("hp_regen", 0.0))
+		var next_regen = float(new_eff.get("hp_regen", 0.0))
+		GameData.player_base_stats["hp_regen"] += maxf(0.0, next_regen - prev_regen)
 		if skill_id == "deep_roots" and tree_owner.has_method("apply_root_scale_multiplier"):
-			tree_owner.apply_root_scale_multiplier(eff.get("root_scale_mult", 1.3))
-	if eff.has("attack_mult"):
-		GameData.player_base_stats["attack_power"] *= eff["attack_mult"]
-	if eff.has("range_mult"):
-		GameData.player_base_stats["attack_range"] *= eff["range_mult"]
+			var prev_root = float(prev_eff.get("root_scale_mult", 1.0))
+			var next_root = float(new_eff.get("root_scale_mult", 1.0))
+			var step_root = 1.0
+			if prev_root > 0.0:
+				step_root = next_root / prev_root
+			tree_owner.apply_root_scale_multiplier(step_root)
+	if new_eff.has("attack_mult"):
+		var prev_atk = float(prev_eff.get("attack_mult", 1.0))
+		var next_atk = float(new_eff.get("attack_mult", 1.0))
+		var step_atk = 1.0
+		if prev_atk > 0.0:
+			step_atk = next_atk / prev_atk
+		GameData.player_base_stats["attack_power"] *= step_atk
+	if new_eff.has("range_mult"):
+		var prev_range = float(prev_eff.get("range_mult", 1.0))
+		var next_range = float(new_eff.get("range_mult", 1.0))
+		var step_range = 1.0
+		if prev_range > 0.0:
+			step_range = next_range / prev_range
+		GameData.player_base_stats["attack_range"] *= step_range
 		if skill_id == "wide_canopy":
 			if tree_owner.has_method("apply_canopy_scale_multiplier"):
-				tree_owner.apply_canopy_scale_multiplier(eff.get("canopy_sprite_mult", 1.4))
+				var prev_canopy = float(prev_eff.get("canopy_sprite_mult", 1.0))
+				var next_canopy = float(new_eff.get("canopy_sprite_mult", 1.0))
+				var step_canopy = 1.0
+				if prev_canopy > 0.0:
+					step_canopy = next_canopy / prev_canopy
+				tree_owner.apply_canopy_scale_multiplier(step_canopy)
 			var treehead = tree_owner.get_node_or_null("treehead")
 			if treehead and treehead.has_method("apply_hit_shape_scale_multiplier"):
-				treehead.apply_hit_shape_scale_multiplier(eff.get("hitbox_shape_mult", 1.4))
-	if eff.has("stretch_scale_bonus"):
-		# 弹性树干技能：去树干上修改 max_stretch_scale
+				var prev_hit = float(prev_eff.get("hitbox_shape_mult", 1.0))
+				var next_hit = float(new_eff.get("hitbox_shape_mult", 1.0))
+				var step_hit = 1.0
+				if prev_hit > 0.0:
+					step_hit = next_hit / prev_hit
+				treehead.apply_hit_shape_scale_multiplier(step_hit)
+	if new_eff.has("stretch_scale_bonus"):
 		var treehead = tree_owner.get_node_or_null("treehead")
 		if treehead and treehead.get("max_stretch_scale") != null:
-			treehead.max_stretch_scale += eff["stretch_scale_bonus"]
+			var prev_stretch = float(prev_eff.get("stretch_scale_bonus", 0.0))
+			var next_stretch = float(new_eff.get("stretch_scale_bonus", 0.0))
+			treehead.max_stretch_scale += maxf(0.0, next_stretch - prev_stretch)
 			print("[SkillExecutor] 弹性树干生效！当前 max_stretch_scale: ", treehead.max_stretch_scale)
 
 # ── 工具函数 ──

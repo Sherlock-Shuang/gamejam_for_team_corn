@@ -4,20 +4,23 @@
 [ext_resource type="Texture2D" uid="uid://clljgkes03qty" path="res://assets/sprites/effects/毒刺.png" id="2_cgqqf"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_usp3i"]
-radius = 59.0
-height = 216.0
+radius = 20.0
+height = 188.0
 
 [node name="PoisonSting" type="Area2D" unique_id=683428095]
+position = Vector2(-4, 0)
 script = ExtResource("1_a08ho")
+pierce_count = 2
+launch_end_scale = Vector2(0.2, 1)
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=707920492]
 rotation = -1.5707964
-scale = Vector2(0.5021917, 0.46946377)
+scale = Vector2(0.14, 0.42)
 texture = ExtResource("2_cgqqf")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=875472257]
 rotation = -1.5707964
-scale = Vector2(0.53761905, 0.51826394)
+scale = Vector2(0.52, 0.44)
 shape = SubResource("CapsuleShape2D_usp3i")
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1917951269]

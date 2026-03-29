@@ -10,6 +10,9 @@ var current_exp: float = 0.0
 var current_hp: float = 100.0
 var current_wave: int = 0
 var current_run_skill_ids: Array[String] = []
+var current_run_skill_levels: Dictionary = {}
+var current_run_skill_route_bonus: Dictionary = {}
+var current_run_skill_route_history: Dictionary = {}
 
 # ── 局外进度状态 (年轮界面) ──
 var current_max_stage: int = 1                         # 当前解锁的最大关卡数（年轮数）
@@ -100,83 +103,158 @@ func get_exp_to_next_level(level: int) -> float:
 #  技能词条池 (三选一升级)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var skill_pool: Dictionary = {
-	# ── 衍生攻击类 ──
 	"thorn_shot": {
 		"id": "thorn_shot",
-		"name": "毒刺发射",
+		"name": "树毒匕首",
 		"category": "衍生攻击",
 		"description": "自动向最近的敌人发射毒刺，造成持续中毒伤害。",
 		"icon": "",
-		"effects": {"poison_damage": 20, "interval": 2.0}
+		"max_level": 3,
+		"effects": {"poison_damage": 20, "interval": 2.0, "pierce_count": 2, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+		"level_effects": [
+			{"poison_damage": 20, "interval": 2.0, "pierce_count": 2, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 20, "interval": 2.0, "pierce_count": 4, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 20, "interval": 2.0, "pierce_count": 6, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 20, "interval": 2.0, "pierce_count": 8, "projectile_count": 1, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 20, "interval": 1.0, "pierce_count": 10, "projectile_count": 1, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62}
+		],
+		"upgrade_routes": [
+			{"id": "damage_up", "title": "毒性强化", "description": "伤害提升", "effects": {"poison_damage": 8}},
+			{"id": "cooldown_down", "title": "连发节奏", "description": "冷却缩短", "effects": {"interval": -0.2}},
+			{"id": "multi_shot", "title": "分叉毒刺", "description": "额外发射1个投射物", "effects": {"projectile_count": 1}}
+		]
 	},
 	"exploding_fruit": {
 		"id": "exploding_fruit",
-		"name": "爆炸果实",
+		"name": "酱爆",
 		"category": "衍生攻击",
 		"description": "定期抛射果实，落地后爆炸对范围内敌人造成伤害。",
 		"icon": "",
-		"effects": {"explosion_damage": 20, "radius": 300.0, "interval": 4.0}
+		"max_level": 3,
+		"effects": {"explosion_damage": 22, "radius": 300.0, "interval": 4.0, "cast_count": 1},
+		"level_effects": [
+			{"explosion_damage": 22, "radius": 300.0, "interval": 4.0, "cast_count": 1},
+			{"explosion_damage": 32, "radius": 350.0, "interval": 3.35, "cast_count": 1},
+			{"explosion_damage": 32, "radius": 410.0, "interval": 2.75, "cast_count": 2}
+		],
+		"upgrade_routes": [
+			{"id": "radius_up", "title": "果实膨胀", "description": "判定半径提升", "effects": {"radius": 40.0}},
+			{"id": "damage_up", "title": "爆压提升", "description": "爆炸伤害提升", "effects": {"explosion_damage": 10.0}},
+			{"id": "cooldown_down", "title": "快速结果", "description": "冷却缩短", "effects": {"interval": -0.3}},
+			{"id": "double_cast", "title": "双生果实", "description": "一次额外发射2个", "effects": {"cast_count": 2}}
+		]
 	},
 	"lightning_field": {
 		"id": "lightning_field",
-		"name": "闪电场",
+		"name": "球状闪电",
 		"category": "衍生攻击",
 		"description": "投射缓慢移动的闪电球，扩散后形成短暂滞留电场。",
 		"icon": "",
-		"effects": {"explosion_damage": 24, "radius": 300.0, "interval": 5.0, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.4, "linger_scale_ratio": 0.06}
+		"max_level": 3,
+		"effects": {"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.4, "linger_scale_ratio": 0.06, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.12},
+		"level_effects": [
+			{"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.1, "linger_scale_ratio": 0.025, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.12},
+			{"explosion_damage": 34, "radius": 360.0, "interval": 2.2, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.46, "linger_duration": 0.14, "linger_scale_ratio": 0.030, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.1},
+			{"explosion_damage": 48, "radius": 420.0, "interval": 1.8, "cast_count": 3, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.48, "linger_duration": 0.2, "linger_scale_ratio": 0.033, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.08}
+		],
+		"upgrade_routes": [
+			{"id": "radius_up", "title": "电场扩容", "description": "判定半径提升", "effects": {"radius": 45.0}},
+			{"id": "damage_up", "title": "电压过载", "description": "伤害提升", "effects": {"explosion_damage": 12.0}},
+			{"id": "cooldown_down", "title": "导能提速", "description": "冷却缩短", "effects": {"interval": -0.22}},
+			{"id": "double_cast", "title": "双星并发", "description": "一次额外发射2个", "effects": {"cast_count": 2}}
+		]
 	},
 	"vine_spread": {
 		"id": "vine_spread",
-		"name": "绞杀藤蔓",
+		"name": "触手形态",
 		"category": "衍生攻击",
-		"description": "在地表蔓延藤蔓，减速并持续伤害踩上的敌人。",
+		"description": "在地表蔓延藤蔓，把一定数量的敌人拖进地下",
 		"icon": "",
-		"effects": {"slow_percent": 0.4, "dps": 2, "duration": 5.0}
+		"max_level": 3,
+		"effects": {"target_count": 3, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.5},
+		"level_effects": [
+			{"target_count": 3, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.5},
+			{"target_count": 4, "search_radius": 430.0, "damage": 145.0, "interval": 3.4, "rise_duration": 0.2, "hold_duration": 0.24, "sink_duration": 0.36, "tentacle_peak_scale": 1.28, "tentacle_initial_scale_x": 0.56},
+			{"target_count": 5, "search_radius": 520.0, "damage": 205.0, "interval": 2.8, "rise_duration": 0.18, "hold_duration": 0.28, "sink_duration": 0.32, "tentacle_peak_scale": 1.36, "tentacle_initial_scale_x": 0.62}
+		],
+		"upgrade_routes": [
+			{"id": "range_up", "title": "藤网扩张", "description": "扩大索敌范围", "effects": {"search_radius": 60.0}},
+			{"id": "grab_up", "title": "缠绕增殖", "description": "可拖拽目标+1", "effects": {"target_count": 1}}
+		]
 	},
 	"seed_bomb": {
 		"id": "seed_bomb",
-		"name": "种子炸弹",
+		"name": "播种",
 		"category": "衍生攻击",
 		"description": "播撒种子，短暂延迟后长出小树苗对周围敌人造成伤害。",
 		"icon": "",
-		"effects": {"sapling_damage": 12, "delay": 1.5, "interval": 3.5, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0}
+		"max_level": 3,
+		"effects": {"sapling_damage": 12, "delay": 1.5, "interval": 3.5, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
+		"level_effects": [
+			{"sapling_damage": 12, "delay": 1.5, "interval": 3.5, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
+			{"sapling_damage": 18, "delay": 1.2, "interval": 3.0, "radius": 300.0, "damage_interval": 0.45, "lifetime": 11.5, "cast_range": 640.0, "fly_scale": 0.11, "grown_scale": 0.24, "grow_duration": 0.26},
+			{"sapling_damage": 27, "delay": 1.0, "interval": 2.5, "radius": 360.0, "damage_interval": 0.4, "lifetime": 13.0, "cast_range": 700.0, "fly_scale": 0.12, "grown_scale": 0.28, "grow_duration": 0.22}
+		],
+		"upgrade_routes": [
+			{"id": "damage_up", "title": "幼苗毒性", "description": "种子伤害提升", "effects": {"sapling_damage": 6.0}},
+			{"id": "cooldown_down", "title": "播种提速", "description": "发射冷却缩短", "effects": {"interval": -0.28}}
+		]
 	},
-	
-
-	# ── 元素附魔类 ──
 	"fire_enchant": {
 		"id": "fire_enchant",
-		"name": "烈焰附魔",
+		"name": "三昧",
 		"category": "元素附魔",
 		"description": "攻击附带火焰，使敌人持续燃烧3秒。",
 		"icon": "",
-		"effects": {"burn_dps": 4, "burn_duration": 3.0}
+		"max_level": 3,
+		"effects": {"burn_dps": 4, "burn_duration": 3.0},
+		"level_effects": [
+			{"burn_dps": 4, "burn_duration": 3.0},
+			{"burn_dps": 6, "burn_duration": 3.5},
+			{"burn_dps": 9, "burn_duration": 4.0}
+		]
 	},
 	"ice_enchant": {
 		"id": "ice_enchant",
-		"name": "冰霜附魔",
+		"name": "艾莎",
 		"category": "元素附魔",
 		"description": "攻击附带冰冻效果，减速敌人50%持续2秒。",
 		"icon": "",
-		"effects": {"slow_percent": 0.5, "slow_duration": 2.0}
+		"max_level": 3,
+		"effects": {"slow_percent": 0.5, "slow_duration": 2.0},
+		"level_effects": [
+			{"slow_percent": 0.5, "slow_duration": 2.0},
+			{"slow_percent": 0.58, "slow_duration": 2.5},
+			{"slow_percent": 0.66, "slow_duration": 3.0}
+		]
 	},
 	"lightning_enchant": {
 		"id": "lightning_enchant",
-		"name": "雷电附魔",
+		"name": "电动力学",
 		"category": "元素附魔",
 		"description": "攻击附带连锁闪电，跳跃至最多3个相邻敌人。",
 		"icon": "",
-		"effects": {"chain_damage": 5, "chain_count": 3}
+		"max_level": 3,
+		"effects": {"chain_damage": 5, "chain_count": 3},
+		"level_effects": [
+			{"chain_damage": 5, "chain_count": 3},
+			{"chain_damage": 8, "chain_count": 4},
+			{"chain_damage": 12, "chain_count": 5}
+		]
 	},
-	
-	# ── 基础数值类 ──
 	"thick_bark": {
 		"id": "thick_bark",
 		"name": "厚实树皮",
 		"category": "基础数值",
 		"description": "树干硬化，最大生命值 +20。",
 		"icon": "",
-		"effects": {"max_hp_bonus": 20, "trunk_width_mult": 1.3}
+		"max_level": 3,
+		"effects": {"max_hp_bonus": 20, "trunk_width_mult": 1.2},
+		"level_effects": [
+			{"max_hp_bonus": 20, "trunk_width_mult": 1.3},
+			{"max_hp_bonus": 40, "trunk_width_mult": 1.5},
+			{"max_hp_bonus": 60, "trunk_width_mult": 1.9}
+		]
 	},
 	"deep_roots": {
 		"id": "deep_roots",
@@ -184,7 +262,13 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "根系深扎大地，每秒恢复2点生命。",
 		"icon": "",
-		"effects": {"hp_regen": 2.0, "root_scale_mult": 1.6}
+		"max_level": 3,
+		"effects": {"hp_regen": 2.0, "root_scale_mult": 1.3},
+		"level_effects": [
+			{"hp_regen": 2.0, "root_scale_mult": 1.3},
+			{"hp_regen": 4.0, "root_scale_mult": 1.79},
+			{"hp_regen": 6.0, "root_scale_mult": 2.397}
+		]
 	},
 	"wide_canopy": {
 		"id": "wide_canopy",
@@ -192,7 +276,13 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "树冠扩展，攻击范围增加30%。",
 		"icon": "",
-		"effects": {"range_mult": 1.3, "canopy_sprite_mult": 1.4, "hitbox_shape_mult": 1.4}
+		"max_level": 3,
+		"effects": {"range_mult": 1.2, "canopy_sprite_mult": 1.2, "hitbox_shape_mult": 1.2},
+		"level_effects": [
+			{"range_mult": 1.2, "canopy_sprite_mult": 1.2, "hitbox_shape_mult": 1.2},
+			{"range_mult": 1.44, "canopy_sprite_mult": 1.44, "hitbox_shape_mult": 1.44},
+			{"range_mult": 1.728, "canopy_sprite_mult": 1.728, "hitbox_shape_mult": 1.728}
+		]
 	},
 	"elastic_trunk": {
 		"id": "elastic_trunk",
@@ -200,7 +290,13 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "树干柔韧度大幅增强，形变拉伸极限增加！",
 		"icon": "",
-		"effects": {"stretch_scale_bonus": 1.0}
+		"max_level": 3,
+		"effects": {"stretch_scale_bonus": 0.5},
+		"level_effects": [
+			{"stretch_scale_bonus": 0.5},
+			{"stretch_scale_bonus": 1.0},
+			{"stretch_scale_bonus": 1.5}
+		]
 	},
 	"photosynthesis": {
 		"id": "photosynthesis",
@@ -208,7 +304,13 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "增强光合作用，攻击力提升25%。",
 		"icon": "",
-		"effects": {"attack_mult": 1.25}
+		"max_level": 3,
+		"effects": {"attack_mult": 1.3},
+		"level_effects": [
+			{"attack_mult": 1.3},
+			{"attack_mult": 1.69},
+			{"attack_mult": 2.197}
+		]
 	},
 }
 
@@ -218,25 +320,21 @@ var skill_pool: Dictionary = {
 var enemy_stats: Dictionary = {
 	# 第一阶段：自然虫害
 	"beetle": {
-		"name": "甲虫", "hp": 10, "speed": 100.0, "damage": 2.0,
+		"name": "甲虫", "hp": 15, "speed": 110.0, "damage": 3.0,
 		"exp_drop": 1.0, "phase": 1
 	},
 	# 第二阶段：哺乳动物
 	"beaver": {
-		"name": "河狸", "hp": 40, "speed": 60.0, "damage": 5.0,
+		"name": "河狸", "hp": 60, "speed": 60.0, "damage": 8.0,
 		"exp_drop": 3.0, "phase": 2
 	},
 	# 第三阶段：人类
 	"lumberjack": {
-		"name": "伐木工", "hp": 60, "speed": 70.0, "damage": 8.0,
+		"name": "伐木工", "hp": 150, "speed": 70.0, "damage": 12.0,
 		"exp_drop": 5.0, "phase": 3
 	},
-	"flamethrower": {
-		"name": "喷火兵", "hp": 20, "speed": 60.0, "damage": 12.0,
-		"exp_drop": 8.0, "phase": 3
-	},
 	"mech_boss": {
-		"name": "伐木机甲", "hp": 200, "speed": 50.0, "damage": 25.0,
+		"name": "伐木机甲", "hp": 400, "speed": 50.0, "damage": 25.0,
 		"exp_drop": 50.0, "phase": 3
 	},
 }
@@ -267,20 +365,210 @@ var wave_table: Array = [
 
 ## 随机抽取 count 个不重复的技能
 func get_random_skills(count: int = 3) -> Array:
-	var all_keys: Array = []
+	var candidates: Array = []
 	for skill_id in skill_pool.keys():
-		if not current_run_skill_ids.has(skill_id):
-			all_keys.append(skill_id)
-	all_keys.shuffle()
+		if not can_upgrade_skill(skill_id):
+			continue
+		var routes = get_skill_upgrade_routes(skill_id)
+		var cur_level = get_skill_level(skill_id)
+		if cur_level <= 0 or routes.is_empty():
+			candidates.append(_build_upgrade_candidate(skill_id, ""))
+		else:
+			for route in routes:
+				candidates.append(_build_upgrade_candidate(skill_id, str(route.get("id", ""))))
+	candidates.shuffle()
 	var result: Array = []
-	var n = mini(count, all_keys.size())
+	var n = mini(count, candidates.size())
 	for i in range(n):
-		result.append(skill_pool[all_keys[i]])
+		result.append(candidates[i])
 	return result
 
-func register_current_run_skill(skill_id: String) -> void:
+func _build_upgrade_candidate(skill_id: String, route_id: String) -> Dictionary:
+	var base = skill_pool[skill_id].duplicate(true)
+	var current_level = get_skill_level(skill_id)
+	var max_level = get_skill_max_level(skill_id)
+	var next_level = mini(current_level + 1, max_level)
+	var preview_effects = get_skill_effects(skill_id, next_level, route_id)
+	var payload = encode_upgrade_payload(skill_id, route_id)
+	var route_desc = ""
+	if route_id != "":
+		var route = get_skill_route(skill_id, route_id)
+		if not route.is_empty():
+			route_desc = str(route.get("title", route_id))
+	base["id"] = payload
+	base["skill_id"] = skill_id
+	base["route_id"] = route_id
+	base["route_title"] = route_desc
+	base["current_level"] = current_level
+	base["next_level"] = next_level
+	base["max_level"] = max_level
+	base["effects"] = preview_effects
+	base["description"] = str(base.get("description", ""))
+	return base
+
+func register_current_run_skill(skill_id: String) -> int:
+	var max_level = get_skill_max_level(skill_id)
+	if max_level <= 0:
+		return 0
+	var next_level = mini(get_skill_level(skill_id) + 1, max_level)
+	current_run_skill_levels[skill_id] = next_level
 	if not current_run_skill_ids.has(skill_id):
 		current_run_skill_ids.append(skill_id)
+	return next_level
+
+func apply_skill_upgrade(skill_id: String, route_id: String = "") -> Dictionary:
+	var prev_level = get_skill_level(skill_id)
+	if prev_level >= get_skill_max_level(skill_id):
+		return {
+			"skill_id": skill_id,
+			"route_id": route_id,
+			"prev_level": prev_level,
+			"skill_level": prev_level,
+			"effects": get_skill_effects(skill_id, prev_level),
+			"prev_effects": get_skill_effects(skill_id, prev_level)
+		}
+	var prev_effects = get_skill_effects(skill_id, prev_level)
+	var next_level = register_current_run_skill(skill_id)
+	if route_id != "":
+		_apply_route_bonus(skill_id, route_id)
+	var next_effects = get_skill_effects(skill_id, next_level)
+	return {
+		"skill_id": skill_id,
+		"route_id": route_id,
+		"prev_level": prev_level,
+		"skill_level": next_level,
+		"effects": next_effects,
+		"prev_effects": prev_effects
+	}
+
+func get_skill_level(skill_id: String) -> int:
+	return int(current_run_skill_levels.get(skill_id, 0))
+
+func get_skill_max_level(skill_id: String) -> int:
+	if not skill_pool.has(skill_id):
+		return 1
+	return maxi(1, int(skill_pool[skill_id].get("max_level", 1)))
+
+func can_upgrade_skill(skill_id: String) -> bool:
+	return get_skill_level(skill_id) < get_skill_max_level(skill_id)
+
+func get_skill_upgrade_routes(skill_id: String) -> Array:
+	if not skill_pool.has(skill_id):
+		return []
+	var data = skill_pool[skill_id]
+	if not data.has("upgrade_routes"):
+		return []
+	var routes = data["upgrade_routes"]
+	if routes is Array:
+		return routes
+	return []
+
+func get_skill_route(skill_id: String, route_id: String) -> Dictionary:
+	var routes = get_skill_upgrade_routes(skill_id)
+	for route in routes:
+		if str(route.get("id", "")) == route_id:
+			return route
+	return {}
+
+func _apply_route_bonus(skill_id: String, route_id: String) -> void:
+	var route = get_skill_route(skill_id, route_id)
+	if route.is_empty():
+		return
+	var route_eff = route.get("effects", {})
+	if not current_run_skill_route_bonus.has(skill_id):
+		current_run_skill_route_bonus[skill_id] = {}
+	var bonus = current_run_skill_route_bonus[skill_id]
+	for key in route_eff.keys():
+		var value = route_eff[key]
+		if typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT:
+			bonus[key] = float(bonus.get(key, 0.0)) + float(value)
+		else:
+			bonus[key] = value
+	current_run_skill_route_bonus[skill_id] = bonus
+	if not current_run_skill_route_history.has(skill_id):
+		current_run_skill_route_history[skill_id] = []
+	current_run_skill_route_history[skill_id].append(route_id)
+
+func get_skill_effects(skill_id: String, level: int = -1, preview_route_id: String = "") -> Dictionary:
+	if not skill_pool.has(skill_id):
+		return {}
+	var query_level = level
+	if query_level < 0:
+		query_level = get_skill_level(skill_id)
+	if query_level <= 0:
+		return {}
+	var data = skill_pool[skill_id]
+	var effects: Dictionary = {}
+	if data.has("level_effects"):
+		var effects_array = data["level_effects"]
+		if effects_array is Array and effects_array.size() > 0:
+			var idx = clampi(query_level - 1, 0, effects_array.size() - 1)
+			effects = effects_array[idx].duplicate(true)
+	if effects.is_empty() and data.has("effects"):
+		effects = data["effects"].duplicate(true)
+	var bonus = current_run_skill_route_bonus.get(skill_id, {})
+	for key in bonus.keys():
+		var value = bonus[key]
+		if typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT:
+			effects[key] = float(effects.get(key, 0.0)) + float(value)
+		else:
+			effects[key] = value
+	if preview_route_id != "":
+		var route = get_skill_route(skill_id, preview_route_id)
+		if not route.is_empty():
+			var route_eff = route.get("effects", {})
+			for key in route_eff.keys():
+				var value = route_eff[key]
+				if typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT:
+					effects[key] = float(effects.get(key, 0.0)) + float(value)
+				else:
+					effects[key] = value
+	if effects.has("interval"):
+		effects["interval"] = maxf(0.2, float(effects["interval"]))
+	if effects.has("cast_count"):
+		effects["cast_count"] = maxi(1, int(effects["cast_count"]))
+	if effects.has("projectile_count"):
+		effects["projectile_count"] = maxi(1, int(effects["projectile_count"]))
+	if effects.has("pierce_count"):
+		effects["pierce_count"] = maxi(0, int(effects["pierce_count"]))
+	return effects
+
+func encode_upgrade_payload(skill_id: String, route_id: String = "") -> String:
+	if route_id == "":
+		return skill_id
+	return skill_id + "::" + route_id
+
+func decode_upgrade_payload(payload: String) -> Dictionary:
+	var parts = payload.split("::")
+	var skill_id = parts[0]
+	var route_id = ""
+	if parts.size() > 1:
+		route_id = parts[1]
+	return {"skill_id": skill_id, "route_id": route_id}
+
+func _format_effect_delta(before: Dictionary, after: Dictionary) -> String:
+	var chunks: Array[String] = []
+	for key in after.keys():
+		var after_val = after[key]
+		var before_val = before.get(key, null)
+		if before_val == after_val:
+			continue
+		if typeof(after_val) == TYPE_FLOAT or typeof(after_val) == TYPE_INT:
+			if before_val == null:
+				chunks.append("%s %.2f" % [key, float(after_val)])
+			else:
+				var delta = float(after_val) - float(before_val)
+				if absf(delta) < 0.001:
+					continue
+				var sign = "+"
+				if delta < 0.0:
+					sign = ""
+				chunks.append("%s %s%.2f" % [key, sign, delta])
+		else:
+			chunks.append("%s %s" % [key, str(after_val)])
+	if chunks.is_empty():
+		return "强化效果：数值保持不变"
+	return "强化效果：" + ", ".join(chunks)
 
 ## 获取当前成长阶段
 func get_current_growth_stage(level: int) -> Dictionary:
@@ -379,6 +667,9 @@ func reset_for_new_game():
 	current_hp = player_base_stats["max_hp"]
 	current_wave = 0
 	current_run_skill_ids.clear()
+	current_run_skill_levels.clear()
+	current_run_skill_route_bonus.clear()
+	current_run_skill_route_history.clear()
 	
 	SignalBus.on_player_hp_changed.emit(current_hp, player_base_stats["max_hp"])
 	

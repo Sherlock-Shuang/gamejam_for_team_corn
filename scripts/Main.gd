@@ -75,9 +75,11 @@ func _level_up():
 		
 func _on_skill_chosen(skill_id: String):
 	print("[Main] 收到进化指令: ", skill_id)
+	var payload = GameData.decode_upgrade_payload(skill_id)
+	var real_skill_id = str(payload.get("skill_id", skill_id))
 	
 	# 👉 对接到局外存储：记录这把在这一圈年轮上拿到的能力！
-	GameData.record_skill_for_stage(GameData.current_playing_stage, skill_id)
+	GameData.record_skill_for_stage(GameData.current_playing_stage, real_skill_id)
 	
 
 # ── 打开升级选择 UI ─────────────────────────────────────────────
@@ -99,6 +101,7 @@ func _input(event      : InputEvent):
 # ── 倒计时与通关逻辑 ───────────────────────────────────────────
 func _process(delta):
 	if not is_level_active: return
+	_apply_hp_regen(delta)
 	
 	if GameData.is_endless_mode:
 		level_timer += delta
@@ -113,6 +116,21 @@ func _process(delta):
 			
 		if level_timer <= 0:
 			_level_completed()
+
+func _apply_hp_regen(delta: float) -> void:
+	var regen_per_sec = float(GameData.player_base_stats.get("hp_regen", 0.0))
+	if regen_per_sec <= 0.0:
+		return
+	if GameData.current_hp <= 0.0:
+		return
+	var max_hp = float(GameData.player_base_stats.get("max_hp", 100.0))
+	if GameData.current_hp >= max_hp:
+		return
+	var next_hp = minf(GameData.current_hp + regen_per_sec * delta, max_hp)
+	if next_hp <= GameData.current_hp:
+		return
+	GameData.current_hp = next_hp
+	SignalBus.on_player_hp_changed.emit(GameData.current_hp, max_hp)
 
 func _level_completed():
 	is_level_active = false

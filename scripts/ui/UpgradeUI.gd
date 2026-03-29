@@ -134,9 +134,14 @@ func show_upgrade():
 		var name_label = card.get_node("CardContent/NameLabel") as Label
 		var category_label = card.get_node("CardContent/CategoryLabel") as Label
 		var desc_label = card.get_node("CardContent/DescLabel") as Label
+		var current_level = int(skill_data.get("current_level", 0))
+		var next_level = int(skill_data.get("next_level", current_level + 1))
+		var route_title = str(skill_data.get("route_title", ""))
 		
 		name_label.text = skill_data["name"]
-		category_label.text = "[" + skill_data["category"] + "]"
+		category_label.text = "[" + skill_data["category"] + "]  Lv." + str(current_level) + " → Lv." + str(next_level)
+		if route_title != "":
+			category_label.text += "  " + route_title
 		desc_label.text = skill_data["description"]
 		
 		# 绑定点击事件
