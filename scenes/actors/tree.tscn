@@ -67,9 +67,12 @@ linear_damp = 0.5
 script = ExtResource("1_mwoif")
 tree_root = NodePath("../treeroot")
 grab_radius = 300.0
+thrust_charge_dist = 200.0
+max_compress_ratio = 0.3
+max_thrust_scale = 3.0
+thrust_duration = 0.22
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treehead" unique_id=2046942878]
-visible = false
 position = Vector2(0, -132)
 shape = SubResource("CapsuleShape2D_mwoif")
 metadata/_edit_group_ = true
@@ -87,12 +90,12 @@ scale = Vector2(0.23, 0.191)
 texture = ExtResource("7_ffmh2")
 
 [node name="HeadSprite3" type="Sprite2D" parent="treehead" unique_id=837389224]
+visible = false
 position = Vector2(2, -179)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("8_63up5")
 
 [node name="HeadSprite4" type="Sprite2D" parent="treehead" unique_id=1492413980]
-visible = false
 position = Vector2(-11, -203)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("9_h4xil")
@@ -144,10 +147,12 @@ texture_mode = 2
 joint_mode = 2
 
 [node name="HurtBox" type="Area2D" parent="." unique_id=616521395]
+collision_layer = 16
+collision_mask = 8
 
 [node name="CollisionShape2D1" type="CollisionShape2D" parent="HurtBox" unique_id=2006727376]
 visible = false
-position = Vector2(-2, -102)
+position = Vector2(-3, -115)
 scale = Vector2(0.4861854, -2.8972795)
 shape = SubResource("CircleShape2D_63up5")
 
@@ -156,17 +161,19 @@ visible = false
 position = Vector2(-4, -151)
 scale = Vector2(2.042057, 5.085929)
 shape = SubResource("CircleShape2D_63up5")
+disabled = true
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="HurtBox" unique_id=1732775799]
 visible = false
 position = Vector2(-2, -178)
 scale = Vector2(-4.2854714, 6.5985126)
 shape = SubResource("CircleShape2D_63up5")
+disabled = true
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="HurtBox" unique_id=912886804]
-visible = false
-position = Vector2(2, -199)
-scale = Vector2(5.5438414, 7.85043)
+position = Vector2(3, -178)
+scale = Vector2(6.437018, 7.0925484)
 shape = SubResource("CircleShape2D_63up5")
+disabled = true
 
 [connection signal="area_entered" from="treehead/hitbox" to="treehead" method="_on_hitbox_area_entered"]

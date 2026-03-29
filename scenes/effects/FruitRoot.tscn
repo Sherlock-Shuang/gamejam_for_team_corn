@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://5nthpa2g3vkh"]
+
+[ext_resource type="Script" uid="uid://du8m4xy00due4" path="res://scenes/effects/fruit_root.gd" id="1_g11d6"]
+[ext_resource type="Texture2D" uid="uid://b7qkxluujjatn" path="res://assets/sprites/effects/爆炸果.png" id="2_rht6b"]
+[ext_resource type="Texture2D" uid="uid://oyhiuuh5tgby" path="res://assets/sprites/effects/爆炸果1.png" id="3_oyq7f"]
+[ext_resource type="Texture2D" uid="uid://dogxe5kweo3ox" path="res://assets/sprites/effects/爆炸果2.png" id="4_c54fi"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_i4mmn"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_rht6b")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_oyq7f")
+}],
+"loop": false,
+"name": &"warning",
+"speed": 2.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rupao"]
+radius = 153.4343
+
+[node name="FruitRoot" type="Node2D" unique_id=1200536353]
+script = ExtResource("1_g11d6")
+explosion_duration = 0.5
+texture_base_radius = 250.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=337803771]
+scale = Vector2(0.08653217, 0.09994382)
+sprite_frames = SubResource("SpriteFrames_i4mmn")
+animation = &"warning"
+frame = 1
+frame_progress = 1.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=776537161]
+scale = Vector2(0.00086788315, -0.052773878)
+
+[node name="explosion_area" type="Area2D" parent="." unique_id=1360494442]
+collision_layer = 4
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="explosion_area" unique_id=1188927807]
+scale = Vector2(0.8954008, 0.9063476)
+shape = SubResource("CircleShape2D_rupao")
+
+[node name="explosion" type="Sprite2D" parent="." unique_id=1526167288]
+scale = Vector2(0.08302745, 0.089463905)
+texture = ExtResource("4_c54fi")

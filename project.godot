@@ -15,10 +15,6 @@ run/main_scene="res://scenes/ui/IntroScene.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
 
-[audio]
-
-buses/default_bus_layout="res://default_bus_layout.tres"
-
 [autoload]
 
 SignalBus="*res://scripts/autoloads/SignalBus.gd"
@@ -49,6 +45,12 @@ Tree=""
 2d_render/layer_1="player"
 2d_render/layer_2="enemy"
 2d_render/layer_3="bullet"
+2d_physics/layer_1="player"
+2d_physics/layer_2="enemy"
+2d_physics/layer_3="bullet"
+2d_physics/layer_4="enemy_hitbox"
+2d_physics/layer_5="player_hurtbox"
+2d_physics/layer_6="world"
 
 [physics]
 

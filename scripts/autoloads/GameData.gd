@@ -9,6 +9,7 @@ var current_level: int = 1
 var current_exp: float = 0.0
 var current_hp: float = 100.0
 var current_wave: int = 0
+var current_run_skill_ids: Array[String] = []
 
 # ── 局外进度状态 (年轮界面) ──
 var current_max_stage: int = 1                         # 当前解锁的最大关卡数（年轮数）
@@ -60,7 +61,7 @@ func load_game():
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  玩家基础属性
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-var player_base_stats: Dictionary = {
+const DEFAULT_PLAYER_BASE_STATS: Dictionary = {
 	"max_hp": 100.0,
 	"attack_power": 10.0,
 	"attack_range": 1.0,   # 倍率
@@ -68,6 +69,8 @@ var player_base_stats: Dictionary = {
 	"hp_regen": 0.0,       # 每秒恢复
 	"move_speed": 1.0,     # 倍率
 }
+
+var player_base_stats: Dictionary = DEFAULT_PLAYER_BASE_STATS.duplicate(true)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  成长阶段 (幼苗 → 小树 → 大树 → 神木)
@@ -107,7 +110,7 @@ var skill_pool: Dictionary = {
 		"category": "衍生攻击",
 		"description": "定期抛射果实，落地后爆炸对范围内敌人造成伤害。",
 		"icon": "",
-		"effects": {"explosion_damage": 8, "radius": 50.0, "interval": 4.0}
+		"effects": {"explosion_damage": 20, "radius": 150.0, "interval": 4.0}
 	},
 	"vine_spread": {
 		"id": "vine_spread",
@@ -159,7 +162,7 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "树干硬化，最大生命值 +20。",
 		"icon": "",
-		"effects": {"max_hp_bonus": 20}
+		"effects": {"max_hp_bonus": 20, "trunk_width_mult": 1.3}
 	},
 	"deep_roots": {
 		"id": "deep_roots",
@@ -167,7 +170,7 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "根系深扎大地，每秒恢复2点生命。",
 		"icon": "",
-		"effects": {"hp_regen": 2.0}
+		"effects": {"hp_regen": 2.0, "root_scale_mult": 1.6}
 	},
 	"wide_canopy": {
 		"id": "wide_canopy",
@@ -175,15 +178,15 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "树冠扩展，攻击范围增加30%。",
 		"icon": "",
-		"effects": {"range_mult": 1.3}
+		"effects": {"range_mult": 1.3, "canopy_sprite_mult": 1.4, "hitbox_shape_mult": 1.4}
 	},
 	"elastic_trunk": {
 		"id": "elastic_trunk",
 		"name": "弹性树干",
 		"category": "基础数值",
-		"description": "树干弹性增强，弹射击退距离提升40%。",
+		"description": "树干柔韧度大幅增强，形变拉伸极限增加！",
 		"icon": "",
-		"effects": {"knockback_mult": 1.4}
+		"effects": {"stretch_scale_bonus": 1.0}
 	},
 	"photosynthesis": {
 		"id": "photosynthesis",
@@ -201,25 +204,17 @@ var skill_pool: Dictionary = {
 var enemy_stats: Dictionary = {
 	# 第一阶段：自然虫害
 	"beetle": {
-		"name": "甲虫", "hp": 8, "speed": 40.0, "damage": 2.0,
+		"name": "甲虫", "hp": 10, "speed": 40.0, "damage": 2.0,
 		"exp_drop": 1.0, "phase": 1
-	},
-	"caterpillar": {
-		"name": "毛毛虫", "hp": 5, "speed": 25.0, "damage": 1.0,
-		"exp_drop": 0.5, "phase": 1
-	},
-	"mosquito": {
-		"name": "飞虫", "hp": 3, "speed": 70.0, "damage": 1.5,
-		"exp_drop": 0.8, "phase": 1
 	},
 	# 第二阶段：哺乳动物
 	"beaver": {
-		"name": "河狸", "hp": 30, "speed": 35.0, "damage": 5.0,
+		"name": "河狸", "hp": 40, "speed": 50.0, "damage": 5.0,
 		"exp_drop": 3.0, "phase": 2
 	},
 	# 第三阶段：人类
 	"lumberjack": {
-		"name": "伐木工", "hp": 25, "speed": 45.0, "damage": 8.0,
+		"name": "伐木工", "hp": 60, "speed": 50.0, "damage": 8.0,
 		"exp_drop": 5.0, "phase": 3
 	},
 	"flamethrower": {
@@ -227,7 +222,7 @@ var enemy_stats: Dictionary = {
 		"exp_drop": 8.0, "phase": 3
 	},
 	"mech_boss": {
-		"name": "伐木机甲", "hp": 200, "speed": 20.0, "damage": 25.0,
+		"name": "伐木机甲", "hp": 200, "speed": 40.0, "damage": 25.0,
 		"exp_drop": 50.0, "phase": 3
 	},
 }
@@ -258,13 +253,20 @@ var wave_table: Array = [
 
 ## 随机抽取 count 个不重复的技能
 func get_random_skills(count: int = 3) -> Array:
-	var all_keys = skill_pool.keys()
+	var all_keys: Array = []
+	for skill_id in skill_pool.keys():
+		if not current_run_skill_ids.has(skill_id):
+			all_keys.append(skill_id)
 	all_keys.shuffle()
 	var result: Array = []
 	var n = mini(count, all_keys.size())
 	for i in range(n):
 		result.append(skill_pool[all_keys[i]])
 	return result
+
+func register_current_run_skill(skill_id: String) -> void:
+	if not current_run_skill_ids.has(skill_id):
+		current_run_skill_ids.append(skill_id)
 
 ## 获取当前成长阶段
 func get_current_growth_stage(level: int) -> Dictionary:
@@ -299,10 +301,14 @@ func record_skill_for_stage(stage_id: int, skill_id: String):
 
 ## 重置单局状态 (进入新关卡前调用，保留局外进度)
 func reset_for_new_game():
+	player_base_stats = DEFAULT_PLAYER_BASE_STATS.duplicate(true)
 	current_level = 1
 	current_exp = 0.0
 	current_hp = player_base_stats["max_hp"]
 	current_wave = 0
+	current_run_skill_ids.clear()
+	
+	SignalBus.on_player_hp_changed.emit(current_hp, player_base_stats["max_hp"])
 	
 	# 重置对象池，防止上一关的敌人卡在屏幕中
 	if PoolManager.has_method("reset_pools"):

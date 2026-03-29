@@ -18,6 +18,10 @@ var trunk_widths: Array[float] = [10.0, 40.0, 60.0, 80.0]
 var base_root_scales: Array[Vector2] = []
 var base_head_scales: Array[Vector2] = []
 
+# --- 受击与无敌帧参数 ---
+var is_invincible: bool = false
+var invincibility_duration: float = 0.5 # 0.5秒无敌帧
+
 func _ready() -> void:
 	# 游戏刚启动时，把所有贴图你在编辑器里调的 Scale 存进数组里！
 	for i in range(4):
@@ -26,6 +30,70 @@ func _ready() -> void:
 		
 	# 强制初始化为阶段 0 (幼苗阶段)
 	evolve_to_stage(0)
+
+# ==========================================
+# 💥 核心：玩家受击逻辑与震动反馈
+# ==========================================
+func take_damage(amount: float) -> void:
+	if is_invincible or GameData.current_hp <= 0:
+		return
+		
+	# 1. 扣血并通知 UI
+	GameData.current_hp -= amount
+	SignalBus.on_player_hp_changed.emit(GameData.current_hp, GameData.player_base_stats["max_hp"])
+	print("[Tree] 受到了 ", amount, " 点伤害！当前血量: ", GameData.current_hp)
+	
+	# 2. 死亡判定
+	if GameData.current_hp <= 0:
+		GameData.current_hp = 0
+		print("[Tree] 树木枯萎了，游戏结束！")
+		SignalBus.on_player_died.emit()
+		SignalBus.on_game_over.emit()
+		return
+		
+	# 3. 开启无敌帧
+	is_invincible = true
+	get_tree().create_timer(invincibility_duration).timeout.connect(func(): is_invincible = false)
+	
+	# 4. 视觉表现：闪红与短暂震动
+	_play_hurt_juice()
+
+func _play_hurt_juice() -> void:
+	# 让当前显示的树冠和树根变红
+	for sprite in root_sprites + head_sprites:
+		if sprite.visible:
+			sprite.modulate = Color(1.0, 0.2, 0.2, 1.0)
+			var reset_tween = create_tween()
+			reset_tween.tween_property(sprite, "modulate", Color.WHITE, 0.3)
+	
+	# 镜头短暂震动 (Camera Shake)
+	if has_node("Camera2D"):
+		var cam = $Camera2D
+		var original_offset = cam.offset
+		var shake_tween = create_tween()
+		# 疯狂抖动几次
+		for i in range(4):
+			var random_offset = Vector2(randf_range(-15, 15), randf_range(-15, 15))
+			shake_tween.tween_property(cam, "offset", original_offset + random_offset, 0.05)
+		# 最后归位
+		shake_tween.tween_property(cam, "offset", original_offset, 0.05)
+
+func apply_trunk_width_multiplier(mult: float) -> void:
+	for i in range(trunk_widths.size()):
+		trunk_widths[i] *= mult
+	var stage_index = clamp($treehead.current_stage_index, 0, trunk_widths.size() - 1)
+	if is_instance_valid(trunk_line):
+		trunk_line.width = trunk_widths[stage_index]
+
+func apply_root_scale_multiplier(mult: float) -> void:
+	for i in range(base_root_scales.size()):
+		base_root_scales[i].x *= mult
+		root_sprites[i].scale = base_root_scales[i]
+
+func apply_canopy_scale_multiplier(mult: float) -> void:
+	for i in range(base_head_scales.size()):
+		base_head_scales[i] *= mult
+		head_sprites[i].scale = base_head_scales[i]
 
 func evolve_to_stage(stage_index: int) -> void:
 	if stage_index < 0 or stage_index > 3:

@@ -24,9 +24,20 @@ func show_upgrade():
 	
 	var cards = card_container.get_children()
 	var choices = GameData.get_random_skills(cards.size())
+	if choices.is_empty():
+		hide()
+		get_tree().paused = false
+		return
 	
 	for i in range(cards.size()):
+		if i >= choices.size():
+			var extra_card = cards[i] as Button
+			extra_card.disabled = true
+			extra_card.visible = false
+			continue
 		var card = cards[i] as Button
+		card.disabled = false
+		card.visible = true
 		var skill_data = choices[i]
 		
 		# 填充卡牌内容

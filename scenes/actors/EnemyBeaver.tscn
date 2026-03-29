@@ -14,7 +14,7 @@ radius = 42.0119
 radius = 76.1643
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_68yk5"]
-radius = 10.753391
+radius = 16.849451
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
 size = Vector2(84, 86)
@@ -57,7 +57,8 @@ collision_layer = 2
 collision_mask = 6
 motion_mode = 1
 script = ExtResource("1_bk3m8")
-attack_range = 200.0
+speed = 200.0
+max_health = 1000.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1403090462]
 shape = SubResource("CircleShape2D_4i4j6")
@@ -68,9 +69,11 @@ shape = SubResource("CircleShape2D_4i4j6")
 shape = SubResource("CircleShape2D_ay0ne")
 
 [node name="HitBox" type="Area2D" parent="." unique_id=1311532308]
+collision_layer = 8
+collision_mask = 16
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitBox" unique_id=1107987729]
-scale = Vector2(7.8399987, 7.6400023)
+scale = Vector2(6.6627126, -6.1277604)
 shape = SubResource("CircleShape2D_68yk5")
 
 [node name="Hurtox" type="Area2D" parent="." unique_id=1683098082 groups=["Enemy"]]

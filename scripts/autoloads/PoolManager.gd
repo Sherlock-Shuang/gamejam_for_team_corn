@@ -16,6 +16,11 @@ var _pools: Dictionary = {
 	"beaver": []
 }
 
+var enemy_type_to_data_id: Dictionary = {
+	"fly": "beetle",
+	"beaver": "beaver"
+}
+
 func _ready() -> void:
 	# 游戏启动时偷偷把怪建好，藏在后台，防止第一波刷怪时卡顿
 	prewarm("fly", 50)
@@ -67,6 +72,7 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 		
 	# 唤醒怪物！
 	enemy.global_position = spawn_pos
+	_apply_enemy_stats(enemy, enemy_type)
 	
 	# ==========================================
 	# 关键修复：直接重置节点的暂停模式和可见性
@@ -81,6 +87,27 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 		enemy.reset()
 		
 	return enemy
+
+func _apply_enemy_stats(enemy: Node, enemy_type: String) -> void:
+	var data_id = enemy_type_to_data_id.get(enemy_type, enemy_type)
+	var stats = GameData.get_enemy_stats(data_id)
+	if stats.is_empty():
+		# 数据表缺失时的兜底，避免 speed=0 导致敌人卡在出生圈
+		stats = {
+			"hp": 10.0,
+			"speed": 40.0,
+			"damage": 2.0,
+			"exp_drop": 1.0
+		}
+		push_warning("[PoolManager] 缺少敌人数据映射，已使用默认兜底: " + enemy_type)
+	if enemy.get("max_health") != null and stats.has("hp"):
+		enemy.max_health = float(stats["hp"])
+	if enemy.get("speed") != null and stats.has("speed"):
+		enemy.speed = float(stats["speed"])
+	if enemy.get("damage") != null and stats.has("damage"):
+		enemy.damage = float(stats["damage"])
+	if enemy.get("exp_drop") != null and stats.has("exp_drop"):
+		enemy.exp_drop = float(stats["exp_drop"])
 
 ## 回收怪物（供 EnemyAI 死亡击飞结束后调用）
 func return_enemy(node: Node) -> void:
