@@ -50,3 +50,5 @@ signal on_game_over()
 signal on_game_restart()
 ## 玩家请求返回主界面/年轮界面 (任何地方 emit，Main 响应处理)
 signal on_return_requested()
+## 玩家请求暂停游戏
+signal on_pause_requested()

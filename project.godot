@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="树独"
-run/main_scene="res://scenes/ui/AnnualRingMenu.tscn"
+run/main_scene="res://scenes/ui/IntroScene.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
 

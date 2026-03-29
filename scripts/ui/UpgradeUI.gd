@@ -9,8 +9,6 @@ extends CanvasLayer
 
 func _ready():
 	hide()
-	# ====== 测试用：取消下面这行注释，按 F6 运行此场景即可预览弹窗 ======
-	show_upgrade()
 	
 	# 监听升级信号 → 自动弹出面板
 	if SignalBus.on_level_up.is_connected(_on_level_up):

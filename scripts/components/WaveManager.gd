@@ -19,6 +19,14 @@ func _ready() -> void:
 	
 	_on_wave_timeout()
 
+func _find_target_tree():
+	var trees = get_tree().get_nodes_in_group("Tree")
+	if trees.size() > 0:
+		target_tree = trees[0]
+	else:
+		target_tree = null
+
+
 func _on_wave_timeout() -> void:
 	if not is_instance_valid(target_tree): return
 	
