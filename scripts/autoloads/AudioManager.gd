@@ -72,23 +72,54 @@ func init_sfx_audio_manager() -> void:
 	for i in sfx_audio_player_count:
 		var audio_player := AudioStreamPlayer.new()
 		audio_player.bus = SFX_BUS
+		
+		# 👇 【关键修复】：允许音效在 get_tree().paused = true 时继续播放
+		audio_player.process_mode = Node.PROCESS_MODE_ALWAYS 
+		
 		add_child(audio_player)
 		sfx_players.append(audio_player)
 
-## 播放指定音效
-func play_sfx(_audio: AudioStream, _is_random_pitch:bool = false, start_time: float = 0) -> void:
+## 播放指定音效 (新增了 max_instances 限制同屏最大数量)
+func play_sfx(_audio: AudioStream, volume_db: float = 0.0, _is_random_pitch: bool = false, max_instances: int = 0, start_time: float = 0) -> void:
+	
+	# 🔥【新增逻辑】：防爆音拦截器
+	# 如果设置了最大数量限制，先检查当前有几个播放器正在播这个特定音效
+	if max_instances > 0:
+		var current_playing_count = 0
+		for player in sfx_players:
+			if player.playing and player.stream == _audio:
+				current_playing_count += 1
+		
+		# 如果已经有 >= 3（或你设定的数字）个同款声音在播放，直接静默丢弃这次请求！
+		if current_playing_count >= max_instances:
+			return 
+
+	# ----- 下面的逻辑保持不变 -----
 	var pitch := 1.0
 	if _is_random_pitch:
 		pitch = randf_range(0.9, 1.1)
+		
+	var oldest_player: AudioStreamPlayer = null
+	var longest_playing_time: float = -1.0
+	
 	for i in sfx_audio_player_count:
 		var sfx_audio_player := sfx_players[i]
+		
 		if not sfx_audio_player.playing:
 			sfx_audio_player.stream = _audio
+			sfx_audio_player.volume_db = volume_db
 			sfx_audio_player.pitch_scale = pitch
 			sfx_audio_player.play(start_time)
-			break
-
-## 设置总线的音量
-func set_volume(bus_index:Bus, v:float) -> void:
-	var db := linear_to_db(v)
-	AudioServer.set_bus_volume_db(bus_index, db)
+			return 
+			
+		var current_play_pos = sfx_audio_player.get_playback_position()
+		if current_play_pos > longest_playing_time:
+			longest_playing_time = current_play_pos
+			oldest_player = sfx_audio_player
+			
+	if oldest_player:
+		oldest_player.stop() 
+		oldest_player.stream = _audio
+		oldest_player.volume_db = volume_db
+		oldest_player.pitch_scale = pitch
+		oldest_player.play(start_time)

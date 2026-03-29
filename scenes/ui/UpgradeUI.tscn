@@ -1,11 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://bvncys4wohest"]
+[gd_scene format=3 uid="uid://bvncys4wohest"]
 
-[ext_resource type="Script" path="res://scripts/ui/UpgradeUI.gd" id="1"]
+[ext_resource type="Script" uid="uid://bndoappe1ja0y" path="res://scripts/ui/UpgradeUI.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://dbxm3ldsyddt2" path="res://assets/audio/sfx/升级提示2.wav" id="2_d34pe"]
 
 [node name="UpgradeUI" type="CanvasLayer" unique_id=699317873]
 process_mode = 3
 layer = 10
 script = ExtResource("1")
+"升级_sfx" = ExtResource("2_d34pe")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=730467011]
 anchors_preset = 15
