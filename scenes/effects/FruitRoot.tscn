@@ -32,6 +32,7 @@ radius = 400.0
 script = ExtResource("1_g11d6")
 explosion_duration = 0.5
 texture_base_radius = 250.0
+visual_radius_ratio = 0.3
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=337803771]
 scale = Vector2(0.08653217, 0.09994382)
@@ -55,5 +56,5 @@ scale = Vector2(0.8954008, 0.9063476)
 shape = SubResource("CircleShape2D_rupao")
 
 [node name="explosion" type="Sprite2D" parent="." unique_id=1526167288]
-scale = Vector2(0.08302745, 0.089463905)
+scale = Vector2(0.053963676, 0.05640942)
 texture = ExtResource("4_c54fi")

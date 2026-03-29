@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bal3a3k8s13l4"
-valid=false
+uid="uid://c3ckcwa314gdo"
+path="res://.godot/imported/光头强4.png-997b2705594b71c380cd47ea356d3107.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://assets/sprites/UI/wood/background.jpg"
+source_file="res://assets/sprites/enemies/光头强4.png"
+dest_files=["res://.godot/imported/光头强4.png-997b2705594b71c380cd47ea356d3107.ctex"]
 
 [params]
 

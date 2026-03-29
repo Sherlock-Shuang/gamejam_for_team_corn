@@ -11,6 +11,9 @@ func _initialize() -> void:
 	_test_enemy_ai_river_logic()
 	_test_enemy_collision_masks()
 	_test_skill_random_points_out_of_river()
+	_test_lightning_skill_registration()
+	_test_lightning_numeric_params()
+	_test_lightning_scene_launch()
 	_test_main_scene_river_nodes()
 	if _failed.is_empty():
 		print("RIVER_TESTS: PASS")
@@ -48,17 +51,18 @@ func _test_wave_manager_spawn_rule() -> void:
 	var gd = _game_data()
 	var script = load("res://scripts/components/WaveManager.gd")
 	var wave_manager = script.new()
-	wave_manager.spawn_radius = 1000.0
-	wave_manager.min_spawn_distance = 420.0
+	wave_manager.spawn_radius = 1100.0
+	wave_manager.min_spawn_distance = 1000.0
 	var spawn_pos = wave_manager.get_spawn_position_with_river_rule(Vector2(943.0, 150.0), PI / 2.0)
 	_assert_true(spawn_pos.y <= gd.RIVER_Y_THRESHOLD, "WaveManager 生成点仍落在河流区")
 	_assert_true(spawn_pos.distance_to(Vector2(943.0, 150.0)) >= wave_manager.min_spawn_distance, "WaveManager 生成点落在树周围禁区内")
+	_assert_true(spawn_pos.distance_to(Vector2(943.0, 150.0)) <= wave_manager.spawn_radius, "WaveManager 生成点超过最大半径")
 
 func _test_wave_manager_uniformity() -> void:
 	var script = load("res://scripts/components/WaveManager.gd")
 	var wave_manager = script.new()
-	wave_manager.spawn_radius = 900.0
-	wave_manager.min_spawn_distance = 400.0
+	wave_manager.spawn_radius = 1100.0
+	wave_manager.min_spawn_distance = 1000.0
 	wave_manager.spawn_uniform_jitter = 0.25
 	var center = Vector2(943.0, 150.0)
 	var points = wave_manager.get_uniform_spawn_positions(center, 24)
@@ -67,6 +71,7 @@ func _test_wave_manager_uniformity() -> void:
 	for p in points:
 		var dist = p.distance_to(center)
 		_assert_true(dist >= wave_manager.min_spawn_distance, "WaveManager 均匀生成功能进入树周围禁区")
+		_assert_true(dist <= wave_manager.spawn_radius, "WaveManager 均匀生成功能超过最大半径")
 		_assert_true(p.y <= _game_data().RIVER_Y_THRESHOLD, "WaveManager 均匀生成点进入河流区域")
 		var angle = fposmod((p - center).angle(), TAU)
 		var folded_angle = angle if angle >= PI else angle + TAU
@@ -114,6 +119,39 @@ func _test_skill_random_points_out_of_river() -> void:
 		_assert_true(not _game_data().is_in_river(seed_target), "种子随机点进入河流")
 		var seed_dist = seed_target.distance_to(center)
 		_assert_true(seed_dist >= 120.0 and seed_dist <= 600.0, "种子随机点超出允许距离")
+
+func _test_lightning_skill_registration() -> void:
+	var gd = _game_data()
+	_assert_true(gd.skill_pool.has("lightning_field"), "技能池缺少闪电场技能")
+	var lightning = gd.skill_pool["lightning_field"]
+	_assert_true(lightning.get("category", "") == "衍生攻击", "闪电场未进入可选衍生攻击池")
+
+func _test_lightning_numeric_params() -> void:
+	var script = load("res://scenes/effects/flash.gd")
+	var lightning = script.new()
+	lightning.base_flight_duration = 0.5
+	lightning.speed_ratio = 0.4
+	lightning.linger_duration = 0.5
+	lightning.texture_base_radius = 100.0
+	lightning.linger_scale_ratio = 0.1
+	var flight_duration = lightning.compute_flight_duration()
+	_assert_almost_eq(flight_duration, 1.25, 0.001, "闪电飞行时长计算错误")
+	var speed_value = lightning.compute_speed(500.0)
+	_assert_almost_eq(speed_value, 400.0, 0.001, "闪电速度曲线计算错误")
+	var final_scale = lightning.compute_final_scale(320.0)
+	_assert_almost_eq(final_scale, 3.2, 0.001, "闪电爆炸半径缩放计算错误")
+	var decay_scale = lightning.compute_decay_scale(final_scale)
+	_assert_almost_eq(decay_scale, 0.32, 0.001, "闪电爆炸半径衰减计算错误")
+	var linger = lightning.get_effective_linger_duration()
+	_assert_almost_eq(linger, 0.5, 0.001, "闪电悬停计时器时长错误")
+
+func _test_lightning_scene_launch() -> void:
+	var scene = load("res://scenes/effects/Flash.tscn").instantiate()
+	get_root().add_child(scene)
+	scene.launch(Vector2.ZERO, Vector2(400.0, 0.0), 320.0, 24.0, {"speed_ratio": 0.4, "linger_duration": 0.5, "linger_scale_ratio": 0.1})
+	_assert_almost_eq(scene.last_flight_duration, 1.25, 0.001, "闪电场景飞行时长注入失败")
+	_assert_true(scene.state == 1, "闪电场景启动状态错误")
+	scene.queue_free()
 
 func _test_main_scene_river_nodes() -> void:
 	var gd = _game_data()

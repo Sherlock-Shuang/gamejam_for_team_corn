@@ -23,11 +23,32 @@ animations = [{
 }],
 "loop": true,
 "name": &"move",
-"speed": 6.0
+"speed": 20.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_1lvv6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_4tt4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_2mwo2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_4tt4f")
+}],
+"loop": false,
+"name": &"warning",
+"speed": 5.0
 }]
 
 [node name="Flash" type="Node2D" unique_id=1952808185]
 script = ExtResource("1_4tt4f")
+explosion_duration = 0.3
+linger_duration = 0.1
+linger_scale_ratio = 0.06
+burst_overshoot_ratio = 0.2
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1616014430]
 
@@ -37,7 +58,8 @@ shape = SubResource("CircleShape2D_1lvv6")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1392674814]
 scale = Vector2(0.09237012, 0.09470293)
 sprite_frames = SubResource("SpriteFrames_hpgs7")
-animation = &"move"
+animation = &"warning"
+autoplay = "move"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=709870747]
 visible = false

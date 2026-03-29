@@ -103,7 +103,7 @@ var skill_pool: Dictionary = {
 		"category": "衍生攻击",
 		"description": "自动向最近的敌人发射毒刺，造成持续中毒伤害。",
 		"icon": "",
-		"effects": {"poison_damage": 3, "interval": 2.0}
+		"effects": {"poison_damage": 20, "interval": 2.0}
 	},
 	"exploding_fruit": {
 		"id": "exploding_fruit",
@@ -112,6 +112,14 @@ var skill_pool: Dictionary = {
 		"description": "定期抛射果实，落地后爆炸对范围内敌人造成伤害。",
 		"icon": "",
 		"effects": {"explosion_damage": 20, "radius": 300.0, "interval": 4.0}
+	},
+	"lightning_field": {
+		"id": "lightning_field",
+		"name": "闪电场",
+		"category": "衍生攻击",
+		"description": "投射缓慢移动的闪电球，扩散后形成短暂滞留电场。",
+		"icon": "",
+		"effects": {"explosion_damage": 24, "radius": 300.0, "interval": 5.0, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.4, "linger_scale_ratio": 0.06}
 	},
 	"vine_spread": {
 		"id": "vine_spread",

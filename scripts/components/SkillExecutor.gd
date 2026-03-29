@@ -45,6 +45,9 @@ func _setup_derived_attack(skill_data: Dictionary):
 	elif skill_data["id"] == "exploding_fruit":
 		var cd = effects.get("interval", 4.0)
 		_create_skill_timer("bomb_fruit_timer", cd, _fire_bomb)
+	elif skill_data["id"] == "lightning_field":
+		var cd = effects.get("interval", 5.0)
+		_create_skill_timer("lightning_field_timer", cd, _fire_lightning_field)
 	elif skill_data["id"] == "vine_spread":
 		_create_skill_timer("vine_spread_timer", 0.5, _cast_vine_spread)
 	elif skill_data["id"] == "seed_bomb":
@@ -117,6 +120,47 @@ func _fire_bomb():
 	
 	# 调用果实的发射接口，直接传入最终伤害
 	fruit.launch(tree_owner.global_position, target_pos, blast_radius, final_damage)
+
+func _fire_lightning_field():
+	var skill_data = active_skills.get("lightning_field", null)
+	if skill_data == null:
+		return
+	var effects = skill_data["effects"]
+	var blast_radius = effects.get("radius", 320.0)
+	var final_damage = effects.get("explosion_damage", 24.0)
+	var min_range = effects.get("cast_range_min", 120.0)
+	var max_range = effects.get("cast_range_max", 650.0)
+	var speed_ratio = effects.get("speed_ratio", 0.4)
+	var linger_duration = effects.get("linger_duration", 2.5)
+	var linger_scale_ratio = effects.get("linger_scale_ratio", 0.85)
+	var target_pos = tree_owner.global_position
+	var nearest = _get_nearest_target()
+	if is_instance_valid(nearest):
+		target_pos = nearest.global_position
+	else:
+		target_pos = _pick_random_land_point_around(tree_owner.global_position, min_range, max_range)
+	target_pos = _clamp_skill_target_to_land(target_pos, tree_owner.global_position, min_range, max_range)
+	var field_scene_path = "res://scenes/effects/Flash.tscn"
+	if not ResourceLoader.exists(field_scene_path):
+		push_warning("[SkillExecutor] 缺少场景: " + field_scene_path)
+		return
+	var field_scene = load(field_scene_path)
+	if field_scene == null:
+		push_warning("[SkillExecutor] LightningField 场景加载失败: " + field_scene_path)
+		return
+	var lightning_field = field_scene.instantiate()
+	get_tree().current_scene.add_child(lightning_field)
+	lightning_field.launch(
+		tree_owner.global_position,
+		target_pos,
+		blast_radius,
+		final_damage,
+		{
+			"speed_ratio": speed_ratio,
+			"linger_duration": linger_duration,
+			"linger_scale_ratio": linger_scale_ratio
+		}
+	)
 
 func _cast_vine_spread():
 	var skill = active_skills.get("vine_spread", null)

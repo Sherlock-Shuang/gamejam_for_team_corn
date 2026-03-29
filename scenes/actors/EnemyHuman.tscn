@@ -1,20 +1,20 @@
-[gd_scene format=3 uid="uid://duxbf1uclbto3"]
+[gd_scene format=3 uid="uid://be2lw7mwo1ao1"]
 
-[ext_resource type="Script" uid="uid://cg21f4hne38ag" path="res://scripts/actors/BeaverAI.gd" id="1_bk3m8"]
-[ext_resource type="Texture2D" uid="uid://buwhbg2p2btcp" path="res://assets/sprites/enemies/beaver_4.png" id="2_l2t3b"]
-[ext_resource type="Texture2D" uid="uid://dfjufobaf4f2p" path="res://assets/sprites/enemies/beaver_5.png" id="3_nl3yw"]
-[ext_resource type="Texture2D" uid="uid://biwxp2xeutuk7" path="res://assets/sprites/enemies/beaver_6.png" id="4_qqcos"]
-[ext_resource type="Texture2D" uid="uid://3iyyrm4b5koc" path="res://assets/sprites/enemies/beaver_1.png" id="5_qewqu"]
-[ext_resource type="Texture2D" uid="uid://bm6ou75ctlxfl" path="res://assets/sprites/enemies/beaver_2.png" id="6_m6byr"]
+[ext_resource type="Script" uid="uid://cg21f4hne38ag" path="res://scripts/actors/BeaverAI.gd" id="1_jgis7"]
+[ext_resource type="Texture2D" uid="uid://dkbl4tmbxspia" path="res://assets/sprites/enemies/光头强3.png" id="2_jgis7"]
+[ext_resource type="Texture2D" uid="uid://c3ckcwa314gdo" path="res://assets/sprites/enemies/光头强4.png" id="3_2aevl"]
+[ext_resource type="Texture2D" uid="uid://ciw18qgeu0wox" path="res://assets/sprites/enemies/光头强5.png" id="4_hy6wf"]
+[ext_resource type="Texture2D" uid="uid://cydtqtxd3by3" path="res://assets/sprites/enemies/光头强1.png" id="5_p34vq"]
+[ext_resource type="Texture2D" uid="uid://ckpta3dpd4dgs" path="res://assets/sprites/enemies/光头强2.png" id="6_s6omx"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_4i4j6"]
-radius = 42.0119
+radius = 67.357254
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ay0ne"]
 radius = 76.1643
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_68yk5"]
-radius = 16.849451
+radius = 21.322458
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
 size = Vector2(84, 86)
@@ -23,13 +23,13 @@ size = Vector2(84, 86)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_l2t3b")
+"texture": ExtResource("2_jgis7")
 }, {
 "duration": 1.0,
-"texture": ExtResource("3_nl3yw")
+"texture": ExtResource("3_2aevl")
 }, {
 "duration": 1.0,
-"texture": ExtResource("4_qqcos")
+"texture": ExtResource("4_hy6wf")
 }],
 "loop": true,
 "name": &"attack",
@@ -42,10 +42,10 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("5_qewqu")
+"texture": ExtResource("5_p34vq")
 }, {
 "duration": 1.0,
-"texture": ExtResource("6_m6byr")
+"texture": ExtResource("6_s6omx")
 }],
 "loop": true,
 "name": &"walk",
@@ -56,14 +56,16 @@ animations = [{
 collision_layer = 2
 collision_mask = 38
 motion_mode = 1
-script = ExtResource("1_bk3m8")
+script = ExtResource("1_jgis7")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1403090462]
+scale = Vector2(1.0799973, 1)
 shape = SubResource("CircleShape2D_4i4j6")
 
 [node name="SeparationArea" type="Area2D" parent="." unique_id=2039210838]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SeparationArea" unique_id=1473732722]
+scale = Vector2(1.2979218, 1.3745906)
 shape = SubResource("CircleShape2D_ay0ne")
 
 [node name="HitBox" type="Area2D" parent="." unique_id=1311532308]
@@ -71,19 +73,21 @@ collision_layer = 8
 collision_mask = 16
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitBox" unique_id=1107987729]
-scale = Vector2(6.6627126, -6.1277604)
+scale = Vector2(6.867384, -6.8863735)
 shape = SubResource("CircleShape2D_68yk5")
 
 [node name="Hurtbox" type="Area2D" parent="." unique_id=1683098082 groups=["Enemy"]]
+scale = Vector2(1.4276483, 1.5498806)
 collision_layer = 2
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1426947378]
+scale = Vector2(1.4950017, 1.3528963)
 shape = SubResource("RectangleShape2D_jq30h")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=263200]
-scale = Vector2(0.16497275, 0.17659917)
+position = Vector2(7.0000005, -7)
+scale = Vector2(0.28838134, 0.3037286)
 sprite_frames = SubResource("SpriteFrames_dqsgq")
-animation = &"attack"
+animation = &"walk"
 autoplay = "walk"
-frame_progress = 0.41860557

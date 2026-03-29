@@ -8,6 +8,7 @@ var explosion_radius: float = 50.0
 # 🔥 视觉调参区 (在右侧检查器可直接调整)
 @export var explosion_duration: float = 0.15  # 爆炸速度：越小炸得越快、越干脆
 @export var texture_base_radius: float = 50.0 # 贴图原半径：如果美术画的爆炸图是 100x100，这里填 50
+@export var visual_radius_ratio: float = 0.72
 
 # 获取节点
 @onready var anim_sprite: AnimatedSprite2D = $AnimatedSprite2D # 播放预警的两帧
@@ -94,7 +95,7 @@ func _explode(damage: float) -> void:
 	# 🎨 特效表现 (Juice)：动态适配物理判定范围！
 	# ==========================================
 	# 核心算法：让爆炸图放大到刚刚好覆盖真实的杀伤半径
-	var final_scale_size = explosion_radius / texture_base_radius
+	var final_scale_size = (explosion_radius / texture_base_radius) * clampf(visual_radius_ratio, 0.1, 2.0)
 	
 	explosion_sprite.scale = Vector2(0.08, 0.08)
 	explosion_sprite.modulate.a = 1.0 
