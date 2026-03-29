@@ -99,10 +99,7 @@ func _fire_bomb():
 	var blast_radius = effects.get("radius", 150.0)
 	var final_damage = effects.get("explosion_damage", 20.0)
 	
-	# 随机落点：限制在树周围 600px 半径内
-	var random_angle = randf_range(0.0, TAU)
-	var random_dist = randf_range(80.0, 600.0)
-	var target_pos = tree_owner.global_position + Vector2.from_angle(random_angle) * random_dist
+	var target_pos = _pick_random_land_point_around(tree_owner.global_position, 80.0, 600.0)
 	
 	# 加载并实例化 fruit_root 场景
 	var fruit_scene_path = "res://scenes/effects/FruitRoot.tscn"
@@ -151,14 +148,14 @@ func _cast_seed_bomb():
 	var base_atk = GameData.player_base_stats.get("attack_power", 0.0)
 	var final_damage = base_damage + base_atk * 0.5
 	var spawn_range = effects.get("cast_range", 600.0)
+	var min_seed_distance = 120.0
 	var target_pos = tree_owner.global_position
 	var nearest = _get_nearest_target()
 	if is_instance_valid(nearest):
 		target_pos = nearest.global_position
 	else:
-		var random_angle = randf_range(0.0, TAU)
-		var random_dist = randf_range(120.0, spawn_range)
-		target_pos = tree_owner.global_position + Vector2.from_angle(random_angle) * random_dist
+		target_pos = _pick_random_land_point_around(tree_owner.global_position, min_seed_distance, spawn_range)
+	target_pos = _clamp_skill_target_to_land(target_pos, tree_owner.global_position, min_seed_distance, spawn_range)
 	var seed_scene_path = "res://scenes/effects/SeedBomb.tscn"
 	if not ResourceLoader.exists(seed_scene_path):
 		push_warning("[SkillExecutor] 缺少场景: " + seed_scene_path + "，请先保存 SeedBomb.tscn")
@@ -246,3 +243,30 @@ func _get_active_enemies_in_radius(radius: float) -> Array:
 		if enemy.global_position.distance_to(tree_owner.global_position) <= radius:
 			result.append(enemy)
 	return result
+
+func _pick_random_land_point_around(center_pos: Vector2, min_distance: float, max_distance: float) -> Vector2:
+	var inner = maxf(0.0, min_distance)
+	var outer = maxf(inner + 1.0, max_distance)
+	for _try in range(12):
+		var angle = randf_range(0.0, TAU)
+		var dist = sqrt(lerpf(inner * inner, outer * outer, randf()))
+		var candidate = center_pos + Vector2.from_angle(angle) * dist
+		if not GameData.is_in_river(candidate):
+			return candidate
+	return GameData.clamp_to_river_bank(center_pos + Vector2.UP * outer, 24.0)
+
+func _clamp_skill_target_to_land(target_pos: Vector2, center_pos: Vector2, min_distance: float, max_distance: float) -> Vector2:
+	var inner = maxf(0.0, min_distance)
+	var outer = maxf(inner + 1.0, max_distance)
+	var adjusted = target_pos
+	var dist = center_pos.distance_to(adjusted)
+	if dist < 0.001:
+		adjusted = center_pos + Vector2.RIGHT * inner
+		dist = inner
+	if dist < inner:
+		adjusted = center_pos + (adjusted - center_pos).normalized() * inner
+	elif dist > outer:
+		adjusted = center_pos + (adjusted - center_pos).normalized() * outer
+	if GameData.is_in_river(adjusted):
+		return _pick_random_land_point_around(center_pos, inner, outer)
+	return adjusted

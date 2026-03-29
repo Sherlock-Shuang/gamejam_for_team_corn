@@ -4,11 +4,13 @@ var _failed: Array[String] = []
 var _game_data_ref: Node = null
 
 func _initialize() -> void:
-	randomize()
+	seed(20260329)
 	_test_game_data_river_helpers()
 	_test_wave_manager_spawn_rule()
+	_test_wave_manager_uniformity()
 	_test_enemy_ai_river_logic()
 	_test_enemy_collision_masks()
+	_test_skill_random_points_out_of_river()
 	_test_main_scene_river_nodes()
 	if _failed.is_empty():
 		print("RIVER_TESTS: PASS")
@@ -47,8 +49,36 @@ func _test_wave_manager_spawn_rule() -> void:
 	var script = load("res://scripts/components/WaveManager.gd")
 	var wave_manager = script.new()
 	wave_manager.spawn_radius = 1000.0
-	var spawn_pos = wave_manager.get_spawn_position_with_river_rule(Vector2(943.0, 556.0), PI / 2.0)
+	wave_manager.min_spawn_distance = 420.0
+	var spawn_pos = wave_manager.get_spawn_position_with_river_rule(Vector2(943.0, 150.0), PI / 2.0)
 	_assert_true(spawn_pos.y <= gd.RIVER_Y_THRESHOLD, "WaveManager 生成点仍落在河流区")
+	_assert_true(spawn_pos.distance_to(Vector2(943.0, 150.0)) >= wave_manager.min_spawn_distance, "WaveManager 生成点落在树周围禁区内")
+
+func _test_wave_manager_uniformity() -> void:
+	var script = load("res://scripts/components/WaveManager.gd")
+	var wave_manager = script.new()
+	wave_manager.spawn_radius = 900.0
+	wave_manager.min_spawn_distance = 400.0
+	wave_manager.spawn_uniform_jitter = 0.25
+	var center = Vector2(943.0, 150.0)
+	var points = wave_manager.get_uniform_spawn_positions(center, 24)
+	_assert_true(points.size() == 24, "WaveManager 未生成完整数量位置")
+	var bins: Array[int] = [0, 0, 0, 0]
+	for p in points:
+		var dist = p.distance_to(center)
+		_assert_true(dist >= wave_manager.min_spawn_distance, "WaveManager 均匀生成功能进入树周围禁区")
+		_assert_true(p.y <= _game_data().RIVER_Y_THRESHOLD, "WaveManager 均匀生成点进入河流区域")
+		var angle = fposmod((p - center).angle(), TAU)
+		var folded_angle = angle if angle >= PI else angle + TAU
+		_assert_true(folded_angle >= PI and folded_angle <= TAU + PI, "WaveManager 生成点未落在陆地侧角域")
+		var idx = int(floor((folded_angle - PI) / (PI / 4.0)))
+		bins[clampi(idx, 0, 3)] += 1
+	var min_bin = bins[0]
+	var max_bin = bins[0]
+	for c in bins:
+		min_bin = mini(min_bin, c)
+		max_bin = maxi(max_bin, c)
+	_assert_true(max_bin - min_bin <= 3, "WaveManager 角度分布不均匀")
 
 func _test_enemy_ai_river_logic() -> void:
 	var gd = _game_data()
@@ -70,6 +100,20 @@ func _test_enemy_collision_masks() -> void:
 	_assert_true((beaver.collision_mask & 32) == 32, "EnemyBeaver 未包含 world 层碰撞掩码")
 	fly.free()
 	beaver.free()
+
+func _test_skill_random_points_out_of_river() -> void:
+	var script = load("res://scripts/components/SkillExecutor.gd")
+	var skill_executor = script.new()
+	var center = Vector2(943.0, 150.0)
+	for _i in range(40):
+		var bomb_target = skill_executor._pick_random_land_point_around(center, 80.0, 600.0)
+		_assert_true(not _game_data().is_in_river(bomb_target), "爆炸果实随机点进入河流")
+		var bomb_dist = bomb_target.distance_to(center)
+		_assert_true(bomb_dist >= 80.0 and bomb_dist <= 600.0, "爆炸果实随机点超出允许距离")
+		var seed_target = skill_executor._pick_random_land_point_around(center, 120.0, 600.0)
+		_assert_true(not _game_data().is_in_river(seed_target), "种子随机点进入河流")
+		var seed_dist = seed_target.distance_to(center)
+		_assert_true(seed_dist >= 120.0 and seed_dist <= 600.0, "种子随机点超出允许距离")
 
 func _test_main_scene_river_nodes() -> void:
 	var gd = _game_data()

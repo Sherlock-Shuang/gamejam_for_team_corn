@@ -3,6 +3,9 @@ extends Node2D
 # --- 核心配置 ---
 @export var base_wave_interval: float = 3.0   # 基础每波间隔时间
 @export var spawn_radius: float = 1000.0      # 生成半径
+@export var min_spawn_distance: float = 380.0
+@export var spawn_uniform_jitter: float = 0.35
+@export var spawn_retry_limit: int = 8
 
 @onready var timer: Timer = $WaveTimer
 var target_tree: Node2D = null
@@ -57,9 +60,11 @@ func _on_wave_timeout() -> void:
 	# ==========================================
 	# ⚙️ 核心生成逻辑
 	# ==========================================
+	var center_pos = target_tree.global_position
+	var spawn_positions = get_uniform_spawn_positions(center_pos, enemies_to_spawn)
 	for i in range(enemies_to_spawn):
-		var random_angle = randf_range(0.0, TAU)
 		var random_delay = randf_range(0.0, timer.wait_time)
+		var spawn_pos = spawn_positions[i]
 		
 		# 🎲 随机池抽取机制：决定这只怪是什么类型
 		var enemy_type_to_spawn = "fly" 
@@ -69,18 +74,41 @@ func _on_wave_timeout() -> void:
 			enemy_type_to_spawn = "beaver"
 			
 		# 异步延迟生成：通过 bind 传递局部变量，防止闭包捕获到循环最终值导致怪物重叠
-		var spawn_func = func(angle: float, type: String):
-			if not is_instance_valid(target_tree): return
-			var center_pos = target_tree.global_position
-			var spawn_pos = get_spawn_position_with_river_rule(center_pos, angle)
-			PoolManager.get_enemy(type, spawn_pos)
+		var spawn_func = func(target_spawn_pos: Vector2, type: String):
+			if not is_instance_valid(target_tree):
+				return
+			PoolManager.get_enemy(type, target_spawn_pos)
 			
-		get_tree().create_timer(random_delay, false).timeout.connect(spawn_func.bind(random_angle, enemy_type_to_spawn))
+		get_tree().create_timer(random_delay, false).timeout.connect(spawn_func.bind(spawn_pos, enemy_type_to_spawn))
+
+func get_uniform_spawn_positions(center_pos: Vector2, count: int) -> Array[Vector2]:
+	var points: Array[Vector2] = []
+	if count <= 0:
+		return points
+	var start_angle = PI + randf_range(0.0, PI / float(count))
+	var segment = PI / float(count)
+	var jitter = segment * clampf(spawn_uniform_jitter, 0.0, 0.49)
+	for i in range(count):
+		var angle = start_angle + segment * float(i) + randf_range(-jitter, jitter)
+		angle = clampf(angle, PI, TAU)
+		points.append(get_spawn_position_with_river_rule(center_pos, angle))
+	return points
 
 func get_spawn_position_with_river_rule(center_pos: Vector2, angle: float) -> Vector2:
-	var spawn_pos = center_pos + Vector2(cos(angle), sin(angle)) * spawn_radius
-	if not GameData.is_in_river(spawn_pos):
+	var min_r = maxf(0.0, minf(min_spawn_distance, spawn_radius - 1.0))
+	var max_r = maxf(min_r + 1.0, spawn_radius)
+	for _attempt in range(max(1, spawn_retry_limit)):
+		var dist = sqrt(lerpf(min_r * min_r, max_r * max_r, randf()))
+		var spawn_pos = center_pos + Vector2.from_angle(angle) * dist
+		if spawn_pos.distance_to(center_pos) < min_spawn_distance:
+			continue
+		if GameData.is_in_river(spawn_pos):
+			continue
 		return spawn_pos
-	spawn_pos.y = GameData.RIVER_Y_THRESHOLD - randf_range(24.0, 140.0)
-	return spawn_pos
+	var fallback = center_pos + Vector2.from_angle(angle) * max_r
+	if fallback.distance_to(center_pos) < min_spawn_distance:
+		fallback = center_pos + Vector2.UP * min_spawn_distance
+	if GameData.is_in_river(fallback):
+		fallback = center_pos + Vector2.UP * max_r
+	return GameData.clamp_to_river_bank(fallback, 24.0)
 		
