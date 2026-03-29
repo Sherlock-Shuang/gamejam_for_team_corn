@@ -53,20 +53,22 @@ func play_music(_audio: AudioStream, start_time: float = 0) -> void:
 	current_music_player_index = empty_audio_player_index
 
 
-### 渐入
+## 渐入
 func play_and_fade_in(_audio_player: AudioStreamPlayer, start_time: float = 0.0) -> void:
+	# 播放前先强行拉到绝对静音，防止开局炸耳
+	_audio_player.volume_db = -80.0 
 	_audio_player.play(start_time)
-	var tween:Tween = create_tween()
-	tween.tween_property(_audio_player, "volume_db", 0, music_fade_duration)
+	var tween: Tween = create_tween()
+	tween.tween_property(_audio_player, "volume_db", 0.0, music_fade_duration)
 
 ## 渐出
 func fade_out_and_stop(_audio_player: AudioStreamPlayer) -> void:
-	var tween:Tween = create_tween()
-	tween.tween_property(_audio_player, "volume_db", -40, music_fade_duration) 
+	var tween: Tween = create_tween()
+	# 降到 -80.0 dB 才是真正的彻底静音
+	tween.tween_property(_audio_player, "volume_db", -80.0, music_fade_duration) 
 	await tween.finished
 	_audio_player.stop()
 	_audio_player.stream = null
-
 
 ## 初始化音效播放器
 func init_sfx_audio_manager() -> void:

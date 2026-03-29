@@ -9,8 +9,6 @@ extends CanvasLayer
 @onready var level_label: Label = $HUDMargin/HUDContainer/RingContainer/LevelLabel
 @onready var wave_label: Label = $HUDMargin/HUDContainer/WaveLabel
 @onready var stage_label: Label = $HUDMargin/HUDContainer/StageLabel
-@onready var hp_bar: ProgressBar = $HUDMargin/HUDContainer/HpBarContainer/HpBar
-@onready var hp_label: Label = $HUDMargin/HUDContainer/HpBarContainer/HpLabel
 @onready var pause_button: Button = $TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer/PauseButton
 @onready var timer_label: Label = $TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer/TimerLabel
 
@@ -22,6 +20,7 @@ var hp_color_low: Color = Color(0.8, 0.25, 0.2)       # 枯红
 func _ready():
 	# 监听 SignalBus 事件
 	SignalBus.on_player_hp_changed.connect(_on_hp_changed)
+	SignalBus.on_exp_gained.connect(_on_exp_gained)
 	SignalBus.on_level_up.connect(_on_level_up)
 	SignalBus.on_wave_started.connect(_on_wave_started)
 	
@@ -30,7 +29,7 @@ func _ready():
 	
 	# 初始化显示
 	_update_hp_display(1.0)
-	_on_hp_changed(GameData.current_hp, GameData.player_base_stats["max_hp"])
+	exp_ring.value = 0
 	level_label.text = "Lv.1"
 	wave_label.text = "WAVE 1"
 	
@@ -99,11 +98,6 @@ func _apply_hud_styles():
 
 func _on_hp_changed(current_hp: float, max_hp: float):
 	var ratio = clampf(current_hp / max_hp, 0.0, 1.0)
-	exp_ring.max_value = max_hp
-	exp_ring.value = current_hp
-	hp_bar.max_value = max_hp
-	hp_bar.value = current_hp
-	hp_label.text = "HP %d / %d" % [int(current_hp), int(max_hp)]
 	_update_hp_display(ratio)
 
 func _update_hp_display(ratio: float):
@@ -115,13 +109,13 @@ func _update_hp_display(ratio: float):
 		var t = ratio / 0.5
 		color = hp_color_low.lerp(hp_color_half, t)
 	hp_center.self_modulate = color
-	exp_ring.tint_progress = color
 
 func _on_exp_gained(exp_ratio: float):
-	pass
+	exp_ring.value = exp_ratio * 100.0
 
 func _on_level_up(new_level: int):
 	level_label.text = "Lv." + str(new_level)
+	exp_ring.value = 0
 	_play_level_up_flash()
 
 func _on_wave_started(wave_number: int):

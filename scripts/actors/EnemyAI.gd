@@ -7,6 +7,8 @@ class_name EnemyBase extends CharacterBody2D
 @export var attraction_weight: float = 1.0 
 @export var repulsion_weight: float = 2.0 
 @export var is_flying_unit: bool = false # 勾选后开启 360 度旋转，否则只左右翻转
+# 音乐参数
+@export var 死亡惨叫_sfx: AudioStream
 
 # 下列数值现由 PoolManager 从 GameData 统一注入，取消 @export 以免产生混淆
 var speed: float = 0.0
@@ -223,6 +225,10 @@ func take_damage(dmg: float, attack_source_position: Vector2) -> void:
 
 func die(attack_source_position: Vector2) -> void:
 	SignalBus.on_enemy_died.emit(exp_drop, global_position)
+	# 👇 【新增】：呼叫全局管家播放死亡惨叫！
+	# 参数说明：(-2.0 稍微降低音量，true 开启随机音调让死法各异，限制同屏最多死 4 个声音防止爆音)
+	if 死亡惨叫_sfx:
+		AudioManager.play_sfx(死亡惨叫_sfx,0, true, 4)
 	play_death_animation(attack_source_position)
 
 func play_death_animation(attack_source_position: Vector2) -> void:

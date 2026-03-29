@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://be2lw7mwo1ao1"]
 
-[ext_resource type="Script" uid="uid://cg21f4hne38ag" path="res://scripts/actors/BeaverAI.gd" id="1_jgis7"]
+[ext_resource type="Script" path="res://scripts/actors/BeaverAI.gd" id="1_jgis7"]
+[ext_resource type="AudioStream" uid="uid://g54hhlt7ot3" path="res://assets/audio/sfx/伐木工死亡.wav" id="2_2aevl"]
 [ext_resource type="Texture2D" uid="uid://dkbl4tmbxspia" path="res://assets/sprites/enemies/光头强3.png" id="2_jgis7"]
 [ext_resource type="Texture2D" uid="uid://c3ckcwa314gdo" path="res://assets/sprites/enemies/光头强4.png" id="3_2aevl"]
 [ext_resource type="Texture2D" uid="uid://ciw18qgeu0wox" path="res://assets/sprites/enemies/光头强5.png" id="4_hy6wf"]
@@ -57,6 +58,7 @@ collision_layer = 2
 collision_mask = 38
 motion_mode = 1
 script = ExtResource("1_jgis7")
+"死亡惨叫_sfx" = ExtResource("2_2aevl")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1403090462]
 scale = Vector2(1.0799973, 1)
