@@ -1,9 +1,11 @@
-[gd_scene format=3 uid="uid://cdflgj6qjwn5g"]
+[gd_scene format=3 uid="uid://b01605sk1o70t"]
 
 [ext_resource type="Texture2D" uid="uid://dpjo87r41uajs" path="res://assets/sprites/effects/flash1.png" id="1_1lvv6"]
 [ext_resource type="Script" uid="uid://c01kwyac5df0f" path="res://scenes/effects/flash.gd" id="1_4tt4f"]
 [ext_resource type="Texture2D" uid="uid://c6mdhg0hyxm4m" path="res://assets/sprites/effects/flash2.png" id="2_4tt4f"]
+[ext_resource type="AudioStream" uid="uid://cbjusmmobdb3i" path="res://assets/audio/sfx/雷电.wav" id="2_ybbja"]
 [ext_resource type="Texture2D" uid="uid://bh25hxyqun2ff" path="res://assets/sprites/effects/flash3.png" id="3_2mwo2"]
+[ext_resource type="AudioStream" uid="uid://beov6i8etj257" path="res://assets/audio/sfx/雷电2.wav" id="3_hpgs7"]
 [ext_resource type="Texture2D" uid="uid://4j20a7eyvqg0" path="res://assets/sprites/effects/flash_4.png" id="4_ybbja"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1lvv6"]
@@ -49,6 +51,8 @@ explosion_duration = 0.3
 linger_duration = 0.1
 linger_scale_ratio = 0.06
 burst_overshoot_ratio = 0.2
+"飞行_sfx" = ExtResource("2_ybbja")
+"爆炸_sfx" = ExtResource("3_hpgs7")
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1616014430]
 
