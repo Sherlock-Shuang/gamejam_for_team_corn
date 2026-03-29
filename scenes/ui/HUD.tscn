@@ -1,6 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://hud_ring_display"]
+[gd_scene format=3 uid="uid://cmrehg65r703d"]
 
-[ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1"]
+[ext_resource type="Script" uid="uid://bqpamwyun2vuy" path="res://scripts/ui/HUD.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://5wxjmkhcf1sy" path="res://assets/sprites/UI/blood/20.png" id="2_rnyu1"]
+[ext_resource type="Texture2D" uid="uid://7f50n0lvtxmr" path="res://assets/sprites/UI/blood/40.png" id="3_jlufg"]
+[ext_resource type="Texture2D" uid="uid://jnff7j8jxato" path="res://assets/sprites/UI/blood/60.png" id="4_l20r4"]
+[ext_resource type="Texture2D" uid="uid://b0v78u80coao2" path="res://assets/sprites/UI/blood/80.png" id="5_jvmx1"]
+[ext_resource type="Texture2D" uid="uid://pmjlmbxdaqs7" path="res://assets/sprites/UI/blood/100.png" id="6_euikm"]
+[ext_resource type="AudioStream" uid="uid://cx26ixu76vkif" path="res://assets/audio/sfx/木头撕裂.wav" id="7_jlufg"]
 
 [sub_resource type="Gradient" id="Gradient_cir"]
 offsets = PackedFloat32Array(0.85, 0.95)
@@ -14,52 +20,52 @@ fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(0.5, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp"]
-bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 60
-corner_radius_top_right = 60
-corner_radius_bottom_right = 60
-corner_radius_bottom_left = 60
-anti_aliasing = true
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rnyu1"]
+bg_color = Color(0.4665116, 0.26525304, 0.15720376, 1)
+corner_radius_top_left = 90
+corner_radius_top_right = 90
+corner_radius_bottom_right = 90
+corner_radius_bottom_left = 90
 
-[node name="HUD" type="CanvasLayer"]
+[node name="HUD" type="CanvasLayer" unique_id=2112650878]
 layer = 5
 script = ExtResource("1")
+hp_tree_textures = Array[Texture2D]([ExtResource("2_rnyu1"), ExtResource("3_jlufg"), ExtResource("4_l20r4"), ExtResource("5_jvmx1"), ExtResource("6_euikm")])
+"状态切换_sfx" = ExtResource("7_jlufg")
 
-[node name="HUDMargin" type="MarginContainer" parent="."]
+[node name="HUDMargin" type="MarginContainer" parent="." unique_id=1570567483]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_bottom = 20
 mouse_filter = 2
+theme_override_constants/margin_bottom = 20
 
-[node name="HUDContainer" type="HBoxContainer" parent="HUDMargin"]
+[node name="HUDContainer" type="HBoxContainer" parent="HUDMargin" unique_id=1780749969]
 layout_mode = 2
 size_flags_vertical = 8
-alignment = 1
 theme_override_constants/separation = 25
+alignment = 1
 
-[node name="StageLabel" type="Label" parent="HUDMargin/HUDContainer"]
+[node name="StageLabel" type="Label" parent="HUDMargin/HUDContainer" unique_id=298491337]
 layout_mode = 2
-text = "幼苗"
-theme_override_font_sizes/font_size = 42
 theme_override_colors/font_color = Color(0.6, 0.85, 0.4, 0.9)
+theme_override_font_sizes/font_size = 42
+text = "幼苗"
 vertical_alignment = 1
 
-[node name="RingContainer" type="Control" parent="HUDMargin/HUDContainer"]
-layout_mode = 2
+[node name="RingContainer" type="Control" parent="HUDMargin/HUDContainer" unique_id=1526936829]
 custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
 
-[node name="ExpRing" type="TextureProgressBar" parent="HUDMargin/HUDContainer/RingContainer"]
+[node name="ExpRing" type="TextureProgressBar" parent="HUDMargin/HUDContainer/RingContainer" unique_id=132992819]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-max_value = 100.0
 value = 35.0
 fill_mode = 4
 nine_patch_stretch = true
@@ -68,41 +74,40 @@ texture_progress = SubResource("GradientTexture_cir")
 tint_under = Color(0.1, 0.1, 0.1, 0.6)
 tint_progress = Color(0.95, 0.85, 0.2, 1)
 
-[node name="HpCenter" type="Panel" parent="HUDMargin/HUDContainer/RingContainer"]
-self_modulate = Color(0.2, 0.7, 0.15, 1)
+[node name="TreeBackground" type="Panel" parent="HUDMargin/HUDContainer/RingContainer" unique_id=509406757]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 11.0
+offset_right = -11.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = 18.0
-offset_top = 18.0
-offset_right = -18.0
-offset_bottom = -18.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_hp")
+theme_override_styles/panel = SubResource("StyleBoxFlat_rnyu1")
 
-[node name="LevelLabel" type="Label" parent="HUDMargin/HUDContainer/RingContainer"]
+[node name="LevelLabel" type="Label" parent="HUDMargin/HUDContainer/RingContainer" unique_id=647808749]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_font_sizes/font_size = 40
 text = "Lv.1"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 40
-theme_override_colors/font_color = Color(1, 1, 1, 0.95)
 
-[node name="WaveLabel" type="Label" parent="HUDMargin/HUDContainer"]
+[node name="WaveLabel" type="Label" parent="HUDMargin/HUDContainer" unique_id=265654989]
 layout_mode = 2
-text = "WAVE 1"
-theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(0.85, 0.65, 0.3, 0.9)
+theme_override_font_sizes/font_size = 36
+text = "WAVE 1"
 vertical_alignment = 1
 
-[node name="TopRightAnchor" type="Control" parent="."]
+[node name="TopRightAnchor" type="Control" parent="." unique_id=774773748]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -111,37 +116,44 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="TopRightAnchor"]
+[node name="MarginContainer" type="MarginContainer" parent="TopRightAnchor" unique_id=741020265]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_top = 20
 mouse_filter = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TopRightAnchor/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="TopRightAnchor/MarginContainer" unique_id=1179865447]
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 0
-theme_override_constants/separation = 10
 mouse_filter = 2
+theme_override_constants/separation = 10
 
-[node name="HBoxContainer" type="HBoxContainer" parent="TopRightAnchor/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="TopRightAnchor/MarginContainer/VBoxContainer" unique_id=44454063]
 layout_mode = 2
-alignment = 2
 theme_override_constants/separation = 15
+alignment = 2
 
-[node name="TimerLabel" type="Label" parent="TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="TimerLabel" type="Label" parent="TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1009990808]
 layout_mode = 2
-text = "时间: 30.0s"
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 40
+text = "时间: 30.0s"
 
-[node name="PauseButton" type="Button" parent="TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="PauseButton" type="Button" parent="TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer" unique_id=925436531]
 layout_mode = 2
-text = "菜 单"
 theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1)
 theme_override_font_sizes/font_size = 40
+text = "菜 单"
+
+[node name="TreeHpDisplay" type="TextureRect" parent="." unique_id=1113997210]
+offset_left = 72.0
+offset_top = 1292.0
+offset_right = 155.0
+offset_bottom = 1377.0
+stretch_mode = 5

@@ -1,21 +1,25 @@
 extends CanvasLayer
 # ═══════════════════════════════════════════════════════════════
-#  HUD.gd — 年轮式状态 UI
-#  底部半圆"树桩横截面"：外圈=经验进度，中心颜色=生命值
+#  HUD.gd — 年轮式状态 UI (纯净树木版)
+#  底部：外圈=经验进度，中心=根据血量切换的树木贴图
 # ═══════════════════════════════════════════════════════════════
 
 @onready var exp_ring: TextureProgressBar = $HUDMargin/HUDContainer/RingContainer/ExpRing
-@onready var hp_center: Panel = $HUDMargin/HUDContainer/RingContainer/HpCenter
 @onready var level_label: Label = $HUDMargin/HUDContainer/RingContainer/LevelLabel
 @onready var wave_label: Label = $HUDMargin/HUDContainer/WaveLabel
 @onready var stage_label: Label = $HUDMargin/HUDContainer/StageLabel
 @onready var pause_button: Button = $TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer/PauseButton
-@onready var timer_label: Label = $TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer/TimerLabel
 
-# 血量颜色渐变:
-var hp_color_full: Color = Color(0.48, 0.65, 0.42)    # 柔和复古绿
-var hp_color_half: Color = Color(0.85, 0.65, 0.25)    # 琥珀黄
-var hp_color_low: Color = Color(0.8, 0.25, 0.2)       # 枯红
+@onready var timer_label: Label = $TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer/TimerLabel
+@onready var tree_hp_display: TextureRect = $TreeHpDisplay
+
+# 🔥 配置不同血量阶段的树木贴图
+@export var hp_tree_textures: Array[Texture2D] = []
+# 🎵 形态切换音效
+@export var 状态切换_sfx: AudioStream 
+
+# 用来记录当前树木处于第几个形态。初始设为 -1 代表“还没初始化”
+var current_tree_index: int = -1
 
 func _ready():
 	# 监听 SignalBus 事件
@@ -24,11 +28,11 @@ func _ready():
 	SignalBus.on_level_up.connect(_on_level_up)
 	SignalBus.on_wave_started.connect(_on_wave_started)
 	
-	# 退出按鈕：现在只保留 PauseMenu 的那个
+	# 退出按鈕
 	pause_button.pressed.connect(func(): SignalBus.on_pause_requested.emit())
 	
 	# 初始化显示
-	_update_hp_display(1.0)
+	_update_tree_shape(1.0)
 	exp_ring.value = 0
 	level_label.text = "Lv.1"
 	wave_label.text = "WAVE 1"
@@ -44,9 +48,8 @@ func _ready():
 		stage_label.text = "异变神木"
 
 func _apply_hud_styles():
-	# 统一 HUD 标签面板样式
 	var label_style = StyleBoxFlat.new()
-	label_style.bg_color = Color(0.12, 0.08, 0.05, 0.8) # 深棕色半透明底
+	label_style.bg_color = Color(0.12, 0.08, 0.05, 0.8) 
 	label_style.border_width_left = 3
 	label_style.border_width_top = 3
 	label_style.border_width_right = 3
@@ -70,19 +73,6 @@ func _apply_hud_styles():
 	wave_label.add_theme_color_override("font_color", Color(0.85, 0.65, 0.3))
 	stage_label.add_theme_color_override("font_color", Color(0.6, 0.85, 0.4))
 	
-	# 给 HpCenter 增加树皮一样的深色边框圈
-	var hp_style = hp_center.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-	if hp_style:
-		hp_style.border_width_left = 6
-		hp_style.border_width_top = 6
-		hp_style.border_width_right = 6
-		hp_style.border_width_bottom = 6
-		hp_style.border_color = Color(0.18, 0.12, 0.08, 1.0) # 黑棕色外环
-		hp_style.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
-		hp_style.shadow_size = 4
-		hp_center.add_theme_stylebox_override("panel", hp_style)
-	
-	# 暂停按钮样式
 	var btn_style = label_style.duplicate()
 	pause_button.add_theme_stylebox_override("normal", btn_style)
 	
@@ -95,20 +85,57 @@ func _apply_hud_styles():
 	pause_button.add_theme_stylebox_override("pressed", btn_pressed)
 	pause_button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
-
 func _on_hp_changed(current_hp: float, max_hp: float):
 	var ratio = clampf(current_hp / max_hp, 0.0, 1.0)
-	_update_hp_display(ratio)
+	_update_tree_shape(ratio)
 
-func _update_hp_display(ratio: float):
-	var color: Color
-	if ratio > 0.5:
-		var t = (ratio - 0.5) / 0.5
-		color = hp_color_half.lerp(hp_color_full, t)
+# 👇 精准匹配 5 张图，并在形态改变时闪光 + 播放音效
+func _update_tree_shape(ratio: float):
+	if hp_tree_textures.is_empty() or not is_instance_valid(tree_hp_display):
+		return
+		
+	var target_index: int = 0
+	
+	if ratio <= 0.20:
+		target_index = 0
+	elif ratio <= 0.40:
+		target_index = 1
+	elif ratio <= 0.60:
+		target_index = 2
+	elif ratio <= 0.80:
+		target_index = 3
 	else:
-		var t = ratio / 0.5
-		color = hp_color_low.lerp(hp_color_half, t)
-	hp_center.self_modulate = color
+		target_index = 4
+		
+	target_index = clampi(target_index, 0, hp_tree_textures.size() - 1)
+	
+	# 只有当形态发生实质性改变时，才执行后续逻辑
+	if target_index != current_tree_index:
+		tree_hp_display.texture = hp_tree_textures[target_index]
+		
+		# 排除掉游戏刚启动时的默认加载
+		if current_tree_index != -1:
+			# 1. 调用强力闪光弹跳动画
+			_play_shape_change_flash()
+			
+			# 2. 播放全局音效
+			if 状态切换_sfx:
+				AudioManager.play_sfx(状态切换_sfx, 10, false)
+				
+		# 更新记忆
+		current_tree_index = target_index
+
+# 形态切换时的专属闪耀弹跳特效
+func _play_shape_change_flash():
+	if not is_instance_valid(tree_hp_display): return
+	
+	var tween = create_tween().set_parallel(true)
+	# 瞬间爆白
+	tree_hp_display.modulate = Color(10.0, 10.0, 10.0, 1.0) 
+	tween.tween_property(tree_hp_display, "modulate", Color.WHITE, 0.3).set_trans(Tween.TRANS_CUBIC)
+	# Q 弹放大
+	tree_hp_display.scale = Vector2(1.3, 1.3)
+	tween.tween_property(tree_hp_display, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 func _on_exp_gained(exp_ratio: float):
 	exp_ring.value = exp_ratio * 100.0
@@ -121,11 +148,12 @@ func _on_level_up(new_level: int):
 func _on_wave_started(wave_number: int):
 	wave_label.text = "WAVE " + str(wave_number)
 
+# 升级时的闪光特效
 func _play_level_up_flash():
+	if not is_instance_valid(tree_hp_display): return
 	var tween = create_tween()
-	var original_color = hp_center.self_modulate
-	tween.tween_property(hp_center, "self_modulate", Color.WHITE, 0.15)
-	tween.tween_property(hp_center, "self_modulate", original_color, 0.3)
+	tween.tween_property(tree_hp_display, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.15)
+	tween.tween_property(tree_hp_display, "modulate", Color.WHITE, 0.3)
 
 func update_timer(time_left: float):
 	timer_label.text = "时间: %.1f s" % time_left
