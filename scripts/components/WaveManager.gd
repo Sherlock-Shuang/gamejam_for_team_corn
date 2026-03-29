@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 
 # --- 核心配置 ---
 @export var base_wave_interval: float = 3.0   # 基础每波间隔时间
@@ -9,9 +9,7 @@ var target_tree: Node2D = null
 var current_wave: int = 0                     # 当前波次记录
 
 func _ready() -> void:
-	var trees = get_tree().get_nodes_in_group("Tree")
-	if trees.size() > 0:
-		target_tree = trees[0]
+	_find_target_tree()
 		
 	timer.wait_time = base_wave_interval
 	timer.timeout.connect(_on_wave_timeout)
@@ -26,9 +24,11 @@ func _find_target_tree():
 	else:
 		target_tree = null
 
-
 func _on_wave_timeout() -> void:
-	if not is_instance_valid(target_tree): return
+	if not is_instance_valid(target_tree):
+		_find_target_tree()
+		if not is_instance_valid(target_tree):
+			return
 	
 	current_wave += 1
 	# 可以顺手把当前波次同步给全局，方便 UI 显示或控制难度
@@ -68,14 +68,12 @@ func _on_wave_timeout() -> void:
 		if roll > fly_ratio: 
 			enemy_type_to_spawn = "beaver"
 			
-		# 异步延迟生成
-		get_tree().create_timer(random_delay, false).timeout.connect(func():
+		# 异步延迟生成：通过 bind 传递局部变量，防止闭包捕获到循环最终值导致怪物重叠
+		var spawn_func = func(angle: float, type: String):
 			if not is_instance_valid(target_tree): return
-			
 			var center_pos = target_tree.global_position
-			var spawn_pos = center_pos + Vector2(cos(random_angle), sin(random_angle)) * spawn_radius
+			var spawn_pos = center_pos + Vector2(cos(angle), sin(angle)) * spawn_radius
+			PoolManager.get_enemy(type, spawn_pos)
 			
-			# 注意这里！只有一层括号！安全调用多怪物对象池
-			PoolManager.get_enemy(enemy_type_to_spawn, spawn_pos)
-		)
+		get_tree().create_timer(random_delay, false).timeout.connect(spawn_func.bind(random_angle, enemy_type_to_spawn))
 		

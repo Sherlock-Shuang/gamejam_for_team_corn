@@ -304,6 +304,10 @@ func reset_for_new_game():
 	current_hp = player_base_stats["max_hp"]
 	current_wave = 0
 	
+	# 重置对象池，防止上一关的敌人卡在屏幕中
+	if PoolManager.has_method("reset_pools"):
+		PoolManager.reset_pools()
+	
 # 下面的代码兼容之前的 Main.gd 里的旧版 reset 调用
 func reset():
 	reset_for_new_game()

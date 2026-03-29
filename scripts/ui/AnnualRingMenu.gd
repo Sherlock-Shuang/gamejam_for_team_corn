@@ -4,16 +4,16 @@ extends Node2D
 #  通过 _draw() 纯代码渲染同心圆年轮，作为美术贴图介入前的完整逻辑演示。
 # ═══════════════════════════════════════════════════════════════
 
-var center: Vector2 = Vector2(960, 540) # 屏幕中心
-var base_radius: float = 100.0          # 最内圈起始半径
-var ring_spacing: float = 110.0         # 每圈之间的距离
-var ring_thickness: float = 45.0        # 年轮线条的粗细
+var center: Vector2 = Vector2(960, 540) # 屏幕中心（稍后在 _process 中动态获取视口大小以自适应）
+var base_radius: float = 150.0          # 最内圈起始半径 (放大)
+var ring_spacing: float = 160.0         # 每圈之间的距离 (放大)
+var ring_thickness: float = 65.0        # 年轮线条的粗细 (放大)
 
 var hovered_stage: int = -1             # 当前鼠标悬停在哪一关
 var time_elapsed: float = 0.0
 
-@onready var subtitle = $UI/Subtitle
-@onready var quit_button = $UI/QuitButton
+@onready var subtitle = $UI/Control/Subtitle
+@onready var quit_button = $UI/Control/QuitButton
 
 func _ready():
 	print("[Menu] 欢迎来到树独年轮选单。当前最大关卡: ", GameData.current_max_stage)
@@ -22,6 +22,18 @@ func _ready():
 
 func _process(delta):
 	time_elapsed += delta
+	
+	# 动态获取视口中心，以适应全屏和不同分辨率拉伸
+	var viewport_size = get_viewport_rect().size
+	center = viewport_size / 2.0
+	
+	# 同步背景的尺寸（如果是通过代码控制的背景节点，也可通过 anchors 控制，这里加个保险）
+	if has_node("Background"):
+		$Background.size = viewport_size
+		
+	# 动态居中 Camera
+	if has_node("Camera2D"):
+		$Camera2D.position = center
 	
 	# 检测鼠标位置并推算指向哪一圈
 	var mouse_pos = get_global_mouse_position()

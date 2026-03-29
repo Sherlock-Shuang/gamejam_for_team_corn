@@ -76,10 +76,6 @@ func _on_skill_chosen(skill_id: String):
 	# 👉 对接到局外存储：记录这把在这一圈年轮上拿到的能力！
 	GameData.record_skill_for_stage(GameData.current_playing_stage, skill_id)
 	
-	# 技能让树木变得更大，并暂时提升攻速！
-	var tween = create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-	var target_scale = Vector2(2.0, 2.0) + Vector2(0.12, 0.12) * GameData.current_level
-	tween.tween_property(tree, "scale", target_scale, 0.8)
 
 # ── 打开升级选择 UI ─────────────────────────────────────────────
 func _on_open_upgrade_ui():

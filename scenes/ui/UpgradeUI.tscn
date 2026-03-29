@@ -11,6 +11,10 @@ script = ExtResource("1")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -5000.0
+offset_top = -5000.0
+offset_right = 5000.0
+offset_bottom = 5000.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.03, 0.08, 0.88)
@@ -24,21 +28,21 @@ grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1815189012]
 layout_mode = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 80
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=853979673]
 layout_mode = 2
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 64
 text = "🌿 唤醒自然之力（选择进化分支）"
 horizontal_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=1962478591]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 50
 alignment = 1
 
 [node name="Card1" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=865685591]
-custom_minimum_size = Vector2(300, 420)
+custom_minimum_size = Vector2(400, 600)
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
@@ -48,25 +52,25 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 25
 
 [node name="NameLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card1/CardContent" unique_id=2030680333]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "技能名称"
 horizontal_alignment = 1
 
 [node name="CategoryLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card1/CardContent" unique_id=1078125073]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 0.5, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 28
 text = "[进化方向]"
 horizontal_alignment = 1
 
@@ -76,12 +80,12 @@ mouse_filter = 2
 
 [node name="DescLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card1/CardContent" unique_id=159650705]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 32
 text = "这里的文字描述现在会变得非常清晰，适合大屏幕阅读。"
 autowrap_mode = 3
 
 [node name="Card2" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1222678862]
-custom_minimum_size = Vector2(300, 420)
+custom_minimum_size = Vector2(400, 600)
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
@@ -91,25 +95,25 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 25
 
 [node name="NameLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card2/CardContent" unique_id=1529752726]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "技能名称"
 horizontal_alignment = 1
 
 [node name="CategoryLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card2/CardContent" unique_id=588519255]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 0.5, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 28
 text = "[进化方向]"
 horizontal_alignment = 1
 
@@ -119,12 +123,12 @@ mouse_filter = 2
 
 [node name="DescLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card2/CardContent" unique_id=2004485461]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 32
 text = "这里的文字描述现在会变得非常清晰，适合大屏幕阅读。"
 autowrap_mode = 3
 
 [node name="Card3" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1481777287]
-custom_minimum_size = Vector2(300, 420)
+custom_minimum_size = Vector2(400, 600)
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
@@ -134,25 +138,25 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 25
 
 [node name="NameLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card3/CardContent" unique_id=1010706053]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "技能名称"
 horizontal_alignment = 1
 
 [node name="CategoryLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card3/CardContent" unique_id=1686863304]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 0.5, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 28
 text = "[进化方向]"
 horizontal_alignment = 1
 
@@ -162,6 +166,6 @@ mouse_filter = 2
 
 [node name="DescLabel" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer/Card3/CardContent" unique_id=607533487]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 32
 text = "这里的文字描述现在会变得非常清晰，适合大屏幕阅读。"
 autowrap_mode = 3

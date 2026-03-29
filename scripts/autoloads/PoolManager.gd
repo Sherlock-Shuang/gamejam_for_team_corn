@@ -67,7 +67,13 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 		
 	# 唤醒怪物！
 	enemy.global_position = spawn_pos
-	enemy.process_mode = Node.PROCESS_MODE_INHERIT # 解除冰封
+	
+	# ==========================================
+	# 关键修复：直接重置节点的暂停模式和可见性
+	# PROCESS_MODE_INHERIT 有时在跨场景时会失效，特别是父节点暂停状态混乱时。
+	# 改为 PROCESS_MODE_ALWAYS 或 PROCESS_MODE_PAUSABLE
+	# ==========================================
+	enemy.process_mode = Node.PROCESS_MODE_PAUSABLE 
 	enemy.show()
 	
 	# 初始化血量和状态
@@ -103,3 +109,13 @@ func return_enemy(node: Node) -> void:
 		node.get_node("AnimatedSprite2D").modulate = Color(1, 1, 1, 1)
 		
 	pool_array.append(node)
+
+## 新关卡重置：强制回收所有正在活动的敌人
+func reset_pools() -> void:
+	for pool_key in _pools.keys():
+		var pool_array = _pools[pool_key]
+		# 遍历所有的子节点，如果是这个类型的活着的敌人，就强制回收
+		for child in get_children():
+			if child.has_meta("pool_key") and child.get_meta("pool_key") == pool_key:
+				if not pool_array.has(child):
+					return_enemy(child)

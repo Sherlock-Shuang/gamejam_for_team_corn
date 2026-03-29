@@ -25,13 +25,13 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -300.0
+offset_left = -400.0
 offset_top = 100.0
-offset_right = 300.0
+offset_right = 400.0
 offset_bottom = 200.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 80
 text = "深渊模式 (无尽)"
 horizontal_alignment = 1
 
@@ -40,55 +40,54 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -300.0
+offset_left = -500.0
 offset_top = 220.0
-offset_right = 300.0
-offset_bottom = 270.0
+offset_right = 500.0
+offset_bottom = 320.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 48
 text = "请按键盘 1、2、3、4 选择你的初始树苗形态！
 （出神木自带全技能列表）"
 horizontal_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
+anchors_preset = 14
 anchor_top = 0.5
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -50.0
-offset_right = 400.0
-offset_bottom = 150.0
+offset_left = 100.0
+offset_top = -100.0
+offset_right = -100.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 60
 alignment = 1
 
 [node name="Sapling1" type="Button" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 48
 text = "[1] 剧毒树苗"
 
 [node name="Sapling2" type="Button" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 48
 text = "[2] 坚韧护核"
 
 [node name="Sapling3" type="Button" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 48
 text = "[3] 狂暴飞藤"
 
 [node name="Sapling4" type="Button" parent="HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 48
 text = "[4] 冰霜古木"
 
 [node name="ReturnButton" type="Button" parent="."]
@@ -98,11 +97,11 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -150.0
-offset_right = 100.0
-offset_bottom = -80.0
+offset_left = -200.0
+offset_top = -250.0
+offset_right = 200.0
+offset_bottom = -120.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 48
 text = "返回菜单"

@@ -17,14 +17,14 @@ description="gamejam_for_team_corn project"
 
 [audio]
 
-buses/default_bus_layout="uid://c7rnj1ienaacn"
+buses/default_bus_layout="res://default_bus_layout.tres"
 
 [autoload]
 
 SignalBus="*res://scripts/autoloads/SignalBus.gd"
 GameData="*res://scripts/autoloads/GameData.gd"
-PoolManager="*uid://cm34wutvf7jeu"
-AudioManager="*uid://d2rk8wt3gb3b2"
+PoolManager="*res://scripts/autoloads/PoolManager.gd"
+AudioManager="*res://scripts/autoloads/AudioManager.gd"
 
 [display]
 
