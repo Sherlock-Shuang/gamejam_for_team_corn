@@ -62,6 +62,7 @@ z_index = 2
 collision_mask = 0
 gravity_scale = 0.0
 can_sleep = false
+continuous_cd = 1
 linear_damp = 0.5
 script = ExtResource("1_mwoif")
 tree_root = NodePath("../treeroot")

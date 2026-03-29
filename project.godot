@@ -15,11 +15,16 @@ run/main_scene="res://scenes/ui/AnnualRingMenu.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
 
+[audio]
+
+buses/default_bus_layout="uid://c7rnj1ienaacn"
+
 [autoload]
 
 SignalBus="*res://scripts/autoloads/SignalBus.gd"
 GameData="*res://scripts/autoloads/GameData.gd"
 PoolManager="*uid://cm34wutvf7jeu"
+AudioManager="*uid://d2rk8wt3gb3b2"
 
 [display]
 

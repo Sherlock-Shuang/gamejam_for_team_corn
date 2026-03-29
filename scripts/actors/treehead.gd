@@ -30,6 +30,13 @@ extends RigidBody2D
 @export var damage_velocity_threshold: float = 3.0   # 角速度超过 8 才有杀伤力
 @export var damage_multiplier: float = 1.0           # 伤害倍率
 
+# ==========================================
+# 音乐参数
+# ==========================================
+@export var 蓄力_sfx : AudioStream
+@export var 释放_sfx : AudioStream
+@export var 击中_sfx : AudioStream
+
 var is_dragging: bool = false
 var time_since_release: float = 999.0 
 var fake_target_angle: float = 0.0 
@@ -111,6 +118,7 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		var delta_pos = mouse_pos - anchor_pos
 		var current_angle = state.transform.get_rotation()
 		var max_rad = deg_to_rad(max_drag_angle_deg)
+		AudioManager.play_sfx(蓄力_sfx, true) # 持续播放蓄力音效，参数 true 代表随机变调增加丰富感
 		
 		if delta_pos.length() > 0.001:
 			var raw_target = delta_pos.angle() + PI / 2.0
@@ -128,7 +136,7 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	else:
 		# --- 状态 B：松手回弹 ---
 		time_since_release += state.step 
-		
+
 		var current_angle = state.transform.get_rotation()
 		state.transform = Transform2D(current_angle, anchor_pos)
 		state.linear_velocity = Vector2.ZERO
@@ -195,6 +203,9 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 				
 				# 3. 【核心修复】传入伤害值，并且把树干的 global_position 传过去！
 				enemy_body.take_damage(damage, global_position)
+
+				# 🔊 【新增】在这里播放击中音效！
+				AudioManager.play_sfx(击中_sfx, 0.45) # true 代表开启随机变调，让连续击打的声音不单调
 
 				# 4. 触发果汁感 (Juice) —— 打击停顿
 				trigger_hit_stop()

@@ -8,6 +8,10 @@ extends Node
 @onready var hud = $HUD
 @onready var upgrade_ui = $UpgradeUI
 
+@export var bg_1 :AudioStream
+@export var bg_2 :AudioStream
+@export var bg_3 :AudioStream
+
 var attack_timer: Timer
 
 func _ready():
@@ -48,6 +52,8 @@ func _ready():
 	attack_timer.autostart = true
 	add_child(attack_timer)
 	attack_timer.timeout.connect(_test_auto_attack)
+
+	AudioManager.play_music(bg_1) # 启动时播放第一首背景音乐
 
 func _test_auto_attack():
 	# 生成一个临时的菱形作为“攻击投掷物”
