@@ -15,6 +15,9 @@ var explosion_radius: float = 50.0
 @onready var explosion_area: Area2D = $explosion_area
 @onready var collision_shape: CollisionShape2D = $explosion_area/CollisionShape2D
 
+# 音乐因素
+@export var 爆炸_sfx: AudioStream
+
 func _ready():
 	# 初始状态配置
 	collision_shape.set_deferred("disabled", true)
@@ -105,8 +108,10 @@ func _explode(damage: float) -> void:
 	# 颜色迅速变透明
 	tween.tween_property(explosion_sprite, "modulate:a", 0.0, explosion_duration)
 	
-	# 🎵 音效同学的活：在这里调用全局 AudioManager 播放爆炸声！
-	# AudioManager.play_sfx(爆炸声)
+	# 👇 【替换在这里】调用全局 AudioManager 播放爆炸声！
+	# 参数说明：(音频文件, 音量微调, 开启微小随机音高增强打击感, 最多同屏限制 3 个防止爆音)
+	if 爆炸_sfx:
+		AudioManager.play_sfx(爆炸_sfx, 10, true, 3)
 	
 	# 尘归尘土归土，特效放完立刻销毁
 	tween.chain().tween_callback(queue_free)
