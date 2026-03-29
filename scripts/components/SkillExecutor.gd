@@ -48,7 +48,7 @@ func _setup_derived_attack(skill_data: Dictionary):
 	elif skill_data["id"] == "vine_spread":
 		_create_skill_timer("vine_spread_timer", 0.5, _cast_vine_spread)
 	elif skill_data["id"] == "seed_bomb":
-		var cd = effects.get("delay", 1.5) + 0.6
+		var cd = effects.get("interval", effects.get("delay", 1.5) + 1.0)
 		_create_skill_timer("seed_bomb_timer", cd, _cast_seed_bomb)
 
 func _create_skill_timer(timer_name: String, wait_time: float, callable_func: Callable):
@@ -143,21 +143,33 @@ func _cast_seed_bomb():
 	var skill = active_skills.get("seed_bomb", null)
 	if skill == null:
 		return
-	var nearest = _get_nearest_target()
-	if not is_instance_valid(nearest):
-		return
 	var effects = skill["effects"]
-	var blast_radius = effects.get("radius", 120.0)
+	var radius = effects.get("radius", 150.0)
+	var tick_interval = effects.get("damage_interval", 0.5)
+	var life_time = effects.get("lifetime", 10.0)
 	var base_damage = effects.get("sapling_damage", 12.0)
-	var center_pos = nearest.global_position
-	var enemies = _get_active_enemies_in_radius(1200.0)
-	for enemy in enemies:
-		if not is_instance_valid(enemy):
-			continue
-		var dist = enemy.global_position.distance_to(center_pos)
-		if dist <= blast_radius and enemy.has_method("take_damage"):
-			var base_atk = GameData.player_base_stats["attack_power"]
-			enemy.take_damage(base_damage + base_atk * 0.5, center_pos)
+	var base_atk = GameData.player_base_stats.get("attack_power", 0.0)
+	var final_damage = base_damage + base_atk * 0.5
+	var spawn_range = effects.get("cast_range", 600.0)
+	var target_pos = tree_owner.global_position
+	var nearest = _get_nearest_target()
+	if is_instance_valid(nearest):
+		target_pos = nearest.global_position
+	else:
+		var random_angle = randf_range(0.0, TAU)
+		var random_dist = randf_range(120.0, spawn_range)
+		target_pos = tree_owner.global_position + Vector2.from_angle(random_angle) * random_dist
+	var seed_scene_path = "res://scenes/effects/SeedBomb.tscn"
+	if not ResourceLoader.exists(seed_scene_path):
+		push_warning("[SkillExecutor] 缺少场景: " + seed_scene_path + "，请先保存 SeedBomb.tscn")
+		return
+	var seed_scene = load(seed_scene_path)
+	if seed_scene == null:
+		push_warning("[SkillExecutor] SeedBomb 场景加载失败: " + seed_scene_path)
+		return
+	var seed_bomb = seed_scene.instantiate()
+	get_tree().current_scene.add_child(seed_bomb)
+	seed_bomb.launch(tree_owner.global_position, target_pos, final_damage, radius, tick_interval, life_time)
 
 # ── 类别 B：元素附魔 (基于每次普攻) ─────────────────────────────
 # 监听 treehead 发来的击中信号，判定有没有元素状态，直接附加给你

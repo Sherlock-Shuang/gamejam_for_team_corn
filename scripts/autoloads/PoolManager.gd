@@ -71,7 +71,10 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 		add_child(enemy)
 		
 	# 唤醒怪物！
-	enemy.global_position = spawn_pos
+	var safe_spawn_pos = spawn_pos
+	if GameData.is_in_river(safe_spawn_pos):
+		safe_spawn_pos = GameData.clamp_to_river_bank(safe_spawn_pos, 8.0)
+	enemy.global_position = safe_spawn_pos
 	_apply_enemy_stats(enemy, enemy_type)
 	
 	# ==========================================

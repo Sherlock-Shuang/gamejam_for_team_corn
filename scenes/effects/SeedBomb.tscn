@@ -1,10 +1,14 @@
 [gd_scene format=3 uid="uid://ynpssjlxo4o7"]
 
 [ext_resource type="Texture2D" uid="uid://btf1ph7qep2pg" path="res://assets/sprites/effects/种子.png" id="1_2omyg"]
+[ext_resource type="Script" uid="uid://daesmd5wkqofs" path="res://scenes/effects/seed_bomb.gd" id="1_s1mgq"]
 [ext_resource type="Texture2D" uid="uid://bhxb23tsep6e5" path="res://assets/sprites/effects/种子1.png" id="2_s1mgq"]
 [ext_resource type="Texture2D" uid="uid://jyqcf5fm41g7" path="res://assets/sprites/effects/种子2.png" id="3_5nbdh"]
 [ext_resource type="Texture2D" uid="uid://susmbmnylylb" path="res://assets/sprites/effects/种子右.png" id="4_31pqs"]
 [ext_resource type="Texture2D" uid="uid://bb8udvybsn8tv" path="res://assets/sprites/effects/种子左.png" id="5_0il3g"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_s1mgq"]
+radius = 150.16324
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_2bwwq"]
 animations = [{
@@ -45,6 +49,7 @@ animations = [{
 }]
 
 [node name="SeedBomb" type="Node2D" unique_id=1482627873]
+script = ExtResource("1_s1mgq")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=327213212]
 
@@ -53,10 +58,12 @@ animations = [{
 [node name="Area2D" type="Area2D" parent="pivot" unique_id=524143286]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="pivot/Area2D" unique_id=717042867]
+shape = SubResource("CircleShape2D_s1mgq")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="pivot/Area2D" unique_id=1483678633]
 position = Vector2(-3, -5)
 scale = Vector2(0.15, 0.15)
 sprite_frames = SubResource("SpriteFrames_2bwwq")
 animation = &"swing"
-frame_progress = 0.93927807
+autoplay = "swing"
+frame_progress = 0.20297465

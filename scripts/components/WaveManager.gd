@@ -72,8 +72,15 @@ func _on_wave_timeout() -> void:
 		var spawn_func = func(angle: float, type: String):
 			if not is_instance_valid(target_tree): return
 			var center_pos = target_tree.global_position
-			var spawn_pos = center_pos + Vector2(cos(angle), sin(angle)) * spawn_radius
+			var spawn_pos = get_spawn_position_with_river_rule(center_pos, angle)
 			PoolManager.get_enemy(type, spawn_pos)
 			
 		get_tree().create_timer(random_delay, false).timeout.connect(spawn_func.bind(random_angle, enemy_type_to_spawn))
+
+func get_spawn_position_with_river_rule(center_pos: Vector2, angle: float) -> Vector2:
+	var spawn_pos = center_pos + Vector2(cos(angle), sin(angle)) * spawn_radius
+	if not GameData.is_in_river(spawn_pos):
+		return spawn_pos
+	spawn_pos.y = GameData.RIVER_Y_THRESHOLD - randf_range(24.0, 140.0)
+	return spawn_pos
 		

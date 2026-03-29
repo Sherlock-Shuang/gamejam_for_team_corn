@@ -54,7 +54,7 @@ animations = [{
 
 [node name="EnemyBeaver" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
 collision_layer = 2
-collision_mask = 6
+collision_mask = 38
 motion_mode = 1
 script = ExtResource("1_bk3m8")
 speed = 200.0

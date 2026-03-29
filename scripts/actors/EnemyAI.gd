@@ -26,6 +26,7 @@ var can_move: bool = true # 控制状态开关（比如河狸咬人时需要停�
 var frame_count: int = 0
 var cached_repulsion: Vector2 = Vector2.ZERO
 var speed_multiplier: float = 1.0
+@export var river_avoid_margin: float = 48.0
 
 # --- 攻击状态参数 ---
 var is_attacking: bool = false
@@ -102,7 +103,10 @@ func _physics_process(delta: float) -> void:
 	# ==========================================
 	# 1. Boids 寻路与排斥逻辑计算
 	# ==========================================
-	var dir_to_tree = (target_tree.global_position - global_position).normalized()
+	var nav_target = target_tree.global_position
+	if GameData.is_in_river(nav_target):
+		nav_target = GameData.clamp_to_river_bank(nav_target, river_avoid_margin)
+	var dir_to_tree = (nav_target - global_position).normalized()
 	var seek_force = dir_to_tree * speed * attraction_weight
 	
 	frame_count += 1
@@ -118,7 +122,8 @@ func _physics_process(delta: float) -> void:
 		if cached_repulsion.length() > speed * 3:
 			cached_repulsion = cached_repulsion.normalized() * speed * 3
 
-	var desired_velocity = seek_force + (cached_repulsion * repulsion_weight)
+	var boundary_force = _calculate_river_avoidance_force()
+	var desired_velocity = seek_force + (cached_repulsion * repulsion_weight) + boundary_force
 	var final_speed = desired_velocity.limit_length(speed) * speed_multiplier
 	velocity = velocity.lerp(final_speed, 0.1)
 
@@ -141,10 +146,29 @@ func _physics_process(delta: float) -> void:
 
 	# 执行 Godot 内部移动逻辑
 	move_and_slide()
+	_enforce_river_boundary()
 
 # 这个空函数是留给河狸等特殊怪物的
 func _custom_behavior(delta: float) -> void:
 	pass
+
+func _calculate_river_avoidance_force() -> Vector2:
+	var safe_line = GameData.RIVER_Y_THRESHOLD - river_avoid_margin
+	if global_position.y >= safe_line:
+		var depth = global_position.y - safe_line
+		var strength = clampf(depth / maxf(river_avoid_margin, 1.0), 0.0, 2.0)
+		return Vector2.UP * speed * (1.0 + strength)
+	var projected_y = global_position.y + velocity.y * 0.2
+	if projected_y > GameData.RIVER_Y_THRESHOLD:
+		return Vector2.UP * speed
+	return Vector2.ZERO
+
+func _enforce_river_boundary() -> void:
+	if not GameData.is_in_river(global_position):
+		return
+	global_position = GameData.clamp_to_river_bank(global_position, 1.0)
+	if velocity.y > 0.0:
+		velocity.y = 0.0
 
 # ==========================================
 # 3. 攻击范围判定与触发

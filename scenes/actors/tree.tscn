@@ -67,6 +67,7 @@ linear_damp = 0.5
 script = ExtResource("1_mwoif")
 tree_root = NodePath("../treeroot")
 grab_radius = 300.0
+drag_tension_stretch = 1.2
 thrust_charge_dist = 200.0
 max_compress_ratio = 0.3
 max_thrust_scale = 3.0
