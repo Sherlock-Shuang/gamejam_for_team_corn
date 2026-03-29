@@ -53,7 +53,7 @@ func play_music(_audio: AudioStream, start_time: float = 0) -> void:
 	current_music_player_index = empty_audio_player_index
 
 
-## 渐入
+### 渐入
 func play_and_fade_in(_audio_player: AudioStreamPlayer, start_time: float = 0.0) -> void:
 	_audio_player.play(start_time)
 	var tween:Tween = create_tween()
@@ -66,6 +66,7 @@ func fade_out_and_stop(_audio_player: AudioStreamPlayer) -> void:
 	await tween.finished
 	_audio_player.stop()
 	_audio_player.stream = null
+
 
 ## 初始化音效播放器
 func init_sfx_audio_manager() -> void:

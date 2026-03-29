@@ -15,6 +15,10 @@ extends Node2D
 @onready var anim: AnimatedSprite2D = _resolve_anim_sprite()
 @onready var hitbox_area: Area2D = _resolve_hitbox_area()
 @onready var collision_shape: CollisionShape2D = _resolve_collision_shape()
+# ==========================================
+# 音乐参数
+# ==========================================
+@export var 种植_sfx: AudioStream
 
 var damage_timer: Timer
 var active_radius: float = 150.0
@@ -60,6 +64,9 @@ func launch(start_pos: Vector2, target_pos: Vector2, damage: float, radius: floa
 	tween.chain().tween_callback(_on_land)
 
 func _on_land() -> void:
+	# 播放落地音效
+	if 种植_sfx:
+		AudioManager.play_sfx(种植_sfx, 15.0, false)  # max_instances 防止爆音
 	# 播放破土成长的动画
 	anim.play("grow")
 	

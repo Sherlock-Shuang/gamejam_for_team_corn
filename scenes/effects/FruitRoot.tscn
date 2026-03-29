@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://5nthpa2g3vkh"]
 
 [ext_resource type="Script" uid="uid://du8m4xy00due4" path="res://scenes/effects/fruit_root.gd" id="1_g11d6"]
+[ext_resource type="AudioStream" uid="uid://d77ewt8sxjjj" path="res://assets/audio/sfx/爆炸.wav" id="2_oyq7f"]
 [ext_resource type="Texture2D" uid="uid://b7qkxluujjatn" path="res://assets/sprites/effects/爆炸果.png" id="2_rht6b"]
 [ext_resource type="Texture2D" uid="uid://oyhiuuh5tgby" path="res://assets/sprites/effects/爆炸果1.png" id="3_oyq7f"]
 [ext_resource type="Texture2D" uid="uid://dogxe5kweo3ox" path="res://assets/sprites/effects/爆炸果2.png" id="4_c54fi"]
@@ -33,6 +34,7 @@ script = ExtResource("1_g11d6")
 explosion_duration = 0.5
 texture_base_radius = 250.0
 visual_radius_ratio = 0.3
+"爆炸_sfx" = ExtResource("2_oyq7f")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=337803771]
 scale = Vector2(0.08653217, 0.09994382)
