@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://d2xiorp3ppo0y"]
+
+[ext_resource type="Texture2D" uid="uid://bahofb743jn4b" path="res://assets/sprites/background/河流.png" id="1_gwaef"]
+[ext_resource type="Script" uid="uid://bdlmdwrwnlgcc" path="res://scripts/ui/ripple.gd" id="2_aeamm"]
+
+[node name="Ripple" type="Sprite2D" unique_id=1078731942]
+texture = ExtResource("1_gwaef")
+script = ExtResource("2_aeamm")
