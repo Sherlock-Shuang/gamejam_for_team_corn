@@ -44,13 +44,13 @@ theme_override_constants/separation = 25
 [node name="StageLabel" type="Label" parent="HUDMargin/HUDContainer"]
 layout_mode = 2
 text = "幼苗"
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 42
 theme_override_colors/font_color = Color(0.6, 0.85, 0.4, 0.9)
 vertical_alignment = 1
 
 [node name="RingContainer" type="Control" parent="HUDMargin/HUDContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(120, 120)
+custom_minimum_size = Vector2(160, 160)
 
 [node name="ExpRing" type="TextureProgressBar" parent="HUDMargin/HUDContainer/RingContainer"]
 layout_mode = 1
@@ -76,10 +76,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = 14.0
-offset_top = 14.0
-offset_right = -14.0
-offset_bottom = -14.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = -18.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hp")
 
 [node name="LevelLabel" type="Label" parent="HUDMargin/HUDContainer/RingContainer"]
@@ -92,13 +92,13 @@ grow_vertical = 2
 text = "Lv.1"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 40
 theme_override_colors/font_color = Color(1, 1, 1, 0.95)
 
 [node name="WaveLabel" type="Label" parent="HUDMargin/HUDContainer"]
 layout_mode = 2
 text = "WAVE 1"
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(0.85, 0.65, 0.3, 0.9)
 vertical_alignment = 1
 
@@ -138,11 +138,11 @@ theme_override_constants/separation = 15
 layout_mode = 2
 text = "时间: 30.0s"
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 40
 
 [node name="PauseButton" type="Button" parent="TopRightAnchor/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
-text = "[ 暂停 ]"
+text = "菜 单"
 theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 40
 

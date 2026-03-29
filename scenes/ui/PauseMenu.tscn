@@ -1,71 +1,138 @@
-[gd_scene load_steps=2 format=3 uid="uid://pausemenu_uid_placeholder"]
+[gd_scene format=3 uid="uid://dvlx22c24cbko"]
 
-[ext_resource type="Script" path="res://scripts/ui/PauseMenu.gd" id="1_pause"]
+[ext_resource type="Script" uid="uid://jaekvjmpo0ip" path="res://scripts/ui/PauseMenu.gd" id="1_pause"]
+[ext_resource type="Texture2D" uid="uid://t281jy7ip7c6" path="res://assets/sprites/暂停.png" id="2_n5dsq"]
+[ext_resource type="Texture2D" uid="uid://bb1mkf87gud0o" path="res://assets/sprites/播放.png" id="3_5twic"]
+[ext_resource type="Texture2D" uid="uid://dnrwekegphpha" path="res://assets/sprites/按钮.png" id="4_5twic"]
+[ext_resource type="FontFile" uid="uid://font_kaiti_uid" path="res://assets/fonts/DongLiShanZhouLiangTongShuZhengKai（FanTi）-2.ttf" id="Font_kaiti"]
 
-[node name="PauseMenu" type="CanvasLayer"]
-layer = 100
+[sub_resource type="FontVariation" id="FontVariation_kaiti"]
+base_font = ExtResource("Font_kaiti")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[node name="PauseMenu" type="CanvasLayer" unique_id=831650596]
 process_mode = 3
+layer = 100
 script = ExtResource("1_pause")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=277362223]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -5000.0
-offset_top = -5000.0
-offset_right = 5000.0
-offset_bottom = 5000.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0.05, 0.03, 0.02, 0.75)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="MainContainer" type="VBoxContainer" parent="." unique_id=695356570]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="TitleBox" type="CenterContainer" parent="MainContainer" unique_id=1785252392]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.5
+
+[node name="Label" type="Label" parent="MainContainer/TitleBox" unique_id=1815982843]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0.1, 0.05, 0.02, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.05, 1)
+theme_override_constants/shadow_offset_x = 8
+theme_override_constants/shadow_offset_y = 8
+theme_override_constants/outline_size = 16
+theme_override_fonts/font = SubResource("FontVariation_kaiti")
+theme_override_font_sizes/font_size = 180
+text = "小   憩"
+horizontal_alignment = 1
+
+[node name="ButtonBox" type="VBoxContainer" parent="MainContainer" unique_id=2075195405]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 4.0
+theme_override_constants/separation = 100
+alignment = 1
+
+[node name="ContinueButton" type="TextureButton" parent="MainContainer/ButtonBox" unique_id=1659053063]
+custom_minimum_size = Vector2(350, 350)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("2_n5dsq")
+texture_pressed = ExtResource("3_5twic")
+texture_hover = ExtResource("2_n5dsq")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="OptionsBox" type="HBoxContainer" parent="MainContainer/ButtonBox" unique_id=648215937]
+layout_mode = 2
+theme_override_constants/separation = 200
+alignment = 1
+
+[node name="ReturnButton" type="TextureButton" parent="MainContainer/ButtonBox/OptionsBox" unique_id=1567199744]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("4_5twic")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MainContainer/ButtonBox/OptionsBox/ReturnButton"]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -150.0
-offset_top = -200.0
+offset_top = -42.0
 offset_right = 150.0
-offset_bottom = 150.0
+offset_bottom = 42.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="Label" type="Label" parent="Panel/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "游 戏 暂 停"
+theme_override_colors/font_outline_color = Color(0.15, 0.1, 0.05, 1)
+theme_override_constants/outline_size = 12
+theme_override_fonts/font = SubResource("FontVariation_kaiti")
+theme_override_font_sizes/font_size = 56
+text = "返 回 选 关"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Panel/VBoxContainer"]
+[node name="QuitButton" type="TextureButton" parent="MainContainer/ButtonBox/OptionsBox" unique_id=1147008388]
+custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
+size_flags_horizontal = 4
+texture_normal = ExtResource("4_5twic")
+ignore_texture_size = true
+stretch_mode = 5
 
-[node name="ContinueButton" type="Button" parent="Panel/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "继续游戏"
+[node name="Label" type="Label" parent="MainContainer/ButtonBox/OptionsBox/QuitButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -42.0
+offset_right = 150.0
+offset_bottom = 42.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0.2, 0.05, 0.05, 1)
+theme_override_constants/outline_size = 12
+theme_override_fonts/font = SubResource("FontVariation_kaiti")
+theme_override_font_sizes/font_size = 56
+text = "退 出 游 戏"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="ReturnButton" type="Button" parent="Panel/VBoxContainer"]
+[node name="BottomSpacer" type="Control" parent="MainContainer" unique_id=1530051483]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "返回选关"
-
-[node name="QuitButton" type="Button" parent="Panel/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "退出游戏"
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.5
