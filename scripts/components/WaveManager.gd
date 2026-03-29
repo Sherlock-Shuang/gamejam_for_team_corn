@@ -32,29 +32,41 @@ func _on_wave_timeout() -> void:
 	current_wave += 1
 	GameData.current_wave = current_wave
 	var enemies_to_spawn = 10 + (current_wave * 3)
-	var fly_ratio = 1.0
-	var beaver_ratio = 0.0
 	if current_wave >= 5:
-		fly_ratio = 0.7
-		beaver_ratio = 0.3
+		pass
 	if current_wave >= 10:
-		fly_ratio = 0.3
-		beaver_ratio = 0.7
 		enemies_to_spawn += 10
 	var center_pos = target_tree.global_position
 	var spawn_positions = get_uniform_spawn_positions(center_pos, enemies_to_spawn)
 	for i in range(enemies_to_spawn):
 		var random_delay = randf_range(0.0, timer.wait_time)
 		var spawn_pos = spawn_positions[i]
-		var enemy_type_to_spawn = "fly"
-		var roll = randf()
-		if roll > fly_ratio:
-			enemy_type_to_spawn = "beaver"
+		var enemy_type_to_spawn = get_enemy_type_for_wave(current_wave, randf())
 		var spawn_func = func(target_spawn_pos: Vector2, type: String):
 			if not is_instance_valid(target_tree):
 				return
 			PoolManager.get_enemy(type, target_spawn_pos)
 		get_tree().create_timer(random_delay, false).timeout.connect(spawn_func.bind(spawn_pos, enemy_type_to_spawn))
+
+func get_enemy_type_for_wave(wave: int, roll: float) -> String:
+	var r = clampf(roll, 0.0, 1.0)
+	if wave < 5:
+		return "fly"
+	if wave < 10:
+		if r < 0.7:
+			return "fly"
+		return "beaver"
+	if wave < 15:
+		if r < 0.45:
+			return "fly"
+		if r < 0.85:
+			return "beaver"
+		return "human"
+	if r < 0.25:
+		return "fly"
+	if r < 0.6:
+		return "beaver"
+	return "human"
 
 func get_uniform_spawn_positions(center_pos: Vector2, count: int) -> Array[Vector2]:
 	var points: Array[Vector2] = []

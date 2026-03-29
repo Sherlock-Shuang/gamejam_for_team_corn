@@ -1,25 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://cdhAnnualRingMenu12"]
+[gd_scene format=3 uid="uid://cyr3fskq6ixt7"]
 
-[ext_resource type="Script" path="res://scripts/ui/AnnualRingMenu.gd" id="1"]
+[ext_resource type="Script" uid="uid://by2kgshrdeacf" path="res://scripts/ui/AnnualRingMenu.gd" id="1"]
 
-[node name="AnnualRingMenu" type="Node2D"]
+[node name="AnnualRingMenu" type="Node2D" unique_id=411555142]
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=346731634]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.1, 0.08, 0.05, 1)
 mouse_filter = 2
+color = Color(0.1, 0.08, 0.05, 1)
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=353017043]
 position = Vector2(960, 540)
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=746128884]
 
-[node name="Control" type="Control" parent="UI"]
+[node name="Control" type="Control" parent="UI" unique_id=232458827]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,7 +28,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Title" type="Label" parent="UI/Control"]
+[node name="Title" type="Label" parent="UI/Control" unique_id=1185715525]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -43,7 +43,7 @@ theme_override_font_sizes/font_size = 96
 text = "【 树独 】"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="UI/Control"]
+[node name="Subtitle" type="Label" parent="UI/Control" unique_id=1695370136]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -61,7 +61,7 @@ theme_override_font_sizes/font_size = 36
 text = "悬停选择年轮节点，点击进入挑战"
 horizontal_alignment = 1
 
-[node name="QuitButton" type="Button" parent="UI/Control"]
+[node name="QuitButton" type="Button" parent="UI/Control" unique_id=1130069626]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0

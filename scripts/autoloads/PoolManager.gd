@@ -7,24 +7,28 @@ extends Node
 # 1. 预加载所有敌人场景
 var enemy_scenes: Dictionary = {
 	"fly": preload("res://scenes/actors/EnemyFly.tscn"),     # 确认路径正确
-	"beaver": preload("res://scenes/actors/EnemyBeaver.tscn") # 确认路径正确
+	"beaver": preload("res://scenes/actors/EnemyBeaver.tscn"), # 确认路径正确
+	"human": preload("res://scenes/actors/EnemyHuman.tscn")
 }
 
 # 2. 对象池存储字典
 var _pools: Dictionary = {
 	"fly": [],
-	"beaver": []
+	"beaver": [],
+	"human": []
 }
 
 var enemy_type_to_data_id: Dictionary = {
 	"fly": "beetle",
-	"beaver": "beaver"
+	"beaver": "beaver",
+	"human": "lumberjack"
 }
 
 func _ready() -> void:
 	# 游戏启动时偷偷把怪建好，藏在后台，防止第一波刷怪时卡顿
 	prewarm("fly", 50)
 	prewarm("beaver", 20)
+	prewarm("human", 15)
 
 ## 【性能终极优化】：预热池子
 func prewarm(enemy_type: String, count: int) -> void:
