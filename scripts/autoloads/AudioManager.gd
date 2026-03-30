@@ -20,7 +20,7 @@ var music_players: Array[AudioStreamPlayer]
 var music_fade_duration:float = 1.0
 
 ## 音效播放器的个数
-var sfx_audio_player_count: int = 6
+var sfx_audio_player_count: int = 32
 ## 音效播放器存放的数组，方便调用
 var sfx_players: Array[AudioStreamPlayer]
 

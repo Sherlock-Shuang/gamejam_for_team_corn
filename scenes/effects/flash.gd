@@ -123,7 +123,7 @@ func launch(start_pos: Vector2, target_pos: Vector2, radius: float, damage: floa
 	jump_tween.tween_property(anim_sprite, "position:y", 0.0, last_flight_duration / 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	
 	# 👇 【新增】起飞瞬间，播放带电飞行的声音
-	AudioManager.play_sfx(飞行_sfx, 10, 1.0, 0.0, 2.75)  # 音量可以根据需要调整
+	AudioManager.play_sfx(飞行_sfx, 10, 1.0, 2, 2.75)  # 音量可以根据需要调整
 	
 	# 3. 飞行结束后，进入“引爆预警”阶段！
 	tween.chain().tween_callback(func(): _trigger_fuse(damage))
@@ -159,7 +159,7 @@ func _explode(damage: float) -> void:
 	explosion_sprite.show()
 
 	# 👇 【新增】爆炸瞬间，强行切断飞行声音，播放轰鸣声
-	AudioManager.play_sfx(爆炸_sfx, 10)  # 音量可以根据需要调整
+	AudioManager.play_sfx(爆炸_sfx, 10, 1.0, 1)  # 音量可以根据需要调整
 
 	# ==========================================
 	# ⚔️ 伤害判定：瞬间爆发伤害
