@@ -5,6 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://ci1k52pmn1eo8" path="res://assets/audio/music/BGM（紧张）0.wav" id="2_cm0pq"]
 [ext_resource type="AudioStream" uid="uid://dbxm3ldsyddt2" path="res://assets/audio/sfx/升级提示2.wav" id="3_lgr22"]
 [ext_resource type="Script" uid="uid://cxw1lcyncjxl1" path="res://scripts/components/WaveManager.gd" id="3_r0du0"]
+[ext_resource type="AudioStream" uid="uid://vtimyvrbjjjx" path="res://assets/audio/sfx/狼叫.wav" id="4_20pc6"]
 [ext_resource type="PackedScene" uid="uid://cmrehg65r703d" path="res://scenes/ui/HUD.tscn" id="4_hud"]
 [ext_resource type="PackedScene" uid="uid://bvncys4wohest" path="res://scenes/ui/UpgradeUI.tscn" id="5_upg"]
 [ext_resource type="Texture2D" uid="uid://c0c6rhfbllsli" path="res://assets/sprites/background/背景3.png" id="8_03owx"]
@@ -15,6 +16,7 @@
 script = ExtResource("1_main")
 bg_1 = ExtResource("2_cm0pq")
 "升级_sfx" = ExtResource("3_lgr22")
+"死亡_music" = ExtResource("4_20pc6")
 
 [node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
 position = Vector2(943, 150)
@@ -24,7 +26,6 @@ script = ExtResource("3_r0du0")
 
 [node name="WaveTimer" type="Timer" parent="WaveManager" unique_id=589680546]
 autostart = true
-
 
 [node name="HUD" parent="." unique_id=554317453 instance=ExtResource("4_hud")]
 

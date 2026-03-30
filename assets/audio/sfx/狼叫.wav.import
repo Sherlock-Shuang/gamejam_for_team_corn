@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://vgtkrs0i8o6w"
-path="res://.godot/imported/狼叫(1).wav-2694d66e463668b5e5bae1b3e2209e81.sample"
+uid="uid://vtimyvrbjjjx"
+path="res://.godot/imported/狼叫.wav-ff18c448e44eb21ea9645cdc16c9acd8.sample"
 
 [deps]
 
-source_file="res://assets/audio/sfx/狼叫(1).wav"
-dest_files=["res://.godot/imported/狼叫(1).wav-2694d66e463668b5e5bae1b3e2209e81.sample"]
+source_file="res://assets/audio/sfx/狼叫.wav"
+dest_files=["res://.godot/imported/狼叫.wav-ff18c448e44eb21ea9645cdc16c9acd8.sample"]
 
 [params]
 
