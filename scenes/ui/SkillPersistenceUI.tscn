@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://bvncys4wohesx"]
+
+[ext_resource type="Script" uid="uid://bvncys4wohesy" path="res://scripts/ui/SkillPersistenceUI.gd" id="1"]
+
+[node name="SkillPersistenceUI" type="Control"]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -700.0
+offset_top = -480.0
+offset_right = -30.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="FlowContainer" type="VFlowContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -670.0
+offset_top = -460.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 8
+layout_direction = 3
+alignment = 2
+last_wrap_alignment = 2
