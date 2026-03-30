@@ -26,6 +26,7 @@ SignalBus="*res://scripts/autoloads/SignalBus.gd"
 GameData="*res://scripts/autoloads/GameData.gd"
 PoolManager="*res://scripts/autoloads/PoolManager.gd"
 AudioManager="*res://scripts/autoloads/AudioManager.gd"
+UiSoundManager="*uid://duyq33175e1s1"
 
 [display]
 

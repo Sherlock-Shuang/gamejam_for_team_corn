@@ -1,23 +1,19 @@
 [gd_scene format=3 uid="uid://cyr3fskq6ixt7"]
 
 [ext_resource type="Script" uid="uid://by2kgshrdeacf" path="res://scripts/ui/AnnualRingMenu.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://c1" path="res://assets/sprites/UI/wood/bigbig.png" id="2"]
-[ext_resource type="Texture2D" uid="uid://c2" path="res://assets/sprites/UI/wood/4_small.png" id="3"]
-[ext_resource type="Texture2D" uid="uid://c3" path="res://assets/sprites/UI/wood/3_small.png" id="4"]
-[ext_resource type="Texture2D" uid="uid://c4" path="res://assets/sprites/UI/wood/2_small.png" id="5"]
-[ext_resource type="Texture2D" uid="uid://c5" path="res://assets/sprites/UI/wood/1small.png" id="6"]
-[ext_resource type="Texture2D" uid="uid://c6" path="res://assets/sprites/UI/wood/hurt_small.png" id="7"]
-[ext_resource type="Texture2D" uid="uid://cb1" path="res://assets/sprites/UI/wood/1_big.png" id="8"]
-[ext_resource type="Texture2D" uid="uid://cb2" path="res://assets/sprites/UI/wood/2_big.png" id="9"]
-[ext_resource type="Texture2D" uid="uid://cb3" path="res://assets/sprites/UI/wood/3_big.png" id="10"]
-[ext_resource type="Texture2D" uid="uid://cb4" path="res://assets/sprites/UI/wood/4_big.png" id="11"]
-[ext_resource type="Texture2D" uid="uid://cbh" path="res://assets/sprites/UI/wood/hurt_big.png" id="12"]
-
-
-
+[ext_resource type="Texture2D" uid="uid://dgwyemn0e43iy" path="res://assets/sprites/UI/wood/bigbig.png" id="2"]
+[ext_resource type="AudioStream" uid="uid://bpjaejd0pxptu" path="res://assets/audio/sfx/UI交互.wav" id="2_oxqcj"]
+[ext_resource type="Texture2D" uid="uid://bhe8ttrdqxxx4" path="res://assets/sprites/UI/wood/4_small.png" id="3"]
+[ext_resource type="AudioStream" uid="uid://c3ievoy48sk17" path="res://assets/audio/sfx/UI交互4.wav" id="3_4bhm6"]
+[ext_resource type="Texture2D" uid="uid://dmoo83aiby6hv" path="res://assets/sprites/UI/wood/3_small.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://bj2sa7dpyqo0f" path="res://assets/sprites/UI/wood/2_small.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://blpdyq4alkflm" path="res://assets/sprites/UI/wood/1small.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://dns20vjgbqmlo" path="res://assets/sprites/UI/wood/hurt_small.png" id="7"]
 
 [node name="AnnualRingMenu" type="Node2D" unique_id=411555142]
 script = ExtResource("1")
+"UI交互_sfx" = ExtResource("2_oxqcj")
+click_sfx = ExtResource("3_4bhm6")
 
 [node name="Background" type="ColorRect" parent="." unique_id=346731634]
 anchors_preset = 15
@@ -31,8 +27,6 @@ color = Color(0.1, 0.08, 0.05, 1)
 [node name="RingContainer" type="Node2D" parent="." unique_id=987654321]
 position = Vector2(960, 540)
 scale = Vector2(1.3, 1.3)
-
-
 
 [node name="Shell" type="Sprite2D" parent="RingContainer" unique_id=1000]
 texture = ExtResource("2")
@@ -52,10 +46,6 @@ texture = ExtResource("6")
 [node name="EndlessCrack" type="Sprite2D" parent="RingContainer" unique_id=1005]
 visible = false
 texture = ExtResource("7")
-
-
-
-
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=353017043]
 position = Vector2(960, 540)
@@ -111,7 +101,6 @@ theme_override_constants/shadow_offset_y = 4
 theme_override_font_sizes/font_size = 48
 text = "悬停选择年轮节点，点击进入挑战"
 horizontal_alignment = 1
-
 
 [node name="QuitButton" type="Button" parent="UI/Control" unique_id=1130069626]
 layout_mode = 1

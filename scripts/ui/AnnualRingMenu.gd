@@ -4,6 +4,9 @@ extends Node2D
 #  通过 5 层树木年轮的 _small / _big 贴图切换实现关卡选择。
 # ═══════════════════════════════════════════════════════════════
 
+@export var UI交互_sfx :AudioStream
+@export var click_sfx :AudioStream
+
 var center: Vector2 = Vector2(960, 540)
 var hovered_stage: int = -1
 var time_elapsed: float = 0.0
@@ -187,6 +190,10 @@ func _on_hover_changed(new_stage: int):
 	hovered_stage = new_stage
 	_set_node_state(hovered_stage, true)
 	
+	# 🎵 新增：如果悬停到了有效的关卡（1~4 或者是深渊 -2），播放悬停音效
+	if hovered_stage != -1 and UI交互_sfx:
+		AudioManager.play_sfx(UI交互_sfx, -5.0, true, 2)
+	
 	if hovered_stage == -2:
 		subtitle.text = "【 深渊裂痕：开启无尽挑战 】"
 	elif hovered_stage != -1:
@@ -240,8 +247,17 @@ func _input(event):
 		
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if hovered_stage >= 1:
+			# 🎵 新增：播放确认进入音效
+			if click_sfx:
+				AudioManager.play_sfx(click_sfx, 0.0, false, 1)
+				
 			GameData.current_playing_stage = hovered_stage
 			get_tree().change_scene_to_file("res://Main.tscn")
+			
 		elif hovered_stage == -2:
+			# 🎵 新增：播放确认进入音效
+			if click_sfx:
+				AudioManager.play_sfx(click_sfx, 0.0, false, 1)
+				
 			GameData.is_endless_mode = true
 			get_tree().change_scene_to_file("res://scenes/ui/EndlessSelectUI.tscn")
