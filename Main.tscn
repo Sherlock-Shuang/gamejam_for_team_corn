@@ -25,33 +25,29 @@ script = ExtResource("3_r0du0")
 [node name="WaveTimer" type="Timer" parent="WaveManager" unique_id=589680546]
 autostart = true
 
-[node name="RiverOverlay" type="CanvasLayer" parent="." unique_id=23842339]
-layer = 50
-
-[node name="RiverLabel" type="Label" parent="RiverOverlay" unique_id=1171538590]
-modulate = Color(0.819, 0.934, 0.996, 0.95)
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 482.0
-offset_bottom = 62.0
-theme_override_font_sizes/font_size = 22
-text = "河流区域：Y > 200（敌人禁入）"
 
 [node name="HUD" parent="." unique_id=554317453 instance=ExtResource("4_hud")]
 
 [node name="UpgradeUI" parent="." unique_id=718921045 instance=ExtResource("5_upg")]
 
-[node name="Background" type="Sprite2D" parent="." unique_id=469584005]
-z_index = -100
-position = Vector2(942.64, -60)
-scale = Vector2(0.8, 0.736)
-texture = ExtResource("8_03owx")
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=1000]
+layer = -100
 
-[node name="RiverBoundary" type="Area2D" parent="Background" unique_id=1495862121]
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=469584005]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_03owx")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="RiverBoundary" type="Area2D" parent="." unique_id=1495862121]
 collision_layer = 32
 collision_mask = 6
 script = ExtResource("9_03owx")
 ripple_scene = ExtResource("10_wkp8b")
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Background/RiverBoundary" unique_id=343594245]
-polygon = PackedVector2Array(-1350.8, 76.08695, -1123.3, 100.54347, -933.30005, 228.26086, -744.55005, 247.2826, -645.80005, 323.36957, -539.55005, 399.4565, -407.05005, 403.5326, -265.80005, 400.8152, -140.80005, 365.4891, 9.199951, 369.56522, 135.44995, 345.10867, 266.69995, 275.81522, 321.69995, 244.56522, 441.69995, 308.42392, 516.69995, 283.96738, 490.44995, 222.82608, 560.44995, 207.88043, 644.19995, 122.28261, 716.69995, 65.21739, 810.44995, 107.33695, 919.19995, 81.521736, 972.94995, 27.173912, 1055.45, -13.58696, 1127.95, -97.82609, 1260.45, -35.326088, 1341.7, -69.29348, 1836.7, 895.38043, 904.19995, 2187.5, -1107.05, 2285.326, -1612.05, 1495.9238)
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RiverBoundary" unique_id=343594245]
+polygon = PackedVector2Array(-354.12, 108.56, -114.7, 126.54, 75.3, 220.4, 264.05, 234.38, 362.8, 290.28, 469.05, 346.17, 601.55, 349.17, 742.8, 347.17, 867.8, 321.22, 1017.8, 324.21, 1144.05, 306.24, 1275.3, 255.33, 1330.3, 232.37, 1450.3, 279.28, 1525.3, 261.31, 1499.05, 216.39, 1569.05, 205.41, 1652.8, 142.52, 1725.3, 100.59, 1819.05, 131.54, 1927.8, 112.58, 1981.55, 72.65, 2064.05, 42.69, 2136.55, -19.23, 2269.05, 26.69, 2350.3, 1.74, 2845.3, 710.22, 1912.8, 1659.18, -1107.05, 2285.326, -1612.05, 1495.9238)

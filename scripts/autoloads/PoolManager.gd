@@ -4,31 +4,30 @@ extends Node
 #  Game Jam 终极优化版：多怪物类型支持 + 纯状态冻结回收
 # ═══════════════════════════════════════════════════════════════
 
-# 1. 预加载所有敌人场景
+# 1. 预加载所有敌人场景 (直接使用规范化的名称作为 Key)
 var enemy_scenes: Dictionary = {
-	"fly": preload("res://scenes/actors/EnemyFly.tscn"),     # 确认路径正确
-	"beaver": preload("res://scenes/actors/EnemyBeaver.tscn"), # 确认路径正确
-	"human": preload("res://scenes/actors/EnemyHuman.tscn")
+	"beetle": preload("res://scenes/actors/EnemyFly.tscn"),     
+	"beaver": preload("res://scenes/actors/EnemyBeaver.tscn"), 
+	"lumberjack": preload("res://scenes/actors/EnemyHuman.tscn"),
+	"mech_boss": preload("res://scenes/actors/EnemyHuman.tscn") # 暂用伐木动作相同的 Human 作为 BOSS
 }
 
 # 2. 对象池存储字典
 var _pools: Dictionary = {
-	"fly": [],
+	"beetle": [],
 	"beaver": [],
-	"human": []
-}
-
-var enemy_type_to_data_id: Dictionary = {
-	"fly": "beetle",
-	"beaver": "beaver",
-	"human": "lumberjack"
+	"lumberjack": [],
+	"mech_boss": []
 }
 
 func _ready() -> void:
-	# 游戏启动时偷偷把怪建好，藏在后台，防止第一波刷怪时卡顿
-	prewarm("fly", 50)
-	prewarm("beaver", 20)
-	prewarm("human", 15)
+	# 游戏启动时预热
+	prewarm("beetle", 50)
+	prewarm("beaver", 30)
+	prewarm("lumberjack", 20)
+	prewarm("mech_boss", 5)
+
+
 
 ## 【性能终极优化】：预热池子
 func prewarm(enemy_type: String, count: int) -> void:
@@ -96,8 +95,7 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 	return enemy
 
 func _apply_enemy_stats(enemy: Node, enemy_type: String) -> void:
-	var data_id = enemy_type_to_data_id.get(enemy_type, enemy_type)
-	var stats = GameData.get_enemy_stats(data_id)
+	var stats = GameData.get_enemy_stats(enemy_type)
 	if stats.is_empty():
 		# 数据表缺失时的兜底，避免 speed=0 导致敌人卡在出生圈
 		stats = {
@@ -107,6 +105,7 @@ func _apply_enemy_stats(enemy: Node, enemy_type: String) -> void:
 			"exp_drop": 1.0
 		}
 		push_warning("[PoolManager] 缺少敌人数据映射，已使用默认兜底: " + enemy_type)
+	
 	if enemy.get("max_health") != null and stats.has("hp"):
 		enemy.max_health = float(stats["hp"])
 	if enemy.get("speed") != null and stats.has("speed"):

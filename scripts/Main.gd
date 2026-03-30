@@ -38,6 +38,19 @@ func _ready():
 			# 强制把当前关卡的索引（从1开始）减1作为进化阶段
 			tree.evolve_to_stage(GameData.current_playing_stage - 1)
 
+	if GameData.is_endless_mode:
+		level_timer = 0.0
+		print("[Main] 无尽模式：计时器从 0 开始。")
+	else:
+		# 第1关 30秒，后续关卡 60秒
+		if GameData.current_playing_stage == 1:
+			level_timer = 30.0
+		else:
+			level_timer = 60.0
+		print("[Main] 关卡计时器初始化: ", level_timer, "s")
+	
+	# 重置波次
+	GameData.current_wave = 0
 	
 	# 装载核心引擎：把《技能执行器》组件挂载到树身上
 	var skill_executor_script = load("res://scripts/components/SkillExecutor.gd")
@@ -45,6 +58,9 @@ func _ready():
 	skill_executor.name = "SkillExecutor"
 	tree.add_child(skill_executor)
 	print("[Main] SkillExecutor 已成功挂载到 PlayerTree 下。")
+	
+	# 加载历史技能叠加 (除了无尽模式)
+	GameData.apply_historical_skills()
 	
 	# 监听玩家的选择
 	SignalBus.on_upgrade_selected.connect(_on_skill_chosen)
@@ -74,6 +90,10 @@ func _level_up():
 	SignalBus.on_level_up.emit(GameData.current_level)
 		
 func _on_skill_chosen(skill_id: String):
+	# 如果正在恢复历史技能，不要再次记录到当前历史中
+	if GameData.is_restoring_history:
+		return
+
 	print("[Main] 收到进化指令: ", skill_id)
 	var payload = GameData.decode_upgrade_payload(skill_id)
 	var real_skill_id = str(payload.get("skill_id", skill_id))

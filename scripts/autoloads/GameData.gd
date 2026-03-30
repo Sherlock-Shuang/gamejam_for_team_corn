@@ -14,13 +14,14 @@ var current_run_skill_levels: Dictionary = {}
 var current_run_skill_route_bonus: Dictionary = {}
 var current_run_skill_route_history: Dictionary = {}
 
-# ── 局外进度状态 (年轮界面) ──
+# --- 局外进度状态 (年轮界面) ──
 var current_max_stage: int = 1                         # 当前解锁的最大关卡数（年轮数）
 var skill_history_per_stage: Dictionary = {}           # 格式: { stage_id : [ "skill_a", "skill_b" ] }
 var current_playing_stage: int = 1                     # 玩家当前正在挑战哪一关
 var is_endless_unlocked: bool = false                  # 是否解锁无尽模式
 var is_endless_mode: bool = false                      # 当前是否在打无尽模式
 var selected_sapling: int = 1                          # 无尽模式下选择的形态
+var is_restoring_history: bool = false                 # 是否正在加载历史技能（加载时不应再次存档）
 
 const SAVE_PATH = "user://tree_survivor_save.json"
 const MAX_STAGES = 4
@@ -93,7 +94,7 @@ var growth_stages: Array = [
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  经验值公式: 每级所需经验 = base * (level ^ exponent)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-var exp_base: float = 7.0
+var exp_base: float = 50.0
 var exp_exponent: float = 1.2
 
 func get_exp_to_next_level(level: int) -> float:
@@ -655,9 +656,25 @@ func clamp_to_river_bank(position: Vector2, padding: float = 0.0) -> Vector2:
 func record_skill_for_stage(stage_id: int, skill_id: String):
 	if not skill_history_per_stage.has(stage_id):
 		skill_history_per_stage[stage_id] = []
-	if not skill_history_per_stage[stage_id].has(skill_id):
-		skill_history_per_stage[stage_id].append(skill_id)
-		save_game() # 获得技能也保存进度
+	
+	# 不再检查是否存在，允许重复记录以代表技能等级的叠加
+	skill_history_per_stage[stage_id].append(skill_id)
+	save_game() 
+
+## 将前四关的历史技能应用到当前开局 (实现叠加)
+func apply_historical_skills():
+	if is_endless_mode:
+		return # 无尽模式从 0 开始，不继承历史
+	
+	is_restoring_history = true
+	print("[GameData] 正在应用历史技能叠加...")
+	# 遍历当前关卡之前的所有关卡记录
+	for s_id in range(1, current_playing_stage):
+		var skills = skill_history_per_stage.get(s_id, [])
+		for skill_id in skills:
+			# 发送信号让 SkillExecutor 实装这些技能
+			SignalBus.on_upgrade_selected.emit(skill_id)
+	is_restoring_history = false
 
 ## 重置单局状态 (进入新关卡前调用，保留局外进度)
 func reset_for_new_game():

@@ -139,10 +139,15 @@ func show_upgrade():
 		var route_title = str(skill_data.get("route_title", ""))
 		
 		name_label.text = skill_data["name"]
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART # 防止名字太长
+		
 		category_label.text = "[" + skill_data["category"] + "]  Lv." + str(current_level) + " → Lv." + str(next_level)
 		if route_title != "":
 			category_label.text += "  " + route_title
+		category_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			
 		desc_label.text = skill_data["description"]
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART # 解决描述超出边框
 		
 		# 绑定点击事件
 		var callable = _on_card_selected.bind(skill_data["id"])
