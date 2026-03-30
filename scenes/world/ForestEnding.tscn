@@ -1,74 +1,132 @@
 [gd_scene format=3 uid="uid://bip7u753trjtn"]
 
-[ext_resource type="Script" uid="uid://buhao6amga72b" path="res://scripts/Main.gd" id="1_ypjs4"]
-[ext_resource type="AudioStream" uid="uid://ci1k52pmn1eo8" path="res://assets/audio/music/BGM（紧张）0.wav" id="2_fjb2w"]
-[ext_resource type="AudioStream" uid="uid://dbxm3ldsyddt2" path="res://assets/audio/sfx/升级提示2.wav" id="3_xbqd0"]
-[ext_resource type="AudioStream" uid="uid://vtimyvrbjjjx" path="res://assets/audio/sfx/狼叫.wav" id="4_gkmxr"]
-[ext_resource type="Texture2D" uid="uid://f5o4vowhvdc5" path="res://assets/sprites/effects/glass1.png" id="5_htmmg"]
-[ext_resource type="Texture2D" uid="uid://dg24sc5pwe8ct" path="res://assets/sprites/effects/glass2.png" id="6_3onnh"]
-[ext_resource type="Texture2D" uid="uid://dhe8arn3aamab" path="res://assets/sprites/effects/glass3.png" id="7_xldiw"]
-[ext_resource type="Texture2D" uid="uid://fsmqkx5t8e6w" path="res://assets/sprites/effects/glass4.png" id="8_1l4ir"]
-[ext_resource type="PackedScene" uid="uid://cv43af0pxy81y" path="res://scenes/actors/tree.tscn" id="9_1oib8"]
-[ext_resource type="Texture2D" uid="uid://c0c6rhfbllsli" path="res://assets/sprites/background/背景3.png" id="13_4fbfc"]
-[ext_resource type="Texture2D" uid="uid://b08qyu3wmri1p" path="res://assets/sprites/trees/1.png" id="13_fjb2w"]
-[ext_resource type="Script" path="res://scripts/ui/river_boundary.gd" id="14_rc8ac"]
-[ext_resource type="Texture2D" uid="uid://by1dfh6nhi7yr" path="res://assets/sprites/trees/2.png" id="14_xbqd0"]
-[ext_resource type="PackedScene" uid="uid://d2xiorp3ppo0y" path="res://scenes/ui/Ripple.tscn" id="15_dj4yt"]
-[ext_resource type="Texture2D" uid="uid://dbgblan2msgis" path="res://assets/sprites/trees/3.png" id="15_gkmxr"]
-[ext_resource type="Texture2D" uid="uid://c2oaqf1lunj6g" path="res://assets/sprites/trees/4.png" id="16_htmmg"]
+[ext_resource type="Texture2D" uid="uid://c0c6rhfbllsli" path="res://assets/sprites/background/背景3.png" id="1_bg"]
+[ext_resource type="Texture2D" uid="uid://b08qyu3wmri1p" path="res://assets/sprites/trees/1.png" id="2_tree1"]
+[ext_resource type="Texture2D" uid="uid://by1dfh6nhi7yr" path="res://assets/sprites/trees/2.png" id="3_tree2"]
+[ext_resource type="Texture2D" uid="uid://dbgblan2msgis" path="res://assets/sprites/trees/3.png" id="4_tree3"]
+[ext_resource type="Texture2D" uid="uid://c2oaqf1lunj6g" path="res://assets/sprites/trees/4.png" id="5_tree4"]
+[ext_resource type="Script" uid="uid://bjyhpm6dul1wf" path="res://scripts/world/ForestEnding.gd" id="6_script"]
 
-[node name="Main" type="Node" unique_id=2125892693]
-script = ExtResource("1_ypjs4")
-bg_1 = ExtResource("2_fjb2w")
-"升级_sfx" = ExtResource("3_xbqd0")
-"死亡_music" = ExtResource("4_gkmxr")
-ending_hit_tex_1 = ExtResource("5_htmmg")
-ending_hit_tex_2 = ExtResource("6_3onnh")
-ending_hit_tex_3 = ExtResource("7_xldiw")
-ending_hit_tex_4 = ExtResource("8_1l4ir")
-ending_broken_screen = ExtResource("8_1l4ir")
+[node name="ForestEnding" type="Node2D" unique_id=461993677]
+script = ExtResource("6_script")
 
-[node name="tree" parent="." unique_id=850654834 instance=ExtResource("9_1oib8")]
-z_index = 3
-position = Vector2(943, 150)
-initial_stage = 3
-is_static_decoration = true
-
-[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=1000]
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=572628928]
 layer = -100
 
-[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=469584005]
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=2112026446]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("13_4fbfc")
+texture = ExtResource("1_bg")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="RiverBoundary" type="Area2D" parent="." unique_id=1495862121]
-collision_layer = 32
-collision_mask = 6
-script = ExtResource("14_rc8ac")
-ripple_scene = ExtResource("15_dj4yt")
+[node name="Forest" type="Node2D" parent="." unique_id=106800872]
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RiverBoundary" unique_id=343594245]
-polygon = PackedVector2Array(-354.12, 108.56, -114.7, 126.54, 75.3, 220.4, 264.05, 234.38, 362.8, 290.28, 469.05, 346.17, 601.55, 349.17, 742.8, 347.17, 867.8, 321.22, 1017.8, 324.21, 1144.05, 306.24, 1275.3, 255.33, 1330.3, 232.37, 1450.3, 279.28, 1525.3, 261.31, 1499.05, 216.39, 1569.05, 205.41, 1652.8, 142.52, 1725.3, 100.59, 1819.05, 131.54, 1927.8, 112.58, 1981.55, 72.65, 2064.05, 42.69, 2136.55, -19.23, 2269.05, 26.69, 2350.3, 1.74, 2845.3, 710.22, 1912.8, 1659.18, -1107.05, 2285.326, -1612.05, 1495.9238)
+[node name="Tree1" type="Sprite2D" parent="Forest" unique_id=1341879620]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(256, 885)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_tree1")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=498702005]
-scale = Vector2(0.34989157, 0.34012797)
-texture = ExtResource("13_fjb2w")
+[node name="Tree2" type="Sprite2D" parent="Forest" unique_id=1066375759]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(512, 915)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("3_tree2")
 
-[node name="Sprite2D2" type="Sprite2D" parent="." unique_id=149794237]
-position = Vector2(1447, -192.99997)
-scale = Vector2(0.34989157, 0.34012797)
-texture = ExtResource("14_xbqd0")
+[node name="Tree3" type="Sprite2D" parent="Forest" unique_id=1462281370]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(800, 855)
+texture = ExtResource("4_tree3")
 
-[node name="Sprite2D3" type="Sprite2D" parent="." unique_id=1311625401]
-scale = Vector2(0.34989157, 0.34012797)
-texture = ExtResource("15_gkmxr")
+[node name="Tree4" type="Sprite2D" parent="Forest" unique_id=936608453]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1150, 935)
+scale = Vector2(1.1, 1.1)
+texture = ExtResource("5_tree4")
 
-[node name="Sprite2D4" type="Sprite2D" parent="." unique_id=608115345]
-scale = Vector2(0.34989157, 0.34012797)
-texture = ExtResource("16_htmmg")
+[node name="Tree5" type="Sprite2D" parent="Forest" unique_id=1928914141]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1400, 875)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("2_tree1")
+
+[node name="Tree6" type="Sprite2D" parent="Forest" unique_id=813305629]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1650, 905)
+texture = ExtResource("3_tree2")
+
+[node name="Tree7" type="Sprite2D" parent="Forest" unique_id=1472051482]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(100, 815)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("4_tree3")
+
+[node name="Tree8" type="Sprite2D" parent="Forest" unique_id=1901606568]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1820, 835)
+scale = Vector2(0.95, 0.95)
+texture = ExtResource("5_tree4")
+
+[node name="Tree9" type="Sprite2D" parent="Forest" unique_id=1266070788]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(400, 785)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("2_tree1")
+
+[node name="Tree10" type="Sprite2D" parent="Forest" unique_id=767121939]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1450, 805)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("3_tree2")
+
+[node name="Tree11" type="Sprite2D" parent="Forest" unique_id=600246698]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(940, 850)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("5_tree4")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=375107789]
+
+[node name="Label" type="Label" parent="UI" unique_id=37703664]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.2, 0.05, 1)
+theme_override_constants/outline_size = 20
+theme_override_font_sizes/font_size = 80
+text = "万木长青
+THE END"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hint" type="Label" parent="UI" unique_id=2131978230]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 30
+text = "点击屏幕返回主菜单"
+horizontal_alignment = 1
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=627840518]
+position = Vector2(960, 540)

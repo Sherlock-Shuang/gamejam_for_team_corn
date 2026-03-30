@@ -126,3 +126,12 @@ func play_sfx(_audio: AudioStream, volume_db: float = 0.0, _is_random_pitch: boo
 		oldest_player.volume_db = volume_db
 		oldest_player.pitch_scale = pitch
 		oldest_player.play(start_time)
+
+## 停止所有声音 (用于大结局或特殊场转)
+func stop_all() -> void:
+	for player in music_players:
+		player.stop()
+		player.stream = null
+	for player in sfx_players:
+		player.stop()
+		player.stream = null

@@ -63,7 +63,10 @@ const SKILL_ICONS = {
 
 func _ready():
 	print("[Menu] 欢迎来到精准版年轮界面。解锁关卡: ", GameData.current_max_stage)
-	quit_button.pressed.connect(func(): get_tree().quit())
+	quit_button.pressed.connect(func(): 
+		if click_sfx: AudioManager.play_sfx(click_sfx, 0.0, false, 1)
+		get_tree().quit()
+	)
 	GameData.is_endless_mode = false
 	
 	# 初始化纹理缓存
@@ -196,15 +199,16 @@ func _apply_rotations(delta):
 	if endless_rot_speed != 0 and is_instance_valid(endless_crack):
 		endless_crack.rotation += endless_rot_speed * delta
 	
+	if GameData.just_finished_final_stage:
+		return # 结局期间不需要鼠标判定
+		
 	# 鼠标判定逻辑
 	var mouse_pos = get_global_mouse_position()
 	var dist = mouse_pos.distance_to(center) / ring_container.scale.x
 	
 	var current_hover = -1
-	# 修正：将开启门槛从 > 4 降至 >= 4，确保通关后能稳定触发
-	var can_show_endless = GameData.is_endless_unlocked and GameData.current_max_stage >= 4
 	
-	if can_show_endless and dist < BASE_RADII["ENDLESS"]:
+	if dist < BASE_RADII["ENDLESS"]:
 		current_hover = -2
 	elif dist < BASE_RADII[1]:
 		current_hover = 1
@@ -215,9 +219,22 @@ func _apply_rotations(delta):
 	elif dist < BASE_RADII[4]:
 		current_hover = 4
 	
-	# 只能悬停已解锁关卡
-	if current_hover != -2 and current_hover > GameData.current_max_stage:
-		current_hover = -1
+	# 【核心规则】：只能挑战当前正在挑战的唯一关卡，或者深渊裂痕(无尽模式)
+	var is_fully_unlocked = GameData.is_endless_unlocked
+	
+	if current_hover == -2:
+		# 无尽模式必须解锁才行
+		if not is_fully_unlocked: current_hover = -1
+	elif current_hover != -1:
+		# 普通关卡逻辑
+		if is_fully_unlocked:
+			# 全通关后：允许选中第 1 关重新开始，或者挑战无尽模式
+			if current_hover != 1:
+				current_hover = -1
+		else:
+			# 还没通关：允许选中第 1 关（随时轮回）或者当前的最高进度关卡
+			if current_hover != 1 and current_hover != GameData.current_max_stage:
+				current_hover = -1
 		
 	if current_hover != hovered_stage:
 		_on_hover_changed(current_hover)
@@ -258,19 +275,37 @@ func _set_node_state(stage_id: int, active: bool):
 	if node and textures_small.has(stage_id) and textures_big.has(stage_id):
 		node.texture = textures_big[stage_id] if active else textures_small[stage_id]
 		
-		# 细微的呼吸/亮度提升
+		# 细微的呼吸/亮度提升。注：非活跃层在 _update_layer_visibility 中调节了基础亮度
 		var tween = create_tween().set_parallel(true)
-		var target_mod = Color(1.2, 1.2, 1.15, 1.0) if active else Color.WHITE
+		var base_color = node.modulate # 获取当前层的基础显示色
+		var target_mod = base_color * 1.3 if active else base_color
 		tween.tween_property(node, "modulate", target_mod, 0.15)
 
 func _update_layer_visibility():
 	if endless_crack:
-		# 修改为 >= 4，保证通关当前最后关卡后开启
-		endless_crack.visible = GameData.is_endless_unlocked and GameData.current_max_stage >= 4
+		endless_crack.visible = GameData.is_endless_unlocked
+		# 如果解锁了，处于高亮状态，否则半透明
+		endless_crack.modulate = Color(1.2, 1.2, 1.1, 1.0) if GameData.is_endless_unlocked else Color(1, 1, 1, 0.2)
 		
 	for stage_id in layers.keys():
 		var layer = layers[stage_id]
-		layer.visible = (stage_id <= GameData.current_max_stage)
+		# 规则：已全通关 -> 所有普通年轮变灰褐色进入“历史模式”，但第 1 关保持高亮供重新开始
+		if GameData.is_endless_unlocked:
+			layer.visible = true
+			if stage_id == 1:
+				layer.modulate = Color(1.0, 1.0, 1.0, 1.0) # 重新开始的入口
+			else:
+				layer.modulate = Color(0.4, 0.38, 0.35, 1.0) 
+		else:
+			# 未通关：第 1 关和当前进度层最亮，其余已通过层变暗，未解锁层隐藏
+			if stage_id == 1 or stage_id == GameData.current_max_stage:
+				layer.visible = true
+				layer.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			elif stage_id < GameData.current_max_stage:
+				layer.visible = true
+				layer.modulate = Color(0.5, 0.45, 0.4, 1.0)
+			else:
+				layer.visible = false
 
 # ── 神秘时钟启动序列 ───────────────────────────────────────────
 func _start_mystic_rotation_sequence():

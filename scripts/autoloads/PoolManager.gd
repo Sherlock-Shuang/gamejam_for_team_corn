@@ -125,23 +125,21 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 func _apply_enemy_stats(enemy: Node, enemy_type: String) -> void:
 	var stats = GameData.get_enemy_stats(enemy_type)
 	if stats.is_empty():
-		# 数据表缺失时的兜底，避免 speed=0 导致敌人卡在出生圈
-		stats = {
-			"hp": 10.0,
-			"speed": 40.0,
-			"damage": 2.0,
-			"exp_drop": 1.0
-		}
-		push_warning("[PoolManager] 缺少敌人数据映射，已使用默认兜底: " + enemy_type)
+		# 数据表缺失时的兜底
+		stats = {"hp": 10.0, "speed": 40.0, "damage": 2.0, "exp_drop": 1.0}
+	
+	# 【动态难度】：根据无尽模式的时长提升敌人属性
+	var mult = GameData.get_endless_multiplier()
 	
 	if enemy.get("max_health") != null and stats.has("hp"):
-		enemy.max_health = float(stats["hp"])
+		enemy.max_health = float(stats["hp"]) * mult
 	if enemy.get("speed") != null and stats.has("speed"):
 		enemy.speed = float(stats["speed"])
 	if enemy.get("damage") != null and stats.has("damage"):
-		enemy.damage = float(stats["damage"])
+		enemy.damage = float(stats["damage"]) * mult
 	if enemy.get("exp_drop") != null and stats.has("exp_drop"):
 		enemy.exp_drop = float(stats["exp_drop"])
+
 
 ## 回收怪物（供 EnemyAI 死亡击飞结束后调用）
 func return_enemy(node: Node) -> void:

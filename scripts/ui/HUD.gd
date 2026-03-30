@@ -31,7 +31,10 @@ func _ready():
 	SignalBus.on_wave_started.connect(_on_wave_started)
 	
 	# 退出按鈕
-	pause_button.pressed.connect(func(): SignalBus.on_pause_requested.emit())
+	pause_button.pressed.connect(func(): 
+		if 状态切换_sfx: AudioManager.play_sfx(状态切换_sfx, -10.0, false)
+		SignalBus.on_pause_requested.emit()
+	)
 	
 	# 初始化显示
 	_update_tree_shape(1.0)

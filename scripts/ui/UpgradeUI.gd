@@ -157,6 +157,9 @@ func show_upgrade():
 
 func _on_card_selected(skill_id: String):
 	print("[UpgradeUI] 选择了技能: ", skill_id)
+	# 点击卡片确认时也播放一下音效
+	if 升级_sfx:
+		AudioManager.play_sfx(升级_sfx, -5.0, true) 
 	var exit_tween = create_tween()
 	exit_tween.tween_property(root_node, "modulate:a", 0.0, 0.15)
 	exit_tween.tween_callback(func():

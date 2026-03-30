@@ -55,9 +55,9 @@ func _ready():
 		print("[Main] 无尽模式：计时器从 0 开始。")
 	else:
 		match GameData.current_playing_stage:
-			1: level_timer = 30.0
-			2: level_timer = 60.0
-			3: level_timer = 100.0
+			1: level_timer = 1.0
+			2: level_timer = 6.0
+			3: level_timer = 1.0
 			4: level_timer = 10.0
 			_: level_timer = 60.0
 		print("[Main] 关卡计时器初始化: ", level_timer, "s")
@@ -116,9 +116,9 @@ func _on_skill_chosen(skill_id: String):
 	var payload = GameData.decode_upgrade_payload(skill_id)
 	var real_skill_id = str(payload.get("skill_id", skill_id))
 	
-	# 👉 对接到局外存储：记录这把在这一圈年轮上拿到的能力！
-	if not GameData.is_endless_mode:
-		GameData.record_skill_for_stage(GameData.current_playing_stage, real_skill_id)
+	# 👉 对接到局外存储：改在通关(Level Clear)时才统一保存这一整组技能
+	# 以往在这里实时 record 会导致死亡后技能依然残留，现在删除了这里的逻辑
+	pass
 	
 
 # ── 打开升级选择 UI ─────────────────────────────────────────────
@@ -144,6 +144,7 @@ func _process(delta):
 	
 	if GameData.is_endless_mode:
 		level_timer += delta
+		GameData.endless_time = level_timer # 同步到全局数据供难度缩放使用
 		if hud.has_method("update_timer"):
 			hud.update_timer(level_timer)
 		return
@@ -177,6 +178,10 @@ func _apply_hp_regen(delta: float) -> void:
 func _level_completed():
 	is_level_active = false
 	print("[Main] 关卡 30s 倒计时结束，通关！")
+		
+	# 【存档修正】：在通关瞬间，将这局选好的技能组合固化到历史存档中
+	if not GameData.is_endless_mode:
+		GameData.record_skill_for_stage(GameData.current_playing_stage)
 		
 	# 如果是第一次打过当前最高关卡，则解锁下一关
 	if GameData.current_playing_stage == GameData.current_max_stage:
@@ -309,11 +314,13 @@ func _play_true_ending_cinematic():
 		hit_rect.texture = ending_broken_screen
 	
 	black_bg.color.a = 1.0 # 彻底切为纯黑
+	AudioManager.stop_all() # 🎵【新增】：黑屏瞬间关掉所有背景杂音(音乐+脚步声等)
 	
 	if ending_shatter_sfx:
 		audio_player.stream = ending_shatter_sfx
 		audio_player.pitch_scale = 1.0
 		audio_player.play()
+
 	
 	# 最剧烈的震动
 	var cam = get_viewport().get_camera_2d()

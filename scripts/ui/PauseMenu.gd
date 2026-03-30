@@ -1,5 +1,9 @@
 extends CanvasLayer
 
+@export var 点击_sfx: AudioStream
+@export var 悬停_sfx: AudioStream
+
+
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -7,9 +11,18 @@ func _ready():
 	var return_btn = $MainContainer/ButtonBox/OptionsBox/ReturnButton
 	var quit_btn = $MainContainer/ButtonBox/OptionsBox/QuitButton
 	
-	continue_btn.pressed.connect(_on_continue_pressed)
-	return_btn.pressed.connect(_on_return_pressed)
-	quit_btn.pressed.connect(_on_quit_pressed)
+	continue_btn.pressed.connect(func(): 
+		if 点击_sfx: AudioManager.play_sfx(点击_sfx, 0.0, false)
+		_on_continue_pressed()
+	)
+	return_btn.pressed.connect(func(): 
+		if 点击_sfx: AudioManager.play_sfx(点击_sfx, 0.0, false)
+		_on_return_pressed()
+	)
+	quit_btn.pressed.connect(func(): 
+		if 点击_sfx: AudioManager.play_sfx(点击_sfx, 0.0, false)
+		_on_quit_pressed()
+	)
 	
 	# 为所有按钮添加悬停缩放效果
 	var buttons = [continue_btn, return_btn, quit_btn]
@@ -18,6 +31,7 @@ func _ready():
 		btn.pivot_offset = btn.size / 2
 		
 		btn.mouse_entered.connect(func():
+			if 悬停_sfx: AudioManager.play_sfx(悬停_sfx, -10.0, true)
 			var tween = create_tween()
 			tween.tween_property(btn, "scale", Vector2(1.1, 1.1), 0.1).set_trans(Tween.TRANS_SINE)
 		)

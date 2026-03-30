@@ -6,7 +6,7 @@ class_name EnemyBase
 # 核心设计参数
 # ==========================================
 @export var attraction_weight: float = 1.0 
-@export var repulsion_weight: float = 2.0 
+@export var repulsion_weight: float = 0.0 # 已删除排斥（设置为 0.0）
 @export var is_flying_unit: bool = false # 勾选后开启 360 度旋转，否则只左右翻转
 # 音乐参数
 @export var 死亡惨叫_sfx: AudioStream
@@ -69,10 +69,17 @@ func _ready() -> void:
 			hit_box.area_exited.connect(_on_hitbox_area_exited)
 		if not hit_box.body_entered.is_connected(_on_hitbox_body_entered):
 			hit_box.body_entered.connect(_on_hitbox_body_entered)
-	if ice_particles == null:
 		var node = find_child("IceEnchantParticles", true, false)
 		if node and node is GPUParticles2D:
 			ice_particles = node as GPUParticles2D
+			
+	# 【核心规则】：删除敌人之间的碰撞！
+	# 假设 Layer 2 是敌人层，我们移除对 Layer 2 的检测
+	set_collision_mask_value(2, false)
+	# 显式关闭排斥力检测区域的监控，节省性能
+	if is_instance_valid(separation_area):
+		separation_area.monitoring = false
+		separation_area.monitorable = false
 
 func reset() -> void:
 	# 【关键修复】：每次从对象池醒来，重新睁开眼睛找大树！
@@ -151,32 +158,21 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# ==========================================
-	# 1. Boids 寻路与排斥逻辑计算
+	# 1. 寻路逻辑 (已移除 Boids 排斥，实现全重叠集群)
 	# ==========================================
 	var nav_target = target_tree.global_position
 	
-	# 👇【修改点 1】：使用全局统一的防河流目标点修正
+	# 👇 使用全局统一的防河流目标点修正
 	if GameData.is_in_river(nav_target):
 		nav_target = GameData.clamp_to_river_bank(nav_target, river_avoid_margin)
 		
 	var dir_to_tree = (nav_target - global_position).normalized()
 	var seek_force = dir_to_tree * speed * attraction_weight
 	
-	frame_count += 1
-	if frame_count % 5 == 0:
-		cached_repulsion = Vector2.ZERO
-		var neighbors = separation_area.get_overlapping_bodies()
-		for neighbor in neighbors:
-			if neighbor != self and neighbor is CharacterBody2D:
-				var dist_vector = global_position - neighbor.global_position
-				var dist = dist_vector.length()
-				if dist > 0.1: 
-					cached_repulsion += (dist_vector.normalized() / dist) * speed * 5.0
-		if cached_repulsion.length() > speed * 3:
-			cached_repulsion = cached_repulsion.normalized() * speed * 3
-
+	# 注：已移除 cached_repulsion 计算逻辑
+	
 	var boundary_force = _calculate_river_avoidance_force()
-	var desired_velocity = seek_force + (cached_repulsion * repulsion_weight) + boundary_force
+	var desired_velocity = seek_force + boundary_force
 	var final_speed = desired_velocity.limit_length(speed) * speed_multiplier
 	velocity = velocity.lerp(final_speed, 0.1)
 
