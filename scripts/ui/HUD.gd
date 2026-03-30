@@ -55,7 +55,7 @@ func _ready():
 	hp_label.offset_top = -20.0 # 居中对齐稍微往上拉一点
 	
 	hp_label.add_theme_font_size_override("font_size", 32)
-	hp_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.0, 1.0)) # 纯净的亮黄色，辨识度极高
+	hp_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	hp_label.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.05, 1.0))
 	hp_label.add_theme_constant_override("outline_size", 10)
 	
