@@ -27,65 +27,65 @@ stretch_mode = 6
 
 [node name="Tree1" type="Sprite2D" parent="Forest" unique_id=1341879620]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(256, 885)
+position = Vector2(158, 692)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("2_tree1")
 
 [node name="Tree2" type="Sprite2D" parent="Forest" unique_id=1066375759]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(512, 915)
+position = Vector2(437, 581)
 scale = Vector2(0.9, 0.9)
 texture = ExtResource("3_tree2")
 
 [node name="Tree3" type="Sprite2D" parent="Forest" unique_id=1462281370]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(800, 855)
+position = Vector2(783, 387)
 texture = ExtResource("4_tree3")
 
 [node name="Tree4" type="Sprite2D" parent="Forest" unique_id=936608453]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(1150, 935)
+position = Vector2(1340, 514)
 scale = Vector2(1.1, 1.1)
 texture = ExtResource("5_tree4")
 
 [node name="Tree5" type="Sprite2D" parent="Forest" unique_id=1928914141]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(1400, 875)
+position = Vector2(-118.000046, 241.99995)
 scale = Vector2(0.85, 0.85)
 texture = ExtResource("2_tree1")
 
 [node name="Tree6" type="Sprite2D" parent="Forest" unique_id=813305629]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(1650, 905)
+position = Vector2(1845, 422)
 texture = ExtResource("3_tree2")
 
 [node name="Tree7" type="Sprite2D" parent="Forest" unique_id=1472051482]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(100, 815)
+position = Vector2(2.0000076, 339.00003)
 scale = Vector2(0.7, 0.7)
 texture = ExtResource("4_tree3")
 
 [node name="Tree8" type="Sprite2D" parent="Forest" unique_id=1901606568]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(1820, 835)
+position = Vector2(2052, 317)
 scale = Vector2(0.95, 0.95)
 texture = ExtResource("5_tree4")
 
 [node name="Tree9" type="Sprite2D" parent="Forest" unique_id=1266070788]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(400, 785)
+position = Vector2(515, 284)
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("2_tree1")
 
 [node name="Tree10" type="Sprite2D" parent="Forest" unique_id=767121939]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(1450, 805)
+position = Vector2(1488, 414)
 scale = Vector2(0.75, 0.75)
 texture = ExtResource("3_tree2")
 
 [node name="Tree11" type="Sprite2D" parent="Forest" unique_id=600246698]
 modulate = Color(1, 1, 1, 0)
-position = Vector2(940, 850)
+position = Vector2(946, 516)
 scale = Vector2(1.2, 1.2)
 texture = ExtResource("5_tree4")
 

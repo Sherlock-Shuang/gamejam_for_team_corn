@@ -55,10 +55,10 @@ func _ready():
 		print("[Main] 无尽模式：计时器从 0 开始。")
 	else:
 		match GameData.current_playing_stage:
-			1: level_timer = 1.0
-			2: level_timer = 6.0
-			3: level_timer = 1.0
-			4: level_timer = 10.0
+			1: level_timer = 50.0
+			2: level_timer = 60.0
+			3: level_timer = 80.0
+			4: level_timer = 100.0
 			_: level_timer = 60.0
 		print("[Main] 关卡计时器初始化: ", level_timer, "s")
 	
