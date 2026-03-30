@@ -345,7 +345,8 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 			
 			# 参数说明: (音频文件, 音量微调, 开启随机音调, 同屏最多允许同时播 3 个)
 			
-			enemy_body.take_damage(final_damage, global_position)
+			# 传入 800.0 的瞬时击退力度，产生出色的打击后坐力效果
+			enemy_body.take_damage(final_damage, global_position, 800.0)
 			SignalBus.on_enemy_hit.emit(final_damage, enemy_body.global_position, enemy_body)
 			trigger_hit_stop()
 

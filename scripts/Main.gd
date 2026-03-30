@@ -48,7 +48,7 @@ func _ready():
 			1: level_timer = 30.0
 			2: level_timer = 60.0
 			3: level_timer = 100.0
-			4: level_timer = 150.0
+			4: level_timer = 140.0
 			_: level_timer = 60.0
 		print("[Main] 关卡计时器初始化: ", level_timer, "s")
 	

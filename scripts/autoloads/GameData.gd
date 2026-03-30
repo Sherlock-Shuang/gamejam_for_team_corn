@@ -115,9 +115,9 @@ var skill_pool: Dictionary = {
 		"effects": {"poison_damage": 20, "interval": 2.0, "pierce_count": 2, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
 		"level_effects": [
 			{"poison_damage": 20, "interval": 2.0, "pierce_count": 2, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
-			{"poison_damage": 20, "interval": 2.0, "pierce_count": 4, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
-			{"poison_damage": 20, "interval": 2.0, "pierce_count": 6, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
-			{"poison_damage": 20, "interval": 2.0, "pierce_count": 8, "projectile_count": 1, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 20, "interval": 1.8, "pierce_count": 4, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 20, "interval": 1.6, "pierce_count": 6, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 20, "interval": 1.4, "pierce_count": 8, "projectile_count": 1, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
 			{"poison_damage": 20, "interval": 1.0, "pierce_count": 10, "projectile_count": 1, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62}
 		],
 		"upgrade_routes": [
@@ -136,8 +136,8 @@ var skill_pool: Dictionary = {
 		"effects": {"explosion_damage": 22, "radius": 300.0, "interval": 4.0, "cast_count": 1},
 		"level_effects": [
 			{"explosion_damage": 22, "radius": 300.0, "interval": 4.0, "cast_count": 1},
-			{"explosion_damage": 32, "radius": 350.0, "interval": 3.35, "cast_count": 1},
-			{"explosion_damage": 32, "radius": 410.0, "interval": 2.75, "cast_count": 2}
+			{"explosion_damage": 32, "radius": 350.0, "interval": 3.35, "cast_count": 2},
+			{"explosion_damage": 32, "radius": 410.0, "interval": 2.75, "cast_count": 3}
 		],
 		"upgrade_routes": [
 			{"id": "radius_up", "title": "果实膨胀", "description": "判定半径提升", "effects": {"radius": 40.0}},
@@ -156,8 +156,8 @@ var skill_pool: Dictionary = {
 		"effects": {"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.4, "linger_scale_ratio": 0.06, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.12},
 		"level_effects": [
 			{"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.1, "linger_scale_ratio": 0.025, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.2},
-			{"explosion_damage": 34, "radius": 400.0, "interval": 2.2, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.46, "linger_duration": 0.14, "linger_scale_ratio": 0.030, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.18},
-			{"explosion_damage": 48, "radius": 500.0, "interval": 2.5, "cast_count": 3, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.48, "linger_duration": 0.2, "linger_scale_ratio": 0.027, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.15}
+			{"explosion_damage": 30, "radius": 350.0, "interval": 2.4, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.46, "linger_duration": 0.14, "linger_scale_ratio": 0.026, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.18},
+			{"explosion_damage": 36, "radius": 400.0, "interval": 2.7, "cast_count": 3, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.48, "linger_duration": 0.2, "linger_scale_ratio": 0.025, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.15}
 		],
 		"upgrade_routes": [
 			{"id": "radius_up", "title": "电场扩容", "description": "判定半径提升", "effects": {"radius": 45.0}},
@@ -173,11 +173,11 @@ var skill_pool: Dictionary = {
 		"description": "在地表蔓延藤蔓，把一定数量的敌人拖进地下",
 		"icon": "",
 		"max_level": 3,
-		"effects": {"target_count": 3, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.5},
+		"effects": {"target_count": 3, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.3},
 		"level_effects": [
-			{"target_count": 3, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.5},
-			{"target_count": 4, "search_radius": 430.0, "damage": 145.0, "interval": 3.4, "rise_duration": 0.2, "hold_duration": 0.24, "sink_duration": 0.36, "tentacle_peak_scale": 1.28, "tentacle_initial_scale_x": 0.56},
-			{"target_count": 5, "search_radius": 520.0, "damage": 205.0, "interval": 2.8, "rise_duration": 0.18, "hold_duration": 0.28, "sink_duration": 0.32, "tentacle_peak_scale": 1.36, "tentacle_initial_scale_x": 0.62}
+			{"target_count": 4, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.36},
+			{"target_count": 5, "search_radius": 430.0, "damage": 145.0, "interval": 3.4, "rise_duration": 0.2, "hold_duration": 0.24, "sink_duration": 0.36, "tentacle_peak_scale": 1.28, "tentacle_initial_scale_x": 0.4},
+			{"target_count": 6, "search_radius": 520.0, "damage": 205.0, "interval": 2.8, "rise_duration": 0.18, "hold_duration": 0.28, "sink_duration": 0.32, "tentacle_peak_scale": 1.36, "tentacle_initial_scale_x": 0.5}
 		],
 		"upgrade_routes": [
 			{"id": "range_up", "title": "藤网扩张", "description": "扩大索敌范围", "effects": {"search_radius": 60.0}},
@@ -193,9 +193,9 @@ var skill_pool: Dictionary = {
 		"max_level": 3,
 		"effects": {"sapling_damage": 12, "delay": 1.5, "interval": 3.5, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
 		"level_effects": [
-			{"sapling_damage": 12, "delay": 1.5, "interval": 3.5, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
-			{"sapling_damage": 18, "delay": 1.2, "interval": 3.0, "radius": 300.0, "damage_interval": 0.45, "lifetime": 11.5, "cast_range": 640.0, "fly_scale": 0.11, "grown_scale": 0.24, "grow_duration": 0.26},
-			{"sapling_damage": 27, "delay": 1.0, "interval": 2.5, "radius": 360.0, "damage_interval": 0.4, "lifetime": 13.0, "cast_range": 700.0, "fly_scale": 0.12, "grown_scale": 0.28, "grow_duration": 0.22}
+			{"sapling_damage": 12, "delay": 1.5, "interval": 3.0, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
+			{"sapling_damage": 18, "delay": 1.2, "interval": 2.4, "radius": 300.0, "damage_interval": 0.45, "lifetime": 11.5, "cast_range": 640.0, "fly_scale": 0.11, "grown_scale": 0.24, "grow_duration": 0.26},
+			{"sapling_damage": 27, "delay": 1.0, "interval": 1.6, "radius": 360.0, "damage_interval": 0.4, "lifetime": 13.0, "cast_range": 700.0, "fly_scale": 0.12, "grown_scale": 0.28, "grow_duration": 0.22}
 		],
 		"upgrade_routes": [
 			{"id": "damage_up", "title": "幼苗毒性", "description": "种子伤害提升", "effects": {"sapling_damage": 6.0}},
@@ -212,8 +212,8 @@ var skill_pool: Dictionary = {
 		"effects": {"burn_dps": 4, "burn_duration": 3.0, "burn_interval": 0.4, "burn_tick_damage": 5.0},
 		"level_effects": [
 			{"burn_dps": 4, "burn_duration": 3.0, "burn_interval": 0.4, "burn_tick_damage": 5.0},
-			{"burn_dps": 6, "burn_duration": 3.5, "burn_interval": 0.4, "burn_tick_damage": 7.0},
-			{"burn_dps": 9, "burn_duration": 4.0, "burn_interval": 0.4, "burn_tick_damage": 9.0}
+			{"burn_dps": 6, "burn_duration": 3.5, "burn_interval": 0.3, "burn_tick_damage": 7.0},
+			{"burn_dps": 9, "burn_duration": 4.0, "burn_interval": 0.2, "burn_tick_damage": 9.0}
 		]
 	},
 	"ice_enchant": {
@@ -225,9 +225,9 @@ var skill_pool: Dictionary = {
 		"max_level": 3,
 		"effects": {"slow_percent": 0.5, "slow_duration": 2.0},
 		"level_effects": [
-			{"slow_percent": 0.5, "slow_duration": 2.0},
-			{"slow_percent": 0.58, "slow_duration": 2.5},
-			{"slow_percent": 0.66, "slow_duration": 3.0}
+			{"slow_percent": 0.5, "slow_duration": 3.0},
+			{"slow_percent": 0.58, "slow_duration": 3.5},
+			{"slow_percent": 0.65, "slow_duration": 4.0}
 		]
 	},
 	"lightning_enchant": {
@@ -237,11 +237,11 @@ var skill_pool: Dictionary = {
 		"description": "攻击附带连锁闪电，跳跃至最多3个相邻敌人。",
 		"icon": "",
 		"max_level": 3,
-		"effects": {"chain_damage": 5, "chain_count": 3},
+		"effects": {"chain_damage": 12, "chain_count": 3},
 		"level_effects": [
-			{"chain_damage": 5, "chain_count": 3},
-			{"chain_damage": 8, "chain_count": 4},
-			{"chain_damage": 12, "chain_count": 5}
+			{"chain_damage": 12, "chain_count": 3},
+			{"chain_damage": 20, "chain_count": 6},
+			{"chain_damage": 25, "chain_count": 9}
 		]
 	},
 	"thick_bark": {
@@ -253,9 +253,9 @@ var skill_pool: Dictionary = {
 		"max_level": 3,
 		"effects": {"max_hp_bonus": 20, "trunk_width_mult": 1.2},
 		"level_effects": [
-			{"max_hp_bonus": 20, "trunk_width_mult": 1.3},
-			{"max_hp_bonus": 40, "trunk_width_mult": 1.5},
-			{"max_hp_bonus": 60, "trunk_width_mult": 1.9}
+			{"max_hp_bonus": 50, "trunk_width_mult": 1.3},
+			{"max_hp_bonus": 100, "trunk_width_mult": 1.6},
+			{"max_hp_bonus": 150, "trunk_width_mult": 1.9}
 		]
 	},
 	"deep_roots": {
@@ -295,9 +295,9 @@ var skill_pool: Dictionary = {
 		"max_level": 3,
 		"effects": {"stretch_scale_bonus": 0.5},
 		"level_effects": [
-			{"stretch_scale_bonus": 0.7},
-			{"stretch_scale_bonus": 1.4},
-			{"stretch_scale_bonus": 2.1}
+			{"stretch_scale_bonus": 0.8},
+			{"stretch_scale_bonus": 1.6},
+			{"stretch_scale_bonus": 2.4}
 		]
 	},
 	"photosynthesis": {
@@ -309,9 +309,9 @@ var skill_pool: Dictionary = {
 		"max_level": 3,
 		"effects": {"attack_mult": 1.3},
 		"level_effects": [
-			{"attack_mult": 1.3},
-			{"attack_mult": 1.69},
-			{"attack_mult": 2.197}
+			{"attack_mult": 1.8},
+			{"attack_mult": 2.7},
+			{"attack_mult": 4}
 		]
 	},
 }
@@ -322,21 +322,21 @@ var skill_pool: Dictionary = {
 var enemy_stats: Dictionary = {
 	# 第一阶段：自然虫害
 	"beetle": {
-		"name": "甲虫", "hp": 15, "speed": 150.0, "damage": 3.0,
+		"name": "甲虫", "hp": 20, "speed": 150.0, "damage": 3.0,
 		"exp_drop": 1.0, "phase": 1
 	},
 	# 第二阶段：哺乳动物
 	"beaver": {
-		"name": "河狸", "hp": 60, "speed": 80.0, "damage": 8.0,
+		"name": "河狸", "hp": 120, "speed": 80.0, "damage": 8.0,
 		"exp_drop": 3.0, "phase": 2
 	},
 	# 第三阶段：人类
 	"lumberjack": {
-		"name": "伐木工", "hp": 150, "speed": 80.0, "damage": 12.0,
+		"name": "伐木工", "hp": 350, "speed": 80.0, "damage": 10.0,
 		"exp_drop": 5.0, "phase": 3
 	},
 	"mech_boss": {
-		"name": "伐木机甲", "hp": 400, "speed": 60.0, "damage": 25.0,
+		"name": "伐木机甲", "hp": 600, "speed": 60.0, "damage": 12.0,
 		"exp_drop": 50.0, "phase": 3
 	},
 }
@@ -346,19 +346,19 @@ var enemy_stats: Dictionary = {
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var wave_table: Array = [
 	# wave 1-3: 虫害阶段 (前3分钟，让玩家快速升级体验割草感)
-	{"wave": 1, "duration": 30.0, "enemies": ["beetle"],               "spawn_interval": 1.5, "max_enemies": 15},
-	{"wave": 2, "duration": 40.0, "enemies": ["beetle", "caterpillar"],"spawn_interval": 1.2, "max_enemies": 25},
-	{"wave": 3, "duration": 50.0, "enemies": ["beetle", "caterpillar", "mosquito"], "spawn_interval": 1.0, "max_enemies": 40},
+	{"wave": 1, "duration": 30.0, "enemies": ["beetle"],               "spawn_interval": 1.5, "max_enemies": 20},
+	{"wave": 2, "duration": 40.0, "enemies": ["beetle", "caterpillar"],"spawn_interval": 1.2, "max_enemies": 40},
+	{"wave": 3, "duration": 50.0, "enemies": ["beetle", "caterpillar", "mosquito"], "spawn_interval": 1.0, "max_enemies": 60},
 	# wave 4-6: 加入河狸
-	{"wave": 4, "duration": 50.0, "enemies": ["caterpillar", "mosquito", "beaver"], "spawn_interval": 0.9, "max_enemies": 50},
-	{"wave": 5, "duration": 60.0, "enemies": ["mosquito", "beaver"],  "spawn_interval": 0.8, "max_enemies": 60},
-	{"wave": 6, "duration": 60.0, "enemies": ["beaver"],              "spawn_interval": 0.7, "max_enemies": 40},
+	{"wave": 4, "duration": 50.0, "enemies": ["caterpillar", "mosquito", "beaver"], "spawn_interval": 0.9, "max_enemies": 60},
+	{"wave": 5, "duration": 60.0, "enemies": ["mosquito", "beaver"],  "spawn_interval": 0.8, "max_enemies": 70},
+	{"wave": 6, "duration": 60.0, "enemies": ["beaver"],              "spawn_interval": 0.7, "max_enemies": 55},
 	# wave 7-9: 人类阶段
-	{"wave": 7, "duration": 60.0, "enemies": ["beaver", "lumberjack"],"spawn_interval": 0.8, "max_enemies": 50},
-	{"wave": 8, "duration": 70.0, "enemies": ["lumberjack", "flamethrower"], "spawn_interval": 0.7, "max_enemies": 45},
-	{"wave": 9, "duration": 80.0, "enemies": ["flamethrower", "lumberjack"], "spawn_interval": 0.6, "max_enemies": 50},
+	{"wave": 7, "duration": 60.0, "enemies": ["beaver", "lumberjack"],"spawn_interval": 0.8, "max_enemies": 60},
+	{"wave": 8, "duration": 70.0, "enemies": ["lumberjack", "flamethrower"], "spawn_interval": 0.7, "max_enemies": 80},
+	{"wave": 9, "duration": 80.0, "enemies": ["flamethrower", "lumberjack"], "spawn_interval": 0.6, "max_enemies": 90},
 	# wave 10: Boss 波
-	{"wave": 10, "duration": 90.0, "enemies": ["flamethrower", "mech_boss"], "spawn_interval": 2.0, "max_enemies": 20},
+	{"wave": 10, "duration": 90.0, "enemies": ["flamethrower", "mech_boss"], "spawn_interval": 2.0, "max_enemies": 50},
 ]
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

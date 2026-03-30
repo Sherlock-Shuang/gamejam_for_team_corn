@@ -21,6 +21,8 @@ extends CanvasLayer
 # 用来记录当前树木处于第几个形态。初始设为 -1 代表“还没初始化”
 var current_tree_index: int = -1
 
+var hp_label: Label
+
 func _ready():
 	# 监听 SignalBus 事件
 	SignalBus.on_player_hp_changed.connect(_on_hp_changed)
@@ -38,6 +40,23 @@ func _ready():
 	wave_label.text = "WAVE 1"
 	
 	_apply_hud_styles()
+	
+	# 动态创建并挂载一个用于显示具体血量数字的Label
+	hp_label = Label.new()
+	tree_hp_display.add_child(hp_label)
+	hp_label.anchor_left = 1.0
+	hp_label.anchor_right = 1.0
+	hp_label.anchor_top = 0.5
+	hp_label.anchor_bottom = 0.5
+	hp_label.offset_left = 15.0 # 向右偏移一点
+	hp_label.offset_top = -20.0 # 居中对齐稍微往上拉一点
+	
+	hp_label.add_theme_font_size_override("font_size", 32)
+	hp_label.add_theme_color_override("font_color", Color(0.95, 0.35, 0.40, 1.0))
+	hp_label.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.05, 1.0))
+	hp_label.add_theme_constant_override("outline_size", 10)
+	
+	hp_label.text = str(int(GameData.current_hp)) + " / " + str(int(GameData.player_base_stats.get("max_hp", 100)))
 	
 	var visual_idx = GameData.current_playing_stage - 1
 	if GameData.is_endless_mode:
@@ -88,6 +107,9 @@ func _apply_hud_styles():
 func _on_hp_changed(current_hp: float, max_hp: float):
 	var ratio = clampf(current_hp / max_hp, 0.0, 1.0)
 	_update_tree_shape(ratio)
+	
+	if is_instance_valid(hp_label):
+		hp_label.text = str(int(current_hp)) + " / " + str(int(max_hp))
 
 # 👇 精准匹配 5 张图，并在形态改变时闪光 + 播放音效
 func _update_tree_shape(ratio: float):

@@ -1,5 +1,6 @@
 # EnemyAI.gd (基础敌人脚本)
-class_name EnemyBase extends CharacterBody2D
+extends CharacterBody2D
+class_name EnemyBase
 
 # ==========================================
 # 核心设计参数
@@ -285,12 +286,11 @@ func _clear_burn() -> void:
 		burn_particles.emitting = false
 		burn_particles.hide()
 
-func take_damage(dmg: float, attack_source_position: Vector2) -> void:
+func take_damage(dmg: float, attack_source_position: Vector2, knockback_force: float = 0.0) -> void:
 	if current_health <= 0:
 		return # 防止同一帧被多个判定框打中多次触发死亡
 		
 	current_health -= dmg
-	print("[Enemy] ", name, " 受到伤害: ", dmg, " | 剩余血量: ", current_health)
 	
 	# 简单的受击闪白光 Juice
 	anim.modulate = Color(10, 10, 10, 1) # 瞬间高亮
@@ -298,6 +298,11 @@ func take_damage(dmg: float, attack_source_position: Vector2) -> void:
 	
 	if current_health <= 0:
 		die(attack_source_position)
+	else:
+		if knockback_force > 0.0:
+			var kb_dir = (global_position - attack_source_position).normalized()
+			if kb_dir == Vector2.ZERO: kb_dir = Vector2.UP
+			velocity += kb_dir * knockback_force
 
 func die(attack_source_position: Vector2) -> void:
 	_clear_burn()
@@ -315,13 +320,44 @@ func play_death_animation(attack_source_position: Vector2) -> void:
 	if knockback_direction == Vector2.ZERO: knockback_direction = Vector2.UP
 	var knockback_distance = 400.0
 	var knockback_duration = 0.4
-	tween = create_tween()
-	tween.tween_property(self, "global_position", global_position + knockback_direction * knockback_distance, knockback_duration)\
+	tween = create_tween().set_parallel(true)
+	
+	# 让击飞方向永远是从大树往外弹！绝对不会往回飞！
+	var out_dir = Vector2.UP
+	if is_instance_valid(target_tree):
+		out_dir = (global_position - target_tree.global_position).normalized()
+	if out_dir == Vector2.ZERO: out_dir = Vector2.UP
+	
+	# 1. 强力击飞离场
+	tween.tween_property(self, "global_position", global_position + out_dir * 150.0, knockback_duration)\
 		.set_trans(Tween.TRANS_EXPO)\
 		.set_ease(Tween.EASE_OUT)
+		
+	# 2. 死亡翻滚
+	var random_spin = randf_range(-PI * 4.0, PI * 4.0)
+	tween.tween_property(anim, "rotation", random_spin, knockback_duration)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		
+	# 3. 瞬间爆亮（不要太大，防止刺眼）
+	anim.modulate = Color(8.0, 8.0, 8.0, 1.0)
+	tween.tween_property(anim, "modulate:a", 0.0, knockback_duration)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		
+	# 4. 根据原本自身的比例稍微放大后缩小，坚决不写死固定数值！
+	var base_scale = anim.scale
+	tween.tween_property(anim, "scale", base_scale * 1.3, knockback_duration * 0.3)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(anim, "scale", Vector2.ZERO, knockback_duration * 0.7)\
+		.set_delay(knockback_duration * 0.3)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	
-	# 使用 bind 完美替代 lambda，语法极简，绝不报错！
-	tween.tween_callback(PoolManager.return_enemy.bind(self))
+	# 重置属性的回调
+	var reset_func = func():
+		anim.rotation = 0.0
+		anim.scale = base_scale # 恢复他们各自原本的缩放率
+		PoolManager.return_enemy(self)
+		
+	tween.chain().tween_callback(reset_func)
 
 func suspend_combat() -> void:
 	if is_instance_valid(hit_box):

@@ -1,9 +1,13 @@
 [gd_scene format=3 uid="uid://roruq7mcl5tc"]
 
+[ext_resource type="Texture2D" uid="uid://b6dja4o1eu4ip" path="res://assets/sprites/effects/electric.png" id="1_5usww"]
+
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_pr637"]
 blend_mode = 1
 
 [node name="ChainLightning" type="Line2D" unique_id=1889464086]
 material = SubResource("CanvasItemMaterial_pr637")
-width = 8.0
-default_color = Color(0.9137255, 0.972549, 0.62352943, 1)
+width = 40.0
+default_color = Color(0.9503861, 0.9711091, 0.43726566, 1)
+texture = ExtResource("1_5usww")
+texture_mode = 1

@@ -122,7 +122,6 @@ scale = Vector2(-0.28, 0.255)
 texture = ExtResource("3_mb5r6")
 
 [node name="RootSprite4" type="Sprite2D" parent="treeroot" unique_id=1383649761]
-visible = false
 position = Vector2(0, -198)
 scale = Vector2(-0.33, 0.305)
 texture = ExtResource("4_5fpp0")
@@ -151,6 +150,7 @@ shape = SubResource("CapsuleShape2D_mwoif")
 metadata/_edit_group_ = true
 
 [node name="HeadSprite1" type="Sprite2D" parent="treehead" unique_id=187168219]
+visible = false
 position = Vector2(-5, -164)
 scale = Vector2(0.1920189, 0.15904239)
 texture = ExtResource("1_8y28y")
@@ -276,11 +276,11 @@ texture = SubResource("GradientTexture2D_ga87b")
 lifetime = 4.779999999999999
 process_material = SubResource("ParticleProcessMaterial_exg44")
 
-[node name="IceEnchantParticles2" type="GPUParticles2D" parent="." unique_id=379771699]
+[node name="IceEnchantParticles3" type="GPUParticles2D" parent="." unique_id=35800514]
 visible = false
 z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
-position = Vector2(-104, -332)
+position = Vector2(-187, -174)
 scale = Vector2(0.1, 0.1)
 amount = 5555
 amount_ratio = 0.2322
@@ -288,11 +288,11 @@ texture = SubResource("GradientTexture2D_ga87b")
 lifetime = 4.779999999999999
 process_material = SubResource("ParticleProcessMaterial_exg44")
 
-[node name="IceEnchantParticles3" type="GPUParticles2D" parent="." unique_id=35800514]
+[node name="IceEnchantParticles2" type="GPUParticles2D" parent="." unique_id=379771699]
 visible = false
 z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
-position = Vector2(-187, -174)
+position = Vector2(-104, -332)
 scale = Vector2(0.1, 0.1)
 amount = 5555
 amount_ratio = 0.2322

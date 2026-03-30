@@ -128,21 +128,23 @@ func _fire_lightning_field():
 	var linger_duration = effects.get("linger_duration", 2.5)
 	var linger_scale_ratio = effects.get("linger_scale_ratio", 0.85)
 	var cast_count = maxi(1, int(effects.get("cast_count", 1)))
-	var target_pos = tree_owner.global_position
 	var nearest = _get_nearest_target()
-	if is_instance_valid(nearest):
-		target_pos = nearest.global_position
-	else:
-		target_pos = _pick_random_land_point_around(tree_owner.global_position, min_range, max_range)
-	target_pos = _clamp_skill_target_to_land(target_pos, tree_owner.global_position, min_range, max_range)
-	for _i in range(cast_count):
-		var aim_pos = target_pos
-		if cast_count > 1:
-			aim_pos = _pick_random_land_point_around(target_pos, 20.0, 120.0)
+	var has_nearest = is_instance_valid(nearest)
+	
+	for i in range(cast_count):
+		var target_pos = tree_owner.global_position
+		
+		if i == 0 and has_nearest:
+			target_pos = nearest.global_position
+		else:
+			target_pos = _pick_random_land_point_around(tree_owner.global_position, min_range, max_range)
+			
+		target_pos = _clamp_skill_target_to_land(target_pos, tree_owner.global_position, min_range, max_range)
+		
 		var lightning_field = PoolManager.get_effect("lightning_field")
 		lightning_field.launch(
 			tree_owner.global_position,
-			aim_pos,
+			target_pos,
 			blast_radius,
 			final_damage,
 			{
@@ -260,6 +262,15 @@ func _cast_chain_lightning(start_node: Node2D, start_pos: Vector2, chain_damage:
 		
 	lightning_line.top_level = true
 	lightning_line.global_position = Vector2.ZERO
+	lightning_line.z_index = 100 # 强制置顶，防止在 PoolManager 里被 Main 背景遮盖！
+	lightning_line.z_as_relative = false
+	
+	# 非常关键：把这根线的透明度重置回 1.0，否则上次使用完它已经是全透明了！
+	# 去掉之前脚本里强压的 width = 10.0，这样你贴图在原本尺寸多粗就是多粗！
+	var current_mod = lightning_line.modulate
+	current_mod.a = 1.0
+	lightning_line.modulate = current_mod
+	
 	lightning_line.clear_points()
 	
 	for target in chain_targets:
@@ -269,9 +280,10 @@ func _cast_chain_lightning(start_node: Node2D, start_pos: Vector2, chain_damage:
 			if target != start_node and target.has_method("take_damage"):
 				target.take_damage(chain_damage, current_pos)
 				
-	lightning_line.modulate = Color(1.5, 1.5, 2.0, 1.0)
 	var tween = create_tween()
-	tween.tween_property(lightning_line, "modulate:a", 0.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	# 去掉了原来代码里强加的 Color(1.8, 1.8, 2.5, 1.0)，这会覆盖你贴图的本色！
+	# 把持续时间拉长一点到 0.35 秒，太快了人眼没注意
+	tween.tween_property(lightning_line, "modulate:a", 0.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(PoolManager.return_effect.bind(lightning_line, "lightning_enchant"))
 
 func _get_nearest_target_from(pos: Vector2, exclude_list: Array, max_dist: float) -> Node2D:
@@ -299,6 +311,8 @@ func _set_tree_fire_enchant_fx(enabled: bool, level: int = 0) -> void:
 		p.emitting = enabled
 		if enabled:
 			p.amount_ratio = minf(1.0, 0.3 + float(level) * 0.2)
+			# 恢复原始大小，移除人为的大幅度缩放
+			p.scale = Vector2(0.1, 0.1) # 根据节点原本真实的 scale 设置 （之前通过 inspect 发现它是 (0.1, 0.1)）
 
 func _set_tree_ice_enchant_fx(enabled: bool, level: int = 0) -> void:
 	var ice_nodes: Array = []
@@ -306,14 +320,26 @@ func _set_tree_ice_enchant_fx(enabled: bool, level: int = 0) -> void:
 	if root_node:
 		ice_nodes.append_array(root_node.find_children("IceEnchantParticles*", "GPUParticles2D", true, false))
 	ice_nodes.append_array(tree_owner.find_children("IceEnchantParticles*", "GPUParticles2D", true, false))
+	
+	var active_count = 0
+	if enabled:
+		active_count = 2             # 第 1 级激活前 2 个（对称）
+		if level >= 2: active_count = 3  # 第 2 级激活 3 个
+		if level >= 3: active_count = 4  # 第 3 级全开
+		
+	var index = 0
 	for node in ice_nodes:
 		if not (node is GPUParticles2D):
 			continue
 		var p = node as GPUParticles2D
-		p.visible = enabled
-		p.emitting = enabled
-		if enabled:
-			p.amount_ratio = minf(1.0, 0.25 + float(level) * 0.15)
+		var is_active = (index < active_count)
+		
+		p.visible = is_active
+		p.emitting = is_active
+		if is_active:
+			p.amount_ratio = 1.0 # 直接让它满功率喷射
+			
+		index += 1
 
 # ── 类别 C：基础属性被动提升 ────────────────────────────────────
 func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictionary):
@@ -378,8 +404,15 @@ func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictiona
 		if treehead and treehead.get("max_stretch_scale") != null:
 			var prev_stretch = float(prev_eff.get("stretch_scale_bonus", 0.0))
 			var next_stretch = float(new_eff.get("stretch_scale_bonus", 0.0))
-			treehead.max_stretch_scale += maxf(0.0, next_stretch - prev_stretch)
-			print("[SkillExecutor] 弹性树干生效！当前 max_stretch_scale: ", treehead.max_stretch_scale)
+			var diff = maxf(0.0, next_stretch - prev_stretch)
+			
+			treehead.max_stretch_scale += diff
+			
+			# 同步增加向上的弹性爆发距离（突刺延伸）
+			if "max_thrust_scale" in treehead:
+				treehead.max_thrust_scale += diff * 1.25 # 向上爆发的距离加成稍微给大一点
+				
+			print("[SkillExecutor] 韧皮生效！横扫上限: ", treehead.max_stretch_scale, " | 突刺上限: ", treehead.max_thrust_scale)
 
 # ── 工具函数 ──
 func _get_nearest_target() -> Node2D:

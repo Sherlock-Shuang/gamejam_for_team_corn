@@ -22,7 +22,7 @@ func _ready() -> void:
 			4: base_wave_interval = 50.0
 			_: base_wave_interval = 20.0
 	else:
-		base_wave_interval = 8.0 # 无尽模式：节奏快一点，8秒一波
+		base_wave_interval = 20.0 # 无尽模式：起步 20 秒
 		
 	timer.wait_time = base_wave_interval
 	timer.timeout.connect(_on_wave_timeout)
@@ -47,6 +47,20 @@ func _on_wave_timeout() -> void:
 	
 	if not GameData.is_endless_mode and current_wave >= MAX_WAVES_PER_STAGE:
 		return 
+		
+	if GameData.is_endless_mode:
+		var elapsed = 0.0
+		var main_node = get_tree().root.get_node_or_null("Main")
+		if main_node and "level_timer" in main_node:
+			elapsed = float(main_node.level_timer)
+			
+		if elapsed < 60.0:
+			base_wave_interval = 20.0
+		elif elapsed < 100.0:
+			base_wave_interval = 15.0
+		else:
+			base_wave_interval = 8.0
+		timer.wait_time = base_wave_interval
 		
 	current_wave += 1
 	GameData.current_wave = current_wave
