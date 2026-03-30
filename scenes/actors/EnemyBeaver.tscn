@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://duxbf1uclbto3"]
 
-[ext_resource type="Script" path="res://scripts/actors/BeaverAI.gd" id="1_bk3m8"]
+[ext_resource type="Script" uid="uid://cg21f4hne38ag" path="res://scripts/actors/BeaverAI.gd" id="1_bk3m8"]
 [ext_resource type="Texture2D" uid="uid://buwhbg2p2btcp" path="res://assets/sprites/enemies/beaver_4.png" id="2_l2t3b"]
 [ext_resource type="AudioStream" uid="uid://dkpjobwwp0v51" path="res://assets/audio/sfx/河狸死亡.wav" id="2_nl3yw"]
 [ext_resource type="Texture2D" uid="uid://dfjufobaf4f2p" path="res://assets/sprites/enemies/beaver_5.png" id="3_nl3yw"]
@@ -53,6 +53,95 @@ animations = [{
 "speed": 4.0
 }]
 
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_l2t3b"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_nl3yw"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_qqcos"]
+gradient = SubResource("Gradient_nl3yw")
+width = 50
+height = 50
+fill = 1
+fill_from = Vector2(0.50427353, 0.5320513)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_qewqu"]
+offsets = PackedFloat32Array(0, 0.025830258, 1)
+colors = PackedColorArray(0.9022896, 0.87825644, 0.338294, 1, 1, 0.12941177, 0.007843138, 1, 0.4627451, 0.08235294, 0.08627451, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_m6byr"]
+gradient = SubResource("Gradient_qewqu")
+
+[sub_resource type="Curve" id="Curve_68yk5"]
+_data = [Vector2(0.009230763, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.010498762), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_ba08a"]
+curve = SubResource("Curve_68yk5")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_qpwcr"]
+particle_flag_align_y = true
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(10, 10, 4)
+emission_shape = 3
+emission_box_extents = Vector3(10, 7, 10)
+inherit_velocity_ratio = 0.027
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 122.96
+initial_velocity_max = 241.04999
+gravity = Vector3(0, -90, 0)
+scale_min = 0.79999995
+scale_max = 0.79999995
+scale_curve = SubResource("CurveTexture_ba08a")
+color = Color(0.9843137, 0.7411765, 0.21176471, 0.5568628)
+color_ramp = SubResource("GradientTexture1D_m6byr")
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_nl3yw"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_uy2m4"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_qewqu"]
+gradient = SubResource("Gradient_uy2m4")
+width = 50
+height = 50
+fill = 1
+fill_from = Vector2(0.50427353, 0.5320513)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_m6byr"]
+offsets = PackedFloat32Array(0.011070111, 0.13653137, 1)
+colors = PackedColorArray(0.53333336, 0.9529412, 0.9529412, 1, 0.03529412, 0.49411765, 0.98039216, 1, 0.09803922, 0.101960786, 0.9019608, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ga87b"]
+gradient = SubResource("Gradient_m6byr")
+
+[sub_resource type="Curve" id="Curve_ba08a"]
+_data = [Vector2(0.009230763, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.010498762), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_7id32"]
+curve = SubResource("Curve_ba08a")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_4rca4"]
+particle_flag_align_y = true
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(7, 7, 7)
+emission_shape = 3
+emission_box_extents = Vector3(30, 30, 30)
+inherit_velocity_ratio = 0.027
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 122.96
+initial_velocity_max = 241.04999
+gravity = Vector3(0, -3, 0)
+scale_max = 1.5999999
+scale_curve = SubResource("CurveTexture_7id32")
+color = Color(0.14901961, 0.20392157, 0.972549, 0.2784314)
+color_ramp = SubResource("GradientTexture1D_ga87b")
+
 [node name="EnemyBeaver" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
 collision_layer = 2
 collision_mask = 38
@@ -89,3 +178,26 @@ sprite_frames = SubResource("SpriteFrames_dqsgq")
 animation = &"attack"
 autoplay = "walk"
 frame_progress = 0.41860557
+
+[node name="BurnParticles" type="GPUParticles2D" parent="." unique_id=631902301]
+visible = false
+z_index = -1
+material = SubResource("CanvasItemMaterial_l2t3b")
+position = Vector2(1.1920929e-07, 19.999985)
+scale = Vector2(0.2, 0.2)
+amount = 5555
+amount_ratio = 0.2322
+texture = SubResource("GradientTexture2D_qqcos")
+lifetime = 4.1
+process_material = SubResource("ParticleProcessMaterial_qpwcr")
+
+[node name="IceEnchantParticles" type="GPUParticles2D" parent="." unique_id=291558002]
+z_index = -1
+material = SubResource("CanvasItemMaterial_nl3yw")
+position = Vector2(0.39999998, 15.599983)
+scale = Vector2(0.020000001, 0.020000001)
+amount = 5555
+amount_ratio = 0.2322
+texture = SubResource("GradientTexture2D_qewqu")
+lifetime = 4.779999999999999
+process_material = SubResource("ParticleProcessMaterial_4rca4")

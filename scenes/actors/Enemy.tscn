@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://cudywwjaqniou"]
+[gd_scene format=3 uid="uid://cc716y1edjje7"]
 
 [ext_resource type="Script" uid="uid://cwtrqm1e1jukb" path="res://scripts/actors/EnemyAI.gd" id="1_jq30h"]
 
@@ -10,6 +10,51 @@ radius = 29.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
 size = Vector2(44, 44)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_jq30h"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_ouenp"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ay0ne"]
+gradient = SubResource("Gradient_ouenp")
+width = 50
+height = 50
+fill = 1
+fill_from = Vector2(0.50427353, 0.5320513)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_ktxhy"]
+offsets = PackedFloat32Array(0, 0.025830258, 1)
+colors = PackedColorArray(0.9022896, 0.87825644, 0.338294, 1, 1, 0.12941177, 0.007843138, 1, 0.4627451, 0.08235294, 0.08627451, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ouenp"]
+gradient = SubResource("Gradient_ktxhy")
+
+[sub_resource type="Curve" id="Curve_qqu5c"]
+_data = [Vector2(0.009230763, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.010498762), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_5du0u"]
+curve = SubResource("Curve_qqu5c")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dqsgq"]
+particle_flag_align_y = true
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(10, 10, 4)
+emission_shape = 3
+emission_box_extents = Vector3(10, 7, 10)
+inherit_velocity_ratio = 0.027
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 122.96
+initial_velocity_max = 241.04999
+gravity = Vector3(0, -90, 0)
+scale_min = 0.79999995
+scale_max = 0.79999995
+scale_curve = SubResource("CurveTexture_5du0u")
+color = Color(0.9843137, 0.7411765, 0.21176471, 0.5568628)
+color_ramp = SubResource("GradientTexture1D_ouenp")
 
 [node name="Enemy" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
 collision_layer = 2
@@ -38,3 +83,15 @@ collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="hurtbox" unique_id=1426947378]
 shape = SubResource("RectangleShape2D_jq30h")
+
+[node name="BurnParticles" type="GPUParticles2D" parent="." unique_id=786029203]
+visible = false
+z_index = -1
+material = SubResource("CanvasItemMaterial_jq30h")
+position = Vector2(1.1920929e-07, 19.999985)
+scale = Vector2(0.2, 0.2)
+amount = 5555
+amount_ratio = 0.2322
+texture = SubResource("GradientTexture2D_ay0ne")
+lifetime = 4.1
+process_material = SubResource("ParticleProcessMaterial_dqsgq")

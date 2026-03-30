@@ -1,21 +1,20 @@
-[gd_scene format=3 uid="uid://be2lw7mwo1ao1"]
+[gd_scene format=3 uid="uid://b12c6l8rvlvk5"]
 
-[ext_resource type="Script" uid="uid://cg21f4hne38ag" path="res://scripts/actors/BeaverAI.gd" id="1_jgis7"]
-[ext_resource type="AudioStream" uid="uid://g54hhlt7ot3" path="res://assets/audio/sfx/伐木工死亡.wav" id="2_2aevl"]
-[ext_resource type="Texture2D" uid="uid://dkbl4tmbxspia" path="res://assets/sprites/enemies/光头强3.png" id="2_jgis7"]
-[ext_resource type="Texture2D" uid="uid://c3ckcwa314gdo" path="res://assets/sprites/enemies/光头强4.png" id="3_2aevl"]
-[ext_resource type="Texture2D" uid="uid://ciw18qgeu0wox" path="res://assets/sprites/enemies/光头强5.png" id="4_hy6wf"]
-[ext_resource type="Texture2D" uid="uid://cydtqtxd3by3" path="res://assets/sprites/enemies/光头强1.png" id="5_p34vq"]
-[ext_resource type="Texture2D" uid="uid://ckpta3dpd4dgs" path="res://assets/sprites/enemies/光头强2.png" id="6_s6omx"]
+[ext_resource type="Script" uid="uid://cg21f4hne38ag" path="res://scripts/actors/BeaverAI.gd" id="1_hfj5y"]
+[ext_resource type="AudioStream" uid="uid://g54hhlt7ot3" path="res://assets/audio/sfx/伐木工死亡.wav" id="2_qok5a"]
+[ext_resource type="Texture2D" uid="uid://cl4whsj4nclo3" path="res://assets/sprites/enemies/machine_2.png" id="3_c1ltr"]
+[ext_resource type="Texture2D" uid="uid://2c8f020ql75j" path="res://assets/sprites/enemies/machine_4.png" id="4_hfj5y"]
+[ext_resource type="Texture2D" uid="uid://ckrypxjl0s7fp" path="res://assets/sprites/enemies/machine_3.png" id="5_qok5a"]
+[ext_resource type="Texture2D" uid="uid://dljtml5oe1usj" path="res://assets/sprites/enemies/machine_1.png" id="6_xk0er"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_4i4j6"]
-radius = 67.357254
+radius = 111.53722
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ay0ne"]
-radius = 76.1643
+radius = 110.95613
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_68yk5"]
-radius = 17.916048
+radius = 24.775557
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
 size = Vector2(83.230606, 81.15287)
@@ -24,13 +23,13 @@ size = Vector2(83.230606, 81.15287)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_jgis7")
+"texture": ExtResource("3_c1ltr")
 }, {
 "duration": 1.0,
-"texture": ExtResource("3_2aevl")
+"texture": ExtResource("4_hfj5y")
 }, {
 "duration": 1.0,
-"texture": ExtResource("4_hy6wf")
+"texture": ExtResource("5_qok5a")
 }],
 "loop": true,
 "name": &"attack",
@@ -43,14 +42,14 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("5_p34vq")
+"texture": ExtResource("6_xk0er")
 }, {
 "duration": 1.0,
-"texture": ExtResource("6_s6omx")
+"texture": ExtResource("3_c1ltr")
 }],
 "loop": true,
 "name": &"walk",
-"speed": 4.0
+"speed": 5.0
 }]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_2aevl"]
@@ -142,15 +141,15 @@ scale_curve = SubResource("CurveTexture_fblfl")
 color = Color(0.14901961, 0.20392157, 0.972549, 0.2784314)
 color_ramp = SubResource("GradientTexture1D_6jlco")
 
-[node name="EnemyBeaver" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
+[node name="EnemyMachine" type="CharacterBody2D" unique_id=1243736495 groups=["Enemy"]]
 collision_layer = 2
 collision_mask = 38
 motion_mode = 1
-script = ExtResource("1_jgis7")
-"死亡惨叫_sfx" = ExtResource("2_2aevl")
+script = ExtResource("1_hfj5y")
+"死亡惨叫_sfx" = ExtResource("2_qok5a")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1403090462]
-scale = Vector2(1.0799973, 1)
+scale = Vector2(1.1688261, 1.2124597)
 shape = SubResource("CircleShape2D_4i4j6")
 
 [node name="SeparationArea" type="Area2D" parent="." unique_id=2039210838]
@@ -174,15 +173,16 @@ collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1426947378]
 position = Vector2(-0.5751226, -3.278832)
-scale = Vector2(1.3286176, 1.3109652)
+scale = Vector2(2.169161, 1.852943)
 shape = SubResource("RectangleShape2D_jq30h")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=263200]
-position = Vector2(7.0000005, -7)
-scale = Vector2(0.23993051, 0.23926114)
+position = Vector2(-5.9999995, -2)
+scale = Vector2(0.35099882, 0.39480647)
 sprite_frames = SubResource("SpriteFrames_dqsgq")
-animation = &"walk"
+animation = &"attack"
 autoplay = "walk"
+frame_progress = 0.62092435
 
 [node name="BurnParticles" type="GPUParticles2D" parent="." unique_id=584326918]
 visible = false

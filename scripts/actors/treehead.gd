@@ -341,7 +341,8 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 			
 			# 参数说明: (音频文件, 音量微调, 开启随机音调, 同屏最多允许同时播 3 个)
 			
-			enemy_body.take_damage(final_damage, global_position) 
+			enemy_body.take_damage(final_damage, global_position)
+			SignalBus.on_enemy_hit.emit(final_damage, enemy_body.global_position, enemy_body)
 			trigger_hit_stop()
 
 func trigger_hit_stop() -> void:

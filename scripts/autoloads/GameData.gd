@@ -153,9 +153,9 @@ var skill_pool: Dictionary = {
 		"max_level": 3,
 		"effects": {"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.4, "linger_scale_ratio": 0.06, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.12},
 		"level_effects": [
-			{"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.1, "linger_scale_ratio": 0.025, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.12},
-			{"explosion_damage": 34, "radius": 360.0, "interval": 2.2, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.46, "linger_duration": 0.14, "linger_scale_ratio": 0.030, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.1},
-			{"explosion_damage": 48, "radius": 420.0, "interval": 1.8, "cast_count": 3, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.48, "linger_duration": 0.2, "linger_scale_ratio": 0.033, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.08}
+			{"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.1, "linger_scale_ratio": 0.025, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.2},
+			{"explosion_damage": 34, "radius": 400.0, "interval": 2.2, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.46, "linger_duration": 0.14, "linger_scale_ratio": 0.030, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.18},
+			{"explosion_damage": 48, "radius": 500.0, "interval": 2.5, "cast_count": 3, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.48, "linger_duration": 0.2, "linger_scale_ratio": 0.027, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.15}
 		],
 		"upgrade_routes": [
 			{"id": "radius_up", "title": "电场扩容", "description": "判定半径提升", "effects": {"radius": 45.0}},
@@ -207,11 +207,11 @@ var skill_pool: Dictionary = {
 		"description": "攻击附带火焰，使敌人持续燃烧3秒。",
 		"icon": "",
 		"max_level": 3,
-		"effects": {"burn_dps": 4, "burn_duration": 3.0},
+		"effects": {"burn_dps": 4, "burn_duration": 3.0, "burn_interval": 0.4, "burn_tick_damage": 5.0},
 		"level_effects": [
-			{"burn_dps": 4, "burn_duration": 3.0},
-			{"burn_dps": 6, "burn_duration": 3.5},
-			{"burn_dps": 9, "burn_duration": 4.0}
+			{"burn_dps": 4, "burn_duration": 3.0, "burn_interval": 0.4, "burn_tick_damage": 5.0},
+			{"burn_dps": 6, "burn_duration": 3.5, "burn_interval": 0.4, "burn_tick_damage": 7.0},
+			{"burn_dps": 9, "burn_duration": 4.0, "burn_interval": 0.4, "burn_tick_damage": 9.0}
 		]
 	},
 	"ice_enchant": {
@@ -293,9 +293,9 @@ var skill_pool: Dictionary = {
 		"max_level": 3,
 		"effects": {"stretch_scale_bonus": 0.5},
 		"level_effects": [
-			{"stretch_scale_bonus": 0.5},
-			{"stretch_scale_bonus": 1.0},
-			{"stretch_scale_bonus": 1.5}
+			{"stretch_scale_bonus": 0.7},
+			{"stretch_scale_bonus": 1.4},
+			{"stretch_scale_bonus": 2.1}
 		]
 	},
 	"photosynthesis": {
@@ -320,21 +320,21 @@ var skill_pool: Dictionary = {
 var enemy_stats: Dictionary = {
 	# 第一阶段：自然虫害
 	"beetle": {
-		"name": "甲虫", "hp": 15, "speed": 110.0, "damage": 3.0,
+		"name": "甲虫", "hp": 15, "speed": 150.0, "damage": 3.0,
 		"exp_drop": 1.0, "phase": 1
 	},
 	# 第二阶段：哺乳动物
 	"beaver": {
-		"name": "河狸", "hp": 60, "speed": 60.0, "damage": 8.0,
+		"name": "河狸", "hp": 60, "speed": 80.0, "damage": 8.0,
 		"exp_drop": 3.0, "phase": 2
 	},
 	# 第三阶段：人类
 	"lumberjack": {
-		"name": "伐木工", "hp": 150, "speed": 70.0, "damage": 12.0,
+		"name": "伐木工", "hp": 150, "speed": 80.0, "damage": 12.0,
 		"exp_drop": 5.0, "phase": 3
 	},
 	"mech_boss": {
-		"name": "伐木机甲", "hp": 400, "speed": 50.0, "damage": 25.0,
+		"name": "伐木机甲", "hp": 400, "speed": 60.0, "damage": 25.0,
 		"exp_drop": 50.0, "phase": 3
 	},
 }

@@ -30,18 +30,18 @@ colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_ga87b"]
 gradient = SubResource("Gradient_ouenp")
-width = 45
-height = 45
+width = 50
+height = 50
 fill = 1
-fill_from = Vector2(0.5, 0.5)
+fill_from = Vector2(0.50427353, 0.5320513)
 fill_to = Vector2(1, 0.5)
 
-[sub_resource type="Gradient" id="Gradient_exg44"]
-offsets = PackedFloat32Array(0, 0.35424355, 1)
-colors = PackedColorArray(0.9022896, 0.87825644, 0.338294, 1, 1, 0.24313726, 0.105882354, 1, 0.4627451, 0.08235294, 0.08627451, 0)
+[sub_resource type="Gradient" id="Gradient_ga87b"]
+offsets = PackedFloat32Array(0.003690037, 0.13653137, 1)
+colors = PackedColorArray(0.99215686, 0.88235295, 0, 1, 0.93333334, 0.14901961, 0, 1, 0.5019608, 0, 0.007843138, 0)
 
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_ouenp"]
-gradient = SubResource("Gradient_exg44")
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_5du0u"]
+gradient = SubResource("Gradient_ga87b")
 
 [sub_resource type="Curve" id="Curve_ga87b"]
 _data = [Vector2(0.009230763, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.010498762), 0.0, 0.0, 0, 0]
@@ -50,23 +50,47 @@ point_count = 2
 [sub_resource type="CurveTexture" id="CurveTexture_5du0u"]
 curve = SubResource("Curve_ga87b")
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_exg44"]
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_qd0j6"]
+particle_flag_align_y = true
 particle_flag_disable_z = true
+emission_shape_scale = Vector3(10, 10, 4)
 emission_shape = 3
-emission_box_extents = Vector3(20, 20, 20)
+emission_box_extents = Vector3(30, 30, 30)
 inherit_velocity_ratio = 0.027
 direction = Vector3(0, -1, 0)
-initial_velocity_min = 68.59
-initial_velocity_max = 90.0
+initial_velocity_min = 122.96
+initial_velocity_max = 241.04999
 gravity = Vector3(0, -98, 0)
-scale_min = 3.0
-scale_max = 3.0
+scale_max = 1.5999999
 scale_curve = SubResource("CurveTexture_5du0u")
-color = Color(0.9607843, 0.5568628, 0.28235295, 1)
-color_ramp = SubResource("GradientTexture1D_ouenp")
+color = Color(0.9843137, 0.8, 0.019607844, 0.2784314)
+color_ramp = SubResource("GradientTexture1D_5du0u")
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_63up5"]
 radius = 20.604177
+
+[sub_resource type="Gradient" id="Gradient_exg44"]
+offsets = PackedFloat32Array(0.003690037, 0.13653137, 1)
+colors = PackedColorArray(0.99215686, 0.88235295, 0, 1, 0.03529412, 0.5137255, 0.9254902, 1, 0.09803922, 0.101960786, 0.9019608, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ga87b"]
+gradient = SubResource("Gradient_exg44")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_exg44"]
+particle_flag_align_y = true
+particle_flag_disable_z = true
+emission_shape_scale = Vector3(4, 4, 4)
+emission_shape = 3
+emission_box_extents = Vector3(30, 30, 30)
+inherit_velocity_ratio = 0.027
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 122.96
+initial_velocity_max = 241.04999
+gravity = Vector3(0, -10, 0)
+scale_max = 1.5999999
+scale_curve = SubResource("CurveTexture_5du0u")
+color = Color(0.14901961, 0.23529412, 0.972549, 0.2784314)
+color_ramp = SubResource("GradientTexture1D_ga87b")
 
 [node name="tree" type="Node2D" unique_id=850654834 groups=["Tree"]]
 script = ExtResource("1_63up5")
@@ -127,12 +151,12 @@ shape = SubResource("CapsuleShape2D_mwoif")
 metadata/_edit_group_ = true
 
 [node name="HeadSprite1" type="Sprite2D" parent="treehead" unique_id=187168219]
-visible = false
 position = Vector2(-5, -164)
 scale = Vector2(0.1920189, 0.15904239)
 texture = ExtResource("1_8y28y")
 
 [node name="HeadSprite2" type="Sprite2D" parent="treehead" unique_id=1434424522]
+visible = false
 position = Vector2(-3, -161.00002)
 scale = Vector2(0.23, 0.191)
 texture = ExtResource("7_ffmh2")
@@ -144,10 +168,10 @@ scale = Vector2(0.3, 0.3)
 texture = ExtResource("8_63up5")
 
 [node name="HeadSprite4" type="Sprite2D" parent="treehead" unique_id=1492413980]
-visible = false
-position = Vector2(-9, -255)
+position = Vector2(-0.99999994, -201)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("9_h4xil")
+offset = Vector2(0, -150)
 
 [node name="hitbox" type="Area2D" parent="treehead" unique_id=1376484867]
 collision_layer = 4
@@ -185,15 +209,15 @@ stream = ExtResource("12_mpiro")
 
 [node name="FireEnchantParticles" type="GPUParticles2D" parent="treehead" unique_id=1415579518]
 visible = false
-z_index = 8
+z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
-position = Vector2(41, -100)
+position = Vector2(1.0000007, -206)
 scale = Vector2(0.1, 0.1)
-amount = 30
+amount = 5555
 amount_ratio = 0.2322
 texture = SubResource("GradientTexture2D_ga87b")
-lifetime = 0.2
-process_material = SubResource("ParticleProcessMaterial_exg44")
+lifetime = 4.779999999999999
+process_material = SubResource("ParticleProcessMaterial_qd0j6")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=288142139]
 offset = Vector2(0, -200)
@@ -239,5 +263,53 @@ position = Vector2(3, -178)
 scale = Vector2(6.437018, 7.0925484)
 shape = SubResource("CircleShape2D_63up5")
 disabled = true
+
+[node name="IceEnchantParticles" type="GPUParticles2D" parent="." unique_id=2070681627]
+visible = false
+z_index = -2
+material = SubResource("CanvasItemMaterial_exg44")
+position = Vector2(186.99997, -175)
+scale = Vector2(0.1, 0.1)
+amount = 5555
+amount_ratio = 0.2322
+texture = SubResource("GradientTexture2D_ga87b")
+lifetime = 4.779999999999999
+process_material = SubResource("ParticleProcessMaterial_exg44")
+
+[node name="IceEnchantParticles2" type="GPUParticles2D" parent="." unique_id=379771699]
+visible = false
+z_index = -2
+material = SubResource("CanvasItemMaterial_exg44")
+position = Vector2(-104, -332)
+scale = Vector2(0.1, 0.1)
+amount = 5555
+amount_ratio = 0.2322
+texture = SubResource("GradientTexture2D_ga87b")
+lifetime = 4.779999999999999
+process_material = SubResource("ParticleProcessMaterial_exg44")
+
+[node name="IceEnchantParticles3" type="GPUParticles2D" parent="." unique_id=35800514]
+visible = false
+z_index = -2
+material = SubResource("CanvasItemMaterial_exg44")
+position = Vector2(-187, -174)
+scale = Vector2(0.1, 0.1)
+amount = 5555
+amount_ratio = 0.2322
+texture = SubResource("GradientTexture2D_ga87b")
+lifetime = 4.779999999999999
+process_material = SubResource("ParticleProcessMaterial_exg44")
+
+[node name="IceEnchantParticles4" type="GPUParticles2D" parent="." unique_id=323760329]
+visible = false
+z_index = -2
+material = SubResource("CanvasItemMaterial_exg44")
+position = Vector2(128, -329)
+scale = Vector2(0.1, 0.1)
+amount = 5555
+amount_ratio = 0.2322
+texture = SubResource("GradientTexture2D_ga87b")
+lifetime = 4.779999999999999
+process_material = SubResource("ParticleProcessMaterial_exg44")
 
 [connection signal="area_entered" from="treehead/hitbox" to="treehead" method="_on_hitbox_area_entered"]

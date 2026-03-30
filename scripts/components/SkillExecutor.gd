@@ -14,6 +14,8 @@ func _ready():
 	print("[SkillExecutor] 技能引擎已加载，开始监听天命总线...")
 	SignalBus.on_upgrade_selected.connect(_on_skill_unlocked)
 	SignalBus.on_enemy_hit.connect(_on_enemy_hit)
+	_set_tree_fire_enchant_fx(false, 0)
+	_set_tree_ice_enchant_fx(false, 0)
 
 func _on_skill_unlocked(skill_id: String):
 	var payload = GameData.decode_upgrade_payload(skill_id)
@@ -32,6 +34,10 @@ func _on_skill_unlocked(skill_id: String):
 	active_skill_levels[real_skill_id] = new_level
 	active_skills[real_skill_id] = data
 	SignalBus.on_skill_actived.emit(real_skill_id)
+	if real_skill_id == "fire_enchant":
+		_set_tree_fire_enchant_fx(true, new_level)
+	if real_skill_id == "ice_enchant":
+		_set_tree_ice_enchant_fx(true, new_level)
 
 	var category = data["category"]
 	if category == "衍生攻击":
@@ -248,11 +254,48 @@ func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D):
 	if active_skills.has("ice_enchant"):
 		var fx = _get_skill_effects("ice_enchant")
 		if enemy_node and enemy_node.has_method("apply_slow"):
-			enemy_node.apply_slow(fx["slow_percent"], fx["slow_duration"])
+			var slow_ratio = 0.3
+			if fx.has("slow_percent"):
+				slow_ratio = maxf(0.3, float(fx["slow_percent"]))
+			enemy_node.apply_slow(slow_ratio, float(fx.get("slow_duration", 2.0)))
 			
 	if active_skills.has("fire_enchant"):
-		# 点燃逻辑... 同理
-		pass
+		var fx_fire = _get_skill_effects("fire_enchant")
+		var burn_interval = float(fx_fire.get("burn_interval", 0.4))
+		var burn_tick_damage = float(fx_fire.get("burn_tick_damage", 5.0))
+		if not fx_fire.has("burn_tick_damage"):
+			burn_tick_damage = float(fx_fire.get("burn_dps", 4.0)) * burn_interval
+		var burn_duration = float(fx_fire.get("burn_duration", 3.0))
+		if enemy_node and enemy_node.has_method("apply_burn"):
+			enemy_node.apply_burn(burn_tick_damage, burn_interval, burn_duration)
+
+func _set_tree_fire_enchant_fx(enabled: bool, level: int = 0) -> void:
+	var particles = tree_owner.get_node_or_null("treehead/FireEnchantParticles")
+	if particles == null:
+		particles = tree_owner.find_child("FireEnchantParticles", true, false)
+	if particles and particles is GPUParticles2D:
+		var p = particles as GPUParticles2D
+		p.z_as_relative = false
+		p.z_index = -2
+		p.visible = enabled
+		p.emitting = enabled
+		if enabled:
+			p.amount_ratio = minf(1.0, 0.3 + float(level) * 0.2)
+
+func _set_tree_ice_enchant_fx(enabled: bool, level: int = 0) -> void:
+	var ice_nodes: Array = []
+	var root_node = tree_owner.get_node_or_null("treehead")
+	if root_node:
+		ice_nodes.append_array(root_node.find_children("IceEnchantParticles*", "GPUParticles2D", true, false))
+	ice_nodes.append_array(tree_owner.find_children("IceEnchantParticles*", "GPUParticles2D", true, false))
+	for node in ice_nodes:
+		if not (node is GPUParticles2D):
+			continue
+		var p = node as GPUParticles2D
+		p.visible = enabled
+		p.emitting = enabled
+		if enabled:
+			p.amount_ratio = minf(1.0, 0.25 + float(level) * 0.15)
 
 # ── 类别 C：基础属性被动提升 ────────────────────────────────────
 func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictionary):
