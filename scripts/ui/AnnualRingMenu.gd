@@ -49,16 +49,27 @@ const SKILL_ICONS = {
 	"thorn_shot": "res://assets/sprites/effects/毒刺.png",
 	"exploding_fruit": "res://assets/sprites/effects/爆炸果.png",
 	"lightning_field": "res://assets/sprites/effects/flash1.png",
-	"vine_spread": "res://assets/sprites/effects/vine.png",
+	"vine_spread": "res://assets/sprites/effects/4rattan.png",
 	"seed_bomb": "res://assets/sprites/effects/种子.png",
-	"fire_enchant": "res://assets/sprites/effects/4fruits.png", # 权宜方案：使用水果包
-	"ice_enchant": "res://assets/sprites/effects/flash3.png", # 权宜方案：蓝色闪电
-	"lightning_enchant": "res://assets/sprites/effects/flash2.png",
-	"thick_bark": "res://assets/sprites/trees/1h.png", # 权宜方案：使用树皮纹理
-	"deep_roots": "res://assets/sprites/trees/vine.png",
+	"fire_enchant": "res://assets/sprites/effects/4fruits.png", 
+	"ice_enchant": "res://assets/sprites/effects/flash3.png", 
+	"lightning_enchant": "res://assets/sprites/effects/electric.png", # 区分于球状闪电
+	"thick_bark": "res://assets/sprites/trees/1h.png",
+	"deep_roots": "res://assets/sprites/effects/4rattan.png", # 使用藤蔓图标
 	"wide_canopy": "res://assets/sprites/trees/1l.png",
 	"elastic_trunk": "res://assets/sprites/trees/2h.png",
 	"photosynthesis": "res://assets/sprites/effects/shade.png"
+}
+
+# 针对某些“太小”的图标进行特异性缩放增强
+const SKILL_SCALES = {
+	"lightning_field": 1.5,   # 紫色球状闪电，用户反馈太小，放大
+	"photosynthesis": 1.4,    # 可能是另一个紫色图标
+	"lightning_enchant": 1.2,
+	"fire_enchant": 1.4,
+	"ice_enchant": 1.4,
+	"vine_spread": 1.3,
+	"deep_roots": 1.3
 }
 
 func _ready():
@@ -364,7 +375,6 @@ func _input(event):
 			GameData.skill_history_per_stage.clear()
 			GameData.save_game()
 			_update_layer_visibility()
-			_render_skill_history()
 			
 		# U 键：一键解锁全图及无尽模式
 		elif event.keycode == KEY_U:

@@ -13,8 +13,11 @@
 [ext_resource type="Texture2D" uid="uid://dhe8arn3aamab" path="res://assets/sprites/effects/glass3.png" id="7_kjvhd"]
 [ext_resource type="Texture2D" uid="uid://c0c6rhfbllsli" path="res://assets/sprites/background/背景3.png" id="8_03owx"]
 [ext_resource type="Texture2D" uid="uid://fsmqkx5t8e6w" path="res://assets/sprites/effects/glass4.png" id="8_5tuhn"]
-[ext_resource type="Script" path="res://scripts/ui/river_boundary.gd" id="9_03owx"]
+[ext_resource type="Script" uid="uid://dri7d5wu6dy2q" path="res://scripts/ui/river_boundary.gd" id="9_03owx"]
 [ext_resource type="PackedScene" uid="uid://d2xiorp3ppo0y" path="res://scenes/ui/Ripple.tscn" id="10_wkp8b"]
+[ext_resource type="PackedScene" uid="uid://ceklp4xv5r7d7" path="res://scenes/ui/SkillNotification.tscn" id="10_skill"]
+[ext_resource type="PackedScene" uid="uid://dd82ci0r7stpt" path="res://scenes/ui/TutorialUI.tscn" id="11_tut"]
+[ext_resource type="PackedScene" uid="uid://bvncys4wohesx" path="res://scenes/ui/SkillPersistenceUI.tscn" id="12_persist"]
 
 [node name="Main" type="Node" unique_id=2125892693]
 script = ExtResource("1_main")
@@ -61,3 +64,14 @@ ripple_scene = ExtResource("10_wkp8b")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RiverBoundary" unique_id=343594245]
 polygon = PackedVector2Array(-354.12, 108.56, -114.7, 126.54, 75.3, 220.4, 264.05, 234.38, 362.8, 290.28, 469.05, 346.17, 601.55, 349.17, 742.8, 347.17, 867.8, 321.22, 1017.8, 324.21, 1144.05, 306.24, 1275.3, 255.33, 1330.3, 232.37, 1450.3, 279.28, 1525.3, 261.31, 1499.05, 216.39, 1569.05, 205.41, 1652.8, 142.52, 1725.3, 100.59, 1819.05, 131.54, 1927.8, 112.58, 1981.55, 72.65, 2064.05, 42.69, 2136.55, -19.23, 2269.05, 26.69, 2350.3, 1.74, 2845.3, 710.22, 1912.8, 1659.18, -1107.05, 2285.326, -1612.05, 1495.9238)
+[node name="SkillLayer" type="CanvasLayer" parent="." unique_id=2000]
+layer = 10
+
+[node name="SkillNotification" parent="SkillLayer" instance=ExtResource("10_skill")]
+
+[node name="SkillPersistenceUI" parent="SkillLayer" instance=ExtResource("12_persist")]
+
+[node name="TutorialLayer" type="CanvasLayer" parent="." unique_id=2001]
+layer = 20
+
+[node name="TutorialUI" parent="TutorialLayer" instance=ExtResource("11_tut")]
