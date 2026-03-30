@@ -341,6 +341,7 @@ func _play_true_ending_cinematic():
 	final_tw.tween_property(end_label, "modulate:a", 1.0, 2.0)
 	
 	await get_tree().create_timer(5.0).timeout
+	GameData.just_finished_final_stage = true # 标记为刚刚通关，触发时钟倒流视觉动画
 	get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
 
 func _show_level_clear_popup(is_final: bool):

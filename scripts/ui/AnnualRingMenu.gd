@@ -21,6 +21,13 @@ var time_elapsed: float = 0.0
 	4: $RingContainer/Layer4
 }
 
+# 旋转控速 (改为独立变量，确保 Tween 路径解析 100% 成功)
+var rot_speed_1: float = 0.0
+var rot_speed_2: float = 0.0
+var rot_speed_3: float = 0.0
+var rot_speed_4: float = 0.0
+var endless_rot_speed: float = 0.0
+
 # 纹理池 (对应 .tscn 中的 ExtResource ID)
 var textures_small = {}
 var textures_big = {}
@@ -78,13 +85,30 @@ func _ready():
 	# 初始化显示状态 (锁定即隐藏)
 	_update_layer_visibility()
 	
-	# 确保容器状态
+	# 确保容器状态与层中心对齐
 	ring_container.scale = Vector2(1.3, 1.3)
+	for layer in layers.values():
+		layer.position = Vector2.ZERO
+		layer.centered = true
 	
 	_update_positions()
 	
 	# 渲染历史技能效果
 	_render_skill_history()
+	
+	# 如果已经通关解锁了无尽模式，根据状态决定是“瞬间满速”还是“觉醒启动”
+	if GameData.is_endless_unlocked:
+		if GameData.just_finished_final_stage:
+			# 刚看完结局回来：禁止交互，播放启动动画，全转起来后 3s 进真结局森林场景
+			_start_mystic_rotation_sequence()
+			_perform_final_scene_transition()
+		else:
+			# 平时进来：已经是转动状态，允许正常交互
+			rot_speed_1 = 0.35
+			rot_speed_2 = 0.25
+			rot_speed_3 = 0.18
+			rot_speed_4 = 0.12
+			endless_rot_speed = -1.0
 
 func _render_skill_history():
 	# 技能渲染容器
@@ -101,14 +125,17 @@ func _render_skill_history():
 		var skills = GameData.skill_history_per_stage.get(stage_id, [])
 		if skills.is_empty(): continue
 		
-		# 每个年轮的放置半径 (取层半径区间的 50% 处，正中心)
+		var layer_node = layers.get(stage_id)
+		if not layer_node: continue
+		
+		# 每个年轮的放置半径
 		var inner_r = 0.0
 		if stage_id == 1: inner_r = BASE_RADII["ENDLESS"]
 		else: inner_r = BASE_RADII[stage_id - 1]
 		var outer_r = BASE_RADII[stage_id]
 		var radius = inner_r + (outer_r - inner_r) * 0.5
 		
-		_draw_skills_on_circle(overlay, skills, radius, stage_id)
+		_draw_skills_on_circle(layer_node, skills, radius, stage_id)
 
 func _draw_skills_on_circle(parent: Node2D, skills: Array, radius: float, stage_id: int):
 	var count = skills.size()
@@ -144,10 +171,30 @@ func _process(delta):
 	time_elapsed += delta
 	_update_positions()
 	
+	# 如果是真结局剧情演绎期间，强制清空悬停状态并加速旋转
+	if GameData.just_finished_final_stage:
+		_on_hover_changed(-1)
+		_apply_rotations(delta)
+		return
+		
+	_apply_rotations(delta)
+	
 	# 副标题呼吸动效
 	if subtitle:
 		var alpha = (sin(time_elapsed * 2.0) + 1.0) / 2.0 * 0.4 + 0.3 # 保持浅色基调
-		subtitle.modulate.a = alpha
+		if GameData.just_finished_final_stage:
+			subtitle.text = "【 宿命流转：遗落的森林正在重现... 】"
+			subtitle.modulate = Color(1.0, 0.9, 0.3, alpha)
+		else:
+			subtitle.modulate.a = alpha
+
+func _apply_rotations(delta):
+	if layers.has(1): layers[1].rotation += rot_speed_1 * delta
+	if layers.has(2): layers[2].rotation += rot_speed_2 * delta
+	if layers.has(3): layers[3].rotation += rot_speed_3 * delta
+	if layers.has(4): layers[4].rotation += rot_speed_4 * delta
+	if endless_rot_speed != 0 and is_instance_valid(endless_crack):
+		endless_crack.rotation += endless_rot_speed * delta
 	
 	# 鼠标判定逻辑
 	var mouse_pos = get_global_mouse_position()
@@ -223,10 +270,56 @@ func _update_layer_visibility():
 		
 	for stage_id in layers.keys():
 		var layer = layers[stage_id]
-		# 严格逻辑：未通过前置关卡，外部年轮直接不可见
 		layer.visible = (stage_id <= GameData.current_max_stage)
 
+# ── 神秘时钟启动序列 ───────────────────────────────────────────
+func _start_mystic_rotation_sequence():
+	var tw = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	
+	# 逐层启动，速度由内向外递减
+	tw.tween_property(self, "rot_speed_1", 0.35, 1.2)
+	tw.parallel().tween_interval(0.5)
+	
+	tw.chain().tween_property(self, "rot_speed_2", 0.25, 1.2)
+	tw.parallel().tween_interval(0.5)
+	
+	tw.chain().tween_property(self, "rot_speed_3", 0.18, 1.2)
+	tw.parallel().tween_interval(0.5)
+	
+	tw.chain().tween_property(self, "rot_speed_4", 0.12, 1.2)
+	tw.parallel().tween_interval(0.8)
+	
+	# 最后中心斧痕开始“倒计时”逆时针旋转
+	tw.chain().tween_property(self, "endless_rot_speed", -1.0, 2.0)
+	
+	print("[Menu] 终极结局动画：年轮时钟已全速启动")
+
+func _perform_final_scene_transition():
+	# 等待所有年轮转速加满 (约 4 秒)，再额外停留 3 秒
+	await get_tree().create_timer(7.0).timeout
+	
+	# 重置标记，防止下次进菜单又自动转场
+	GameData.just_finished_final_stage = false
+	
+	# 华丽的黑屏转场
+	var fade = CanvasLayer.new()
+	var rect = ColorRect.new()
+	rect.color = Color(0, 0, 0, 0)
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade.add_child(rect)
+	add_child(fade)
+	
+	var tw = create_tween()
+	tw.tween_property(rect, "color:a", 1.0, 1.5)
+	await tw.finished
+	
+	# 进入你创建的森林万木长青场景
+	get_tree().change_scene_to_file("res://scenes/world/ForestEnding.tscn")
+
 func _input(event):
+	if GameData.just_finished_final_stage:
+		return # 结局演绎期间，一切输入无效
+		
 	if event is InputEventKey and event.pressed:
 		# R 键：重置进度为第一关
 		if event.keycode == KEY_R:

@@ -14,11 +14,13 @@ extends Node2D
 
 var trunk_widths: Array[float] = [10.0, 40.0, 70.0, 90.0] 
 
-# 🔥 用来记忆你在编辑器里调好的大小
+# 🌲 编辑器配置项
+@export_range(0, 3) var initial_stage: int = 0    # 在编辑器里直接选 0,1,2,3 对应不同大小
+@export var is_static_decoration: bool = false    # 如果勾选，由于是背景装饰树，会禁用物理和摄像机
+
+# 🔥 核心状态缓存与计算
 var base_root_scales: Array[Vector2] = []
 var base_head_scales: Array[Vector2] = []
-
-# --- 受击与无敌帧参数 ---
 var is_invincible: bool = false
 var invincibility_duration: float = 0.5 # 0.5秒无敌帧
 
@@ -28,8 +30,16 @@ func _ready() -> void:
 		base_root_scales.append(root_sprites[i].scale)
 		base_head_scales.append(head_sprites[i].scale)
 		
-	# 强制初始化为阶段 0 (幼苗阶段)
-	evolve_to_stage(0)
+	# 根据设置的初始阶段进行演化
+	evolve_to_stage(initial_stage)
+	
+	# 如果是背景装饰树，关闭不必要的交互逻辑
+	if is_static_decoration:
+		if has_node("Camera2D"): $Camera2D.queue_free()
+		if has_node("treehead"):
+			$treehead.process_mode = Node.PROCESS_MODE_DISABLED # 禁用拉动逻辑
+			$treehead.freeze = true # 锁定物理，不然它会掉下去或到处飘
+		if has_node("HurtBox"): $HurtBox.queue_free()
 
 # ==========================================
 # 💥 核心：玩家受击逻辑与震动反馈

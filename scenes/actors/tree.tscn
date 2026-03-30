@@ -168,6 +168,7 @@ scale = Vector2(0.3, 0.3)
 texture = ExtResource("8_63up5")
 
 [node name="HeadSprite4" type="Sprite2D" parent="treehead" unique_id=1492413980]
+visible = false
 position = Vector2(-0.99999994, -201)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("9_h4xil")
@@ -265,7 +266,6 @@ shape = SubResource("CircleShape2D_63up5")
 disabled = true
 
 [node name="IceEnchantParticles" type="GPUParticles2D" parent="." unique_id=2070681627]
-visible = false
 z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(186.99997, -175)
@@ -277,7 +277,6 @@ lifetime = 4.779999999999999
 process_material = SubResource("ParticleProcessMaterial_exg44")
 
 [node name="IceEnchantParticles3" type="GPUParticles2D" parent="." unique_id=35800514]
-visible = false
 z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(-187, -174)
@@ -289,7 +288,6 @@ lifetime = 4.779999999999999
 process_material = SubResource("ParticleProcessMaterial_exg44")
 
 [node name="IceEnchantParticles2" type="GPUParticles2D" parent="." unique_id=379771699]
-visible = false
 z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(-104, -332)
@@ -301,7 +299,6 @@ lifetime = 4.779999999999999
 process_material = SubResource("ParticleProcessMaterial_exg44")
 
 [node name="IceEnchantParticles4" type="GPUParticles2D" parent="." unique_id=323760329]
-visible = false
 z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(128, -329)
