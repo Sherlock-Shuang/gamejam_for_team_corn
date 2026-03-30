@@ -62,6 +62,13 @@ var curve_segments: int = 15
 var current_stage_index: int = 0 
 
 # ==========================================
+# 混合控制参数 (键鼠/手柄)
+# ==========================================
+var is_mouse_dragging: bool = false
+var is_controller_dragging: bool = false
+var current_drag_delta: Vector2 = Vector2.ZERO 
+
+# ==========================================
 # 🔥【新增】双形态状态机与伤害锁
 # ==========================================
 var is_thrust_charging: bool = false   
@@ -99,11 +106,12 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(trunk_line) or not is_instance_valid(tree_root) or not is_instance_valid(crown_target):
 		return
 		
+	_handle_virtual_inputs()
+		
 	var current_stretch = 1.0
 	
 	if is_dragging:
-		var mouse_pos = get_global_mouse_position()
-		var delta_pos = mouse_pos - tree_root.global_position
+		var delta_pos = current_drag_delta
 		
 		# 扇区判定：如果往下拖动
 		if delta_pos.y > 0 and delta_pos.y > abs(delta_pos.x):
@@ -193,6 +201,60 @@ func calculate_tier_damage(charge_ratio: float) -> float:
 	else:                          # 连 60% 都没到 -> 软弱无力
 		return 4.0
 
+func _start_drag():
+	is_dragging = true
+	charge_audio.play() 
+
+func _release_drag():
+	is_dragging = false
+	time_since_release = 0.0 
+	charge_audio.stop() 
+	AudioManager.play_sfx(释放破空_sfx, -10.0, false)
+	
+	if is_thrust_charging:
+		locked_attack_damage = calculate_tier_damage(stored_thrust_power)
+		is_thrust_charging = false
+		is_thrust_releasing = true
+		_set_hitbox_active(true)
+	else:
+		var current_angle = wrapf(global_transform.get_rotation(), -PI, PI)
+		var max_rad = deg_to_rad(max_drag_angle_deg)
+		var current_charge_ratio = clamp(abs(current_angle) / max_rad, 0.0, 1.0)
+		locked_attack_damage = calculate_tier_damage(current_charge_ratio)
+		fake_target_angle = -current_angle * whip_overshoot_ratio
+		_set_hitbox_active(true)
+
+func _handle_virtual_inputs() -> void:
+	var kb_dir = Vector2.ZERO
+	if Input.is_physical_key_pressed(KEY_A) or Input.is_action_pressed("ui_left"): kb_dir.x -= 1.0
+	if Input.is_physical_key_pressed(KEY_D) or Input.is_action_pressed("ui_right"): kb_dir.x += 1.0
+	if Input.is_physical_key_pressed(KEY_W) or Input.is_action_pressed("ui_up"): kb_dir.y -= 1.0
+	if Input.is_physical_key_pressed(KEY_S) or Input.is_action_pressed("ui_down"): kb_dir.y += 1.0
+	
+	var joy_x = Input.get_joy_axis(0, JOY_AXIS_LEFT_X)
+	var joy_y = Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
+	if abs(joy_x) > 0.15 or abs(joy_y) > 0.15:
+		kb_dir = Vector2(joy_x, joy_y)
+	elif kb_dir.length() > 0:
+		kb_dir = kb_dir.normalized()
+		
+	if kb_dir.length() > 0.1:
+		is_controller_dragging = true
+		if not is_dragging:
+			_start_drag()
+	else:
+		if is_controller_dragging:
+			is_controller_dragging = false
+			if not is_mouse_dragging and is_dragging:
+				_release_drag()
+				
+	if is_mouse_dragging:
+		current_drag_delta = get_global_mouse_position() - tree_root.global_position
+	elif is_controller_dragging:
+		current_drag_delta = kb_dir * grab_radius
+	else:
+		current_drag_delta = Vector2.ZERO
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and GameData.is_endless_mode:
 		if event.keycode == KEY_1: evolve_test(0)
@@ -204,51 +266,22 @@ func _input(event: InputEvent) -> void:
 		var dist = global_position.distance_to(get_global_mouse_position())
 		if event.pressed:
 			if dist <= grab_radius:
-				is_dragging = true
-				
-				# 🔥 按下鼠标瞬间：开始播放蓄力音效
-				charge_audio.play() 
-				
+				is_mouse_dragging = true
+				if not is_dragging:
+					_start_drag()
 				get_viewport().set_input_as_handled()
 		else:
-			if is_dragging:
-				is_dragging = false
-				time_since_release = 0.0 
-				
-				# 🔥 松开鼠标瞬间：立刻强行掐断蓄力音效
-				charge_audio.stop() 
-				
-				# 👇 【就是这里！】统一播放释放破空的音效
-				# 使用我们之前升级过的 AudioManager，0.0是正常音量，true代表开启轻微的随机音高，让手感更好
-				AudioManager.play_sfx(释放破空_sfx, -10.0, false)
-				
-				# 🔥 松手的瞬间：锁定伤害！
-				if is_thrust_charging:
-					# 突刺招式：根据向下的蓄力压缩度计算
-					locked_attack_damage = calculate_tier_damage(stored_thrust_power)
-					
-					is_thrust_charging = false
-					is_thrust_releasing = true
-					# ⚠️ 注意：把你原来这句 AudioManager.play_sfx(释放_sfx) 删掉，因为我们在上面已经统一播放了！
-					_set_hitbox_active(true)
-				else:
-					# 横扫招式：根据当前的弯曲角度计算
-					var current_angle = wrapf(global_transform.get_rotation(), -PI, PI)
-					var max_rad = deg_to_rad(max_drag_angle_deg)
-					var current_charge_ratio = clamp(abs(current_angle) / max_rad, 0.0, 1.0)
-					
-					locked_attack_damage = calculate_tier_damage(current_charge_ratio)
-					
-					fake_target_angle = -current_angle * whip_overshoot_ratio
-					_set_hitbox_active(true)
+			if is_mouse_dragging:
+				is_mouse_dragging = false
+				if not is_controller_dragging and is_dragging:
+					_release_drag()
 
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if not tree_root: return
 	var anchor_pos = tree_root.global_position
 
 	if is_dragging:
-		var mouse_pos = get_global_mouse_position()
-		var delta_pos = mouse_pos - anchor_pos
+		var delta_pos = current_drag_delta
 		
 		if is_thrust_charging:
 			state.transform = Transform2D(0.0, anchor_pos)

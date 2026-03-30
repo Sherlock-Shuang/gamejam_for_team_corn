@@ -15,6 +15,15 @@ extends Node
 @export var 升级_sfx :AudioStream
 @export var 死亡_music :AudioStream
 
+@export_group("Ending Cinematic")
+@export var ending_hit_tex_1: Texture2D
+@export var ending_hit_tex_2: Texture2D
+@export var ending_hit_tex_3: Texture2D
+@export var ending_hit_tex_4: Texture2D
+@export var ending_broken_screen: Texture2D
+@export var ending_hit_sfx: AudioStream
+@export var ending_shatter_sfx: AudioStream
+
 var attack_timer: Timer
 # --- 关卡时间控制 ---
 var level_timer: float = 30.0
@@ -49,7 +58,7 @@ func _ready():
 			1: level_timer = 30.0
 			2: level_timer = 60.0
 			3: level_timer = 100.0
-			4: level_timer = 140.0
+			4: level_timer = 10.0
 			_: level_timer = 60.0
 		print("[Main] 关卡计时器初始化: ", level_timer, "s")
 	
@@ -89,6 +98,8 @@ func _ready():
 
 
 func _level_up():
+	if not is_level_active: return # 如果过关或进了结局，彻底禁止升级
+	
 	var needed = GameData.get_exp_to_next_level(GameData.current_level)
 	GameData.current_level += 1
 	GameData.current_exp = maxf(0.0, GameData.current_exp - needed)
@@ -177,9 +188,160 @@ func _level_completed():
 		# 解锁无尽模式并去结局界面
 		GameData.is_endless_unlocked = true
 		GameData.save_game()
-		_show_level_clear_popup(true)
+		_play_true_ending_cinematic() # 触发结局狂暴动画！
 	else:
 		_show_level_clear_popup(false)
+
+func _play_true_ending_cinematic():
+	# 1. 禁用所有 UI 和普通进程的干扰！
+	hud.hide()
+	if is_instance_valid(upgrade_ui):
+		upgrade_ui.hide()
+		upgrade_ui.process_mode = Node.PROCESS_MODE_DISABLED
+		
+	var treehead = tree.get_node_or_null("treehead")
+	if treehead:
+		treehead.set_physics_process(false)
+		treehead.is_dragging = false
+		treehead.set_process_input(false)
+		
+	# 2. 找到当前正在显示的树冠 Sprite
+	var active_crown: Sprite2D = null
+	var crown_base_scale := Vector2.ONE
+	if treehead:
+		for child in treehead.get_children():
+			if child is Sprite2D and "HeadSprite" in child.name and child.visible:
+				active_crown = child
+				crown_base_scale = child.scale
+				break
+				
+	# 3. 大树开始疯狂乱摇
+	var wild_tween = create_tween().set_parallel(true)
+	if treehead:
+		for i in range(20):
+			wild_tween.tween_property(treehead, "rotation", randf_range(-PI/2, PI/2), 0.1).set_delay(i * 0.1).set_trans(Tween.TRANS_BOUNCE)
+			if active_crown:
+				var random_s = crown_base_scale * randf_range(0.8, 1.5)
+				wild_tween.tween_property(active_crown, "scale", random_s, 0.1).set_delay(i * 0.1)
+	
+	# 给玩家看 2 秒的疯狂发癫
+	await get_tree().create_timer(2.0).timeout
+	
+	# 3. 准备覆盖屏幕的节点
+	var end_layer = CanvasLayer.new()
+	end_layer.layer = 120 # 最高层级
+	
+	# 全屏黑屏背景 (一开始完全透明)
+	var black_bg = ColorRect.new()
+	black_bg.color = Color(0, 0, 0, 0)
+	black_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	end_layer.add_child(black_bg)
+	
+	# 屏幕打击贴图
+	var hit_rect = TextureRect.new()
+	hit_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hit_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	hit_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	end_layer.add_child(hit_rect)
+	
+	add_child(end_layer)
+	
+	# 播放声音的临时节点
+	var audio_player = AudioStreamPlayer.new()
+	add_child(audio_player)
+	
+	var textures = [ending_hit_tex_1, ending_hit_tex_2, ending_hit_tex_3, ending_hit_tex_4]
+	
+	# 4. 依次打击 4 下 (同步动画)
+	for i in range(4):
+		
+		# -- 树冠本体破壁演出 (后仰蓄力 -> 砸向屏幕) --
+		if active_crown:
+			var tree_tw = create_tween()
+			tree_tw.tween_property(active_crown, "scale", crown_base_scale * 0.5, 0.15).set_trans(Tween.TRANS_SINE) # 蓄力缩小
+			tree_tw.tween_property(active_crown, "scale", crown_base_scale * 7.0, 0.05).set_trans(Tween.TRANS_EXPO) # 树冠贴脸暴增
+			# 砸完之后慢速恢复一点
+			tree_tw.tween_property(active_crown, "scale", crown_base_scale * 1.5, 0.4).set_trans(Tween.TRANS_LINEAR)
+			await get_tree().create_timer(0.15).timeout
+		else:
+			await get_tree().create_timer(0.15).timeout
+			
+		
+		# -- 碎屏贴图与音效触发 (大树刚好放到最大的瞬间) --
+		if textures[i]:
+			hit_rect.texture = textures[i]
+		
+		# 极大幅度闪缩与震动反馈
+		hit_rect.scale = Vector2(1.5, 1.5)
+		hit_rect.position = hit_rect.size * -0.25 # 保持居中缩放偏移
+		var hit_tw = create_tween()
+		hit_tw.tween_property(hit_rect, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_BOUNCE)
+		hit_tw.parallel().tween_property(hit_rect, "position", Vector2.ZERO, 0.1)
+		
+		# 加深一次背景黑度
+		black_bg.color.a = float(i + 1) * 0.2
+		
+		if ending_hit_sfx:
+			audio_player.stream = ending_hit_sfx
+			audio_player.pitch_scale = randf_range(0.9, 1.1)
+			audio_player.play()
+			
+		# 发送强力屏幕震动
+		var cam = get_viewport().get_camera_2d()
+		if cam:
+			cam.offset = Vector2(randf_range(-60, 60), randf_range(-60, 60) - 200)
+			
+		# 留出充足时间（比如 0.4s）让玩家看到这一砸的结果，再进行下一砸
+		await get_tree().create_timer(0.4).timeout
+		
+	# 5. 第 5 下，终极砸碎屏幕！
+	if active_crown:
+		var last_tw = create_tween()
+		# 最后一下蓄力缩到极小 (0.4s)
+		last_tw.tween_property(active_crown, "scale", crown_base_scale * 0.15, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		# 极速砸脸 (0.1s)
+		last_tw.tween_property(active_crown, "scale", crown_base_scale * 25.0, 0.1).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	
+	# 蓄力 0.4s 结束后，在猛冲刚开始的 0.42s 瞬间触发最终碎屏
+	await get_tree().create_timer(0.42).timeout 
+	
+	if ending_broken_screen:
+		hit_rect.texture = ending_broken_screen
+	
+	black_bg.color.a = 1.0 # 彻底切为纯黑
+	
+	if ending_shatter_sfx:
+		audio_player.stream = ending_shatter_sfx
+		audio_player.pitch_scale = 1.0
+		audio_player.play()
+	
+	# 最剧烈的震动
+	var cam = get_viewport().get_camera_2d()
+	if cam:
+		cam.offset = Vector2(randf_range(-150, 150), randf_range(-150, 150) - 200)
+		create_tween().tween_property(cam, "offset", Vector2(0, -200), 1.0)
+		
+	# 6. 等待最后的破碎画面停留
+	await get_tree().create_timer(3.0).timeout
+	
+	# 显示感谢名单 / 返回按钮
+	var end_label = Label.new()
+	end_label.text = "THE END\n\n谢谢你，让神木重归安宁。"
+	end_label.add_theme_font_size_override("font_size", 60)
+	end_label.add_theme_color_override("font_color", Color.WHITE)
+	end_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	end_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	end_label.modulate.a = 0.0
+	end_layer.add_child(end_label)
+	
+	# 隐去裂痕，浮现字幕
+	var final_tw = create_tween()
+	final_tw.tween_property(hit_rect, "modulate:a", 0.0, 2.0)
+	final_tw.tween_property(end_label, "modulate:a", 1.0, 2.0)
+	
+	await get_tree().create_timer(5.0).timeout
+	get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
 
 func _show_level_clear_popup(is_final: bool):
 	var popup = CanvasLayer.new()
@@ -261,6 +423,8 @@ func _on_pause_requested():
 		get_tree().paused = true
 
 func _on_enemy_died(exp_value: float, position: Vector2):
+	if not is_level_active: return # 关卡停止后不再产生新经验
+	
 	print("[Main] 敌人死亡，获得经验: ", exp_value)
 
 	# 增加经验值

@@ -7,9 +7,13 @@
 [ext_resource type="Script" uid="uid://cxw1lcyncjxl1" path="res://scripts/components/WaveManager.gd" id="3_r0du0"]
 [ext_resource type="AudioStream" uid="uid://vtimyvrbjjjx" path="res://assets/audio/sfx/狼叫.wav" id="4_20pc6"]
 [ext_resource type="PackedScene" uid="uid://cmrehg65r703d" path="res://scenes/ui/HUD.tscn" id="4_hud"]
+[ext_resource type="Texture2D" uid="uid://f5o4vowhvdc5" path="res://assets/sprites/effects/glass1.png" id="5_fpfj3"]
 [ext_resource type="PackedScene" uid="uid://bvncys4wohest" path="res://scenes/ui/UpgradeUI.tscn" id="5_upg"]
+[ext_resource type="Texture2D" uid="uid://dg24sc5pwe8ct" path="res://assets/sprites/effects/glass2.png" id="6_sc1dx"]
+[ext_resource type="Texture2D" uid="uid://dhe8arn3aamab" path="res://assets/sprites/effects/glass3.png" id="7_kjvhd"]
 [ext_resource type="Texture2D" uid="uid://c0c6rhfbllsli" path="res://assets/sprites/background/背景3.png" id="8_03owx"]
-[ext_resource type="Script" uid="uid://dri7d5wu6dy2q" path="res://scripts/ui/river_boundary.gd" id="9_03owx"]
+[ext_resource type="Texture2D" uid="uid://fsmqkx5t8e6w" path="res://assets/sprites/effects/glass4.png" id="8_5tuhn"]
+[ext_resource type="Script" path="res://scripts/ui/river_boundary.gd" id="9_03owx"]
 [ext_resource type="PackedScene" uid="uid://d2xiorp3ppo0y" path="res://scenes/ui/Ripple.tscn" id="10_wkp8b"]
 
 [node name="Main" type="Node" unique_id=2125892693]
@@ -17,6 +21,11 @@ script = ExtResource("1_main")
 bg_1 = ExtResource("2_cm0pq")
 "升级_sfx" = ExtResource("3_lgr22")
 "死亡_music" = ExtResource("4_20pc6")
+ending_hit_tex_1 = ExtResource("5_fpfj3")
+ending_hit_tex_2 = ExtResource("6_sc1dx")
+ending_hit_tex_3 = ExtResource("7_kjvhd")
+ending_hit_tex_4 = ExtResource("8_5tuhn")
+ending_broken_screen = ExtResource("8_5tuhn")
 
 [node name="tree" parent="." unique_id=850654834 instance=ExtResource("1_glv2v")]
 position = Vector2(943, 150)

@@ -266,10 +266,19 @@ func _cast_chain_lightning(start_node: Node2D, start_pos: Vector2, chain_damage:
 	lightning_line.z_as_relative = false
 	
 	# 非常关键：把这根线的透明度重置回 1.0，否则上次使用完它已经是全透明了！
-	# 去掉之前脚本里强压的 width = 10.0，这样你贴图在原本尺寸多粗就是多粗！
 	var current_mod = lightning_line.modulate
 	current_mod.a = 1.0
 	lightning_line.modulate = current_mod
+	
+	# 根据电动力学等级极大化增加粗度 (每次升级+30)
+	var skill_level = _get_skill_level("lightning_enchant")
+	
+	# 记录初始宽度，防止拿回对象池后无限叠加变粗
+	if not lightning_line.has_meta("base_width"):
+		lightning_line.set_meta("base_width", lightning_line.width)
+		
+	var base_width = lightning_line.get_meta("base_width")
+	lightning_line.width = base_width + float(skill_level - 1) * 30.0
 	
 	lightning_line.clear_points()
 	

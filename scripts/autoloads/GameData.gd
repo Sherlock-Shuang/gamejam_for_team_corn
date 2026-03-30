@@ -95,7 +95,7 @@ var growth_stages: Array = [
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  经验值公式: 每级所需经验 = base * (level ^ exponent)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-var exp_base: float = 50.0
+var exp_base: float = 5.0
 var exp_exponent: float = 1.2
 
 func get_exp_to_next_level(level: int) -> float:
