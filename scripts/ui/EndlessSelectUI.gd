@@ -49,6 +49,7 @@ func _apply_styles():
 func _on_start_pressed():
 	print("[Endless] 开始挑战挑战无尽模式")
 	GameData.is_endless_mode = true
+	GameData.current_playing_stage = 99 # 特殊 ID 用于记录无尽模式技能
 	get_tree().change_scene_to_file("res://Main.tscn")
 
 func _on_return_pressed():

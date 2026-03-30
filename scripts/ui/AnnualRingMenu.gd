@@ -34,6 +34,23 @@ const BASE_RADII = {
 @onready var subtitle = $UI/Control/Subtitle
 @onready var quit_button = $UI/Control/QuitButton
 
+# 纹理映射：将技能 ID 与对应的 UI 图标关联
+const SKILL_ICONS = {
+	"thorn_shot": "res://assets/sprites/effects/毒刺.png",
+	"exploding_fruit": "res://assets/sprites/effects/爆炸果.png",
+	"lightning_field": "res://assets/sprites/effects/flash1.png",
+	"vine_spread": "res://assets/sprites/effects/vine.png",
+	"seed_bomb": "res://assets/sprites/effects/种子.png",
+	"fire_enchant": "res://assets/sprites/effects/4fruits.png", # 权宜方案：使用水果包
+	"ice_enchant": "res://assets/sprites/effects/flash3.png", # 权宜方案：蓝色闪电
+	"lightning_enchant": "res://assets/sprites/effects/flash2.png",
+	"thick_bark": "res://assets/sprites/trees/1h.png", # 权宜方案：使用树皮纹理
+	"deep_roots": "res://assets/sprites/trees/vine.png",
+	"wide_canopy": "res://assets/sprites/trees/1l.png",
+	"elastic_trunk": "res://assets/sprites/trees/2h.png",
+	"photosynthesis": "res://assets/sprites/effects/shade.png"
+}
+
 func _ready():
 	print("[Menu] 欢迎来到精准版年轮界面。解锁关卡: ", GameData.current_max_stage)
 	quit_button.pressed.connect(func(): get_tree().quit())
@@ -62,6 +79,69 @@ func _ready():
 	ring_container.scale = Vector2(1.3, 1.3)
 	
 	_update_positions()
+	
+	# 渲染历史技能效果
+	_render_skill_history()
+
+func _render_skill_history():
+	# 技能渲染容器
+	var overlay = ring_container.get_node_or_null("SkillsOverlay")
+	if overlay:
+		overlay.queue_free()
+	
+	overlay = Node2D.new()
+	overlay.name = "SkillsOverlay"
+	ring_container.add_child(overlay)
+	
+	# 渲染前四关年轮上的技能
+	for stage_id in range(1, 5):
+		var skills = GameData.skill_history_per_stage.get(stage_id, [])
+		if skills.is_empty(): continue
+		
+		# 每个年轮的放置半径 (取层半径区间的 50% 处，正中心)
+		var inner_r = 0.0
+		if stage_id == 1: inner_r = BASE_RADII["ENDLESS"]
+		else: inner_r = BASE_RADII[stage_id - 1]
+		var outer_r = BASE_RADII[stage_id]
+		var radius = inner_r + (outer_r - inner_r) * 0.5
+		
+		_draw_skills_on_circle(overlay, skills, radius, stage_id)
+		
+	# 渲染无尽模式（裂痕处）的技能：
+	# 假设无尽模式对应的 ID 是 99
+	var endless_skills = GameData.skill_history_per_stage.get(99, [])
+	if not endless_skills.is_empty():
+		_draw_skills_on_circle(overlay, endless_skills, 40.0, -2) # 为大图标预留更多圆周
+
+func _draw_skills_on_circle(parent: Node2D, skills: Array, radius: float, stage_id: int):
+	var count = skills.size()
+	var angle_step = TAU / count
+	# 为每个关卡提供一个基础偏移角，防止图标全叠在一起
+	var base_angle = float(stage_id) * 0.8 
+	
+	for i in range(count):
+		var skill_id = skills[i]
+		var icon_path = SKILL_ICONS.get(skill_id, "")
+		if icon_path == "": continue
+		
+		var sprite = Sprite2D.new()
+		sprite.texture = load(icon_path)
+		
+		# 加大版：目标大小约 64 像素
+		var texture_size = sprite.texture.get_size()
+		var target_scale = 64.0 / max(texture_size.x, texture_size.y)
+		sprite.scale = Vector2(target_scale, target_scale)
+		
+		# 极坐标转换
+		var angle = base_angle + i * angle_step
+		sprite.position = Vector2(cos(angle), sin(angle)) * radius
+		
+		# 添加一些旋转效果，让它们看起来像嵌在木头里
+		sprite.rotation = angle + PI/2
+		
+		# 视觉微调：半透明效果和淡入
+		sprite.modulate.a = 0.8
+		parent.add_child(sprite)
 
 func _process(delta):
 	time_elapsed += delta
@@ -152,12 +232,15 @@ func _input(event):
 			print("[Debug] 重置进度为第一关！")
 			GameData.current_max_stage = 1
 			GameData.is_endless_unlocked = false
+			GameData.skill_history_per_stage.clear()
+			GameData.save_game()
 			_update_layer_visibility()
+			_render_skill_history()
 			
 		# U 键：一键解锁全图及无尽模式
 		elif event.keycode == KEY_U:
 			print("[Debug] 一键全图全解锁！")
-			GameData.current_max_stage = 5 # 设为 5 以显示全部 4 层并满足 >= 4 开启裂缝
+			GameData.current_max_stage = 4
 			GameData.is_endless_unlocked = true
 			_update_layer_visibility()
 		
