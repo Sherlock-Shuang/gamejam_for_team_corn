@@ -13,6 +13,7 @@ extends Node
 @export var bg_3 :AudioStream
 
 @export var 升级_sfx :AudioStream
+@export var 死亡_music :AudioStream
 
 var attack_timer: Timer
 # --- 关卡时间控制 ---
@@ -281,6 +282,8 @@ func _on_game_over():
 	is_level_active = false
 	print("[Main] 收到玩家死亡信号，游戏结束")
 	
+	AudioManager.play_sfx(死亡_music, 5, false, 1) # 播放死亡音乐，限制同款音乐只允许1个实例
+		
 	# 1. 震撼效果：时间极度放慢 (Hit Stop / Slowmo Death)
 	Engine.time_scale = 0.1
 	

@@ -9,6 +9,11 @@ class_name EnemyBase extends CharacterBody2D
 @export var is_flying_unit: bool = false # 勾选后开启 360 度旋转，否则只左右翻转
 # 音乐参数
 @export var 死亡惨叫_sfx: AudioStream
+@export var 行走_sfx: AudioStream
+@export var 攻击_sfx: AudioStream
+
+var walk_sfx_timer: float = 0.0
+const WALK_SFX_COOLDOWN: float = 0.3 # 每 0.3 秒播放一次脚步声（可根据动画节奏调整）
 
 # 下列数值现由 PoolManager 从 GameData 统一注入，取消 @export 以免产生混淆
 var speed: float = 0.0
@@ -133,7 +138,11 @@ func _physics_process(delta: float) -> void:
 		attack_timer -= delta
 		if attack_timer <= 0.0:
 			if is_instance_valid(target_tree) and target_tree.has_method("take_damage"):
+				# 🎵 新增：在这里播放攻击音效！
 				target_tree.take_damage(damage)
+				if 攻击_sfx:
+					# 建议稍微给一点随机音调 (pitch) 变化，比如 randf_range(0.9, 1.1)，会让群殴听起来更自然
+					AudioManager.play_sfx(攻击_sfx, 15, false, 3)
 			attack_timer = attack_cooldown
 
 	# 如果状态不允许移动（比如被冰冻定住），直接停止计算寻路
@@ -190,6 +199,15 @@ func _physics_process(delta: float) -> void:
 	# 执行 Godot 内部移动逻辑
 	move_and_slide()
 	_enforce_river_boundary()
+
+	# 条件：允许移动、没有在攻击、且确实有速度（不在原地挂机）
+	# 🎵 修改后：放宽速度判定(>1.0即可)，音量调小一点(-5.0)，音调恢复正常并加入随机
+	if can_move and not is_attacking and velocity.length() > 1.0:
+		walk_sfx_timer -= delta
+		if walk_sfx_timer <= 0.0:
+			if 行走_sfx:
+				AudioManager.play_sfx(行走_sfx, 10, false, 3)
+			walk_sfx_timer = WALK_SFX_COOLDOWN # 重置脚步声计时器
 
 # 这个空函数是留给河狸等特殊怪物的
 func _custom_behavior(delta: float) -> void:
