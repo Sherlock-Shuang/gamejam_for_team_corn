@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://introscene_uid_placeholder"]
+[gd_scene format=3 uid="uid://bdtj2koowowb2"]
 
-[ext_resource type="Script" path="res://scripts/ui/IntroScene.gd" id="1_intro"]
+[ext_resource type="Script" uid="uid://dxfuic2m6k2rh" path="res://scripts/ui/IntroScene.gd" id="1_intro"]
 
-[node name="IntroScene" type="Control"]
+[node name="IntroScene" type="Control" unique_id=1013002153]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_intro")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1749293402]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.08, 0.08, 0.08, 1)
 
-[node name="Title" type="Label" parent="."]
+[node name="Title" type="Label" parent="." unique_id=1674083414]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -34,7 +34,7 @@ theme_override_font_sizes/font_size = 96
 text = "树   独"
 horizontal_alignment = 1
 
-[node name="StoryText" type="Label" parent="."]
+[node name="StoryText" type="Label" parent="." unique_id=1765329915]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -57,7 +57,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="ContinueButton" type="Button" parent="."]
+[node name="ContinueButton" type="Button" parent="." unique_id=1762140144]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5

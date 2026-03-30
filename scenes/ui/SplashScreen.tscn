@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://eerxg7vwvutd"]
+
+[ext_resource type="Script" uid="uid://dpwh7n0jjsbxn" path="res://scenes/ui/splash_screen.gd" id="1_tnnoe"]
+[ext_resource type="AudioStream" uid="uid://dxt3ju2gbemqk" path="res://assets/audio/sfx/风声（环境恶劣）.wav" id="2_jsqgk"]
+[ext_resource type="Texture2D" uid="uid://ba3lctgmh8wws" path="res://assets/队标2.png" id="2_tnnoe"]
+[ext_resource type="AudioStream" uid="uid://c3ievoy48sk17" path="res://assets/audio/sfx/UI交互4.wav" id="3_lxol2"]
+
+[node name="SplashScreen" type="Control" unique_id=268813769]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.0165516, 1)
+script = ExtResource("1_tnnoe")
+"前置_bgm" = ExtResource("2_jsqgk")
+"点击_sfx" = ExtResource("3_lxol2")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1452399444]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1560749168]
+layout_mode = 0
+offset_left = 918.7925
+offset_top = 348.0
+offset_right = 3918.7925
+offset_bottom = 3348.0
+scale = Vector2(0.24254489, 0.24254489)
+texture = ExtResource("2_tnnoe")
+stretch_mode = 5
