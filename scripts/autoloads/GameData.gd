@@ -63,7 +63,8 @@ func load_game():
 					for k in saved_history.keys():
 						# JSON 解析的 key 必然是字符串，转回 int
 						var stage_id = k.to_int()
-						skill_history_per_stage[stage_id] = saved_history[k]
+						if stage_id != 99:
+							skill_history_per_stage[stage_id] = saved_history[k]
 
 
 
@@ -85,10 +86,10 @@ var player_base_stats: Dictionary = DEFAULT_PLAYER_BASE_STATS.duplicate(true)
 #  成长阶段 (幼苗 → 小树 → 大树 → 神木)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var growth_stages: Array = [
-	{"name": "幼苗", "level_threshold": 1,  "scale_mult": 1.0,  "description": "攻速快但范围小"},
-	{"name": "小树", "level_threshold": 5,  "scale_mult": 1.3,  "description": "初具规模"},
-	{"name": "大树", "level_threshold": 12, "scale_mult": 1.7,  "description": "枝繁叶茂"},
-	{"name": "神木", "level_threshold": 20, "scale_mult": 2.2,  "description": "附带地震效果"},
+	{"name": "幼苗", "level_threshold": 1,  "scale_mult": 1.0, "base_damage_bonus": 0.0,  "description": "攻速快但范围小"},
+	{"name": "小树", "level_threshold": 5,  "scale_mult": 1.3, "base_damage_bonus": 10.0, "description": "初具规模"},
+	{"name": "大树", "level_threshold": 12, "scale_mult": 1.7, "base_damage_bonus": 20.0, "description": "枝繁叶茂"},
+	{"name": "神木", "level_threshold": 20, "scale_mult": 2.2, "base_damage_bonus": 35.0, "description": "附带地震效果"},
 ]
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

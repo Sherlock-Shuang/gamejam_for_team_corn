@@ -9,7 +9,7 @@ var enemy_scenes: Dictionary = {
 	"beetle": preload("res://scenes/actors/EnemyFly.tscn"),     
 	"beaver": preload("res://scenes/actors/EnemyBeaver.tscn"), 
 	"lumberjack": preload("res://scenes/actors/EnemyHuman.tscn"),
-	"mech_boss": preload("res://scenes/actors/EnemyHuman.tscn") # 暂用伐木动作相同的 Human 作为 BOSS
+	"mech_boss": preload("res://scenes/actors/EnemyMachine.tscn")
 }
 
 # 2. 对象池存储字典
@@ -20,12 +20,40 @@ var _pools: Dictionary = {
 	"mech_boss": []
 }
 
+# 3. 预加载所有特效/抛射物场景
+var effect_scenes: Dictionary = {
+	"thorn_shot": preload("res://scenes/effects/PoisonSting.tscn"),
+	"exploding_fruit": preload("res://scenes/effects/FruitRoot.tscn"),
+	"lightning_field": preload("res://scenes/effects/Flash.tscn"),
+	"lightning_enchant": preload("res://scenes/effects/ChainLightning.tscn"),
+	"seed_bomb": preload("res://scenes/effects/SeedBomb.tscn"),
+	"vine_tentacle": preload("res://scenes/effects/vine_tentacle.tscn")
+}
+
+# 4. 特效对象池存储字典
+var _effect_pools: Dictionary = {
+	"thorn_shot": [],
+	"exploding_fruit": [],
+	"lightning_field": [],
+	"lightning_enchant": [],
+	"seed_bomb": [],
+	"vine_tentacle": []
+}
+
 func _ready() -> void:
 	# 游戏启动时预热
 	prewarm("beetle", 50)
 	prewarm("beaver", 30)
 	prewarm("lumberjack", 20)
 	prewarm("mech_boss", 5)
+
+	# 特效子弹预热
+	prewarm_effect("thorn_shot", 50)
+	prewarm_effect("exploding_fruit", 15)
+	prewarm_effect("lightning_field", 10)
+	prewarm_effect("lightning_enchant", 15)
+	prewarm_effect("seed_bomb", 15)
+	prewarm_effect("vine_tentacle", 15)
 
 
 
@@ -143,12 +171,74 @@ func return_enemy(node: Node) -> void:
 		
 	pool_array.append(node)
 
-## 新关卡重置：强制回收所有正在活动的敌人
+## 新关卡重置：强制回收所有正在活动的敌人与特效
 func reset_pools() -> void:
 	for pool_key in _pools.keys():
 		var pool_array = _pools[pool_key]
-		# 遍历所有的子节点，如果是这个类型的活着的敌人，就强制回收
 		for child in get_children():
 			if child.has_meta("pool_key") and child.get_meta("pool_key") == pool_key:
 				if not pool_array.has(child):
 					return_enemy(child)
+					
+	for effect_key in _effect_pools.keys():
+		var effect_array = _effect_pools[effect_key]
+		for child in get_children():
+			if child.has_meta("effect_key") and child.get_meta("effect_key") == effect_key:
+				if not effect_array.has(child):
+					return_effect(child, effect_key)
+
+## -------------------------------------------------------------
+## 特效对象池相关接口
+## -------------------------------------------------------------
+func prewarm_effect(effect_type: String, count: int) -> void:
+	if not effect_scenes.has(effect_type): return
+	var scene = effect_scenes[effect_type]
+	for i in range(count):
+		var effect = scene.instantiate()
+		effect.set_meta("effect_key", effect_type) 
+		effect.process_mode = Node.PROCESS_MODE_DISABLED
+		effect.hide()
+		add_child(effect)
+		_effect_pools[effect_type].append(effect)
+	print("[PoolManager] 成功预热 %d 个特效 %s" % [count, effect_type])
+
+func get_effect(effect_type: String) -> Node2D:
+	if not _effect_pools.has(effect_type):
+		push_error("[PoolManager] 找不到该特效类型：" + effect_type)
+		return null
+		
+	var pool_array = _effect_pools[effect_type]
+	var effect: Node2D = null
+	
+	while pool_array.size() > 0:
+		effect = pool_array.pop_back()
+		if is_instance_valid(effect):
+			break
+		else:
+			effect = null
+			
+	if not effect:
+		effect = effect_scenes[effect_type].instantiate()
+		effect.set_meta("effect_key", effect_type)
+		add_child(effect)
+		
+	effect.process_mode = Node.PROCESS_MODE_INHERIT
+	effect.show()
+	return effect
+
+func return_effect(node: Node, hint_type: String = "") -> void:
+	if not is_instance_valid(node):
+		return
+		
+	var path_key = node.get_meta("effect_key", hint_type)
+	if path_key == "" or not _effect_pools.has(path_key):
+		node.queue_free()
+		return
+		
+	var pool_array = _effect_pools[path_key]
+	if pool_array.has(node):
+		return
+		
+	node.process_mode = Node.PROCESS_MODE_DISABLED
+	node.hide()
+	pool_array.append(node)

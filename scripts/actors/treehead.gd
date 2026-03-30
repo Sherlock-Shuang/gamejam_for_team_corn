@@ -326,7 +326,11 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		var enemy_body = area.get_parent()
 		if not enemy_body or not enemy_body.has_method("take_damage"): return
 		
-		var base_atk = GameData.player_base_stats.get("attack_power", 0.0) # 防止字典无该键报错
+		var base_atk = GameData.player_base_stats.get("attack_power", 0.0)
+		var stage_bonus = 0.0
+		if GameData.growth_stages.size() > current_stage_index:
+			stage_bonus = GameData.growth_stages[current_stage_index].get("base_damage_bonus", 0.0)
+			
 		var is_valid_hit = false
 		
 		# 🔥 无论在哪种招式下，只有处于激活打击状态，才触发伤害
@@ -336,8 +340,8 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 			is_valid_hit = true
 			
 		if is_valid_hit:
-			# 真正的最终伤害 = 玩家自身基础攻击力 + 刚才松手瞬间锁定好的蓄力段位伤害
-			var final_damage = base_atk + locked_attack_damage
+			# 真正的最终伤害 = 玩家自身基础攻击力 + 形态加成 + 刚才松手瞬间锁定好的蓄力段位伤害
+			var final_damage = base_atk + stage_bonus + locked_attack_damage
 			
 			# 参数说明: (音频文件, 音量微调, 开启随机音调, 同屏最多允许同时播 3 个)
 			

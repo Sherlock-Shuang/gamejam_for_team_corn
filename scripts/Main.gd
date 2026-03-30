@@ -18,6 +18,8 @@ var attack_timer: Timer
 # --- 关卡时间控制 ---
 var level_timer: float = 30.0
 var is_level_active: bool = true
+var _hp_regen_accumulator: float = 0.0
+const HP_REGEN_TICK: float = 0.5 # 每 0.5 秒回血一次
 
 func _ready():
 	# 确保从其他场景（或被特效卡主时间的时候）返回时，时间流速和暂停状态是正常的
@@ -42,11 +44,12 @@ func _ready():
 		level_timer = 0.0
 		print("[Main] 无尽模式：计时器从 0 开始。")
 	else:
-		# 第1关 30秒，后续关卡 60秒
-		if GameData.current_playing_stage == 1:
-			level_timer = 30.0
-		else:
-			level_timer = 60.0
+		match GameData.current_playing_stage:
+			1: level_timer = 30.0
+			2: level_timer = 60.0
+			3: level_timer = 100.0
+			4: level_timer = 150.0
+			_: level_timer = 60.0
 		print("[Main] 关卡计时器初始化: ", level_timer, "s")
 	
 	# 重置波次
@@ -79,12 +82,15 @@ func _ready():
 
 	# 监听暂停请求
 	SignalBus.on_pause_requested.connect(_on_pause_requested)
+	
+	# 监听死亡结束请求
+	SignalBus.on_game_over.connect(_on_game_over)
 
 
 func _level_up():
-	
+	var needed = GameData.get_exp_to_next_level(GameData.current_level)
 	GameData.current_level += 1
-	GameData.current_exp = 0.0
+	GameData.current_exp = maxf(0.0, GameData.current_exp - needed)
 	
 	print("[Main] 升级了！当前等级: ", GameData.current_level)
 	SignalBus.on_level_up.emit(GameData.current_level)
@@ -99,7 +105,8 @@ func _on_skill_chosen(skill_id: String):
 	var real_skill_id = str(payload.get("skill_id", skill_id))
 	
 	# 👉 对接到局外存储：记录这把在这一圈年轮上拿到的能力！
-	GameData.record_skill_for_stage(GameData.current_playing_stage, real_skill_id)
+	if not GameData.is_endless_mode:
+		GameData.record_skill_for_stage(GameData.current_playing_stage, real_skill_id)
 	
 
 # ── 打开升级选择 UI ─────────────────────────────────────────────
@@ -139,18 +146,21 @@ func _process(delta):
 
 func _apply_hp_regen(delta: float) -> void:
 	var regen_per_sec = float(GameData.player_base_stats.get("hp_regen", 0.0))
-	if regen_per_sec <= 0.0:
-		return
-	if GameData.current_hp <= 0.0:
+	if regen_per_sec <= 0.0 or GameData.current_hp <= 0.0:
 		return
 	var max_hp = float(GameData.player_base_stats.get("max_hp", 100.0))
 	if GameData.current_hp >= max_hp:
 		return
-	var next_hp = minf(GameData.current_hp + regen_per_sec * delta, max_hp)
-	if next_hp <= GameData.current_hp:
-		return
-	GameData.current_hp = next_hp
-	SignalBus.on_player_hp_changed.emit(GameData.current_hp, max_hp)
+		
+	_hp_regen_accumulator += delta
+	if _hp_regen_accumulator >= HP_REGEN_TICK:
+		var amount_to_heal = regen_per_sec * _hp_regen_accumulator
+		_hp_regen_accumulator = 0.0
+		
+		var next_hp = minf(GameData.current_hp + amount_to_heal, max_hp)
+		GameData.current_hp = next_hp
+		# 终于告别满屏信号风暴啦！仅在跨越刻度时投递 UI 更新
+		SignalBus.on_player_hp_changed.emit(GameData.current_hp, max_hp)
 
 func _level_completed():
 	is_level_active = false
@@ -265,3 +275,115 @@ func _on_enemy_died(exp_value: float, position: Vector2):
 	# 检查是否升级
 	if GameData.current_exp >= needed:
 		_level_up()
+
+func _on_game_over():
+	if not is_level_active: return
+	is_level_active = false
+	print("[Main] 收到玩家死亡信号，游戏结束")
+	
+	# 1. 震撼效果：时间极度放慢 (Hit Stop / Slowmo Death)
+	Engine.time_scale = 0.1
+	
+	# 2. 屏幕震动与闪红
+	var camera = get_viewport().get_camera_2d()
+	if camera:
+		var start_offset = camera.offset
+		var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		for i in range(15):
+			tween.tween_property(camera, "offset", start_offset + Vector2(randf_range(-25, 25), randf_range(-25, 25)), 0.05)
+		tween.tween_property(camera, "offset", start_offset, 0.05)
+		
+	# 闪烁猩红全屏覆盖
+	var fx_layer = CanvasLayer.new()
+	fx_layer.layer = 99
+	var blood_rect = ColorRect.new()
+	blood_rect.color = Color(0.8, 0.0, 0.0, 0.5)
+	blood_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fx_layer.add_child(blood_rect)
+	add_child(fx_layer)
+	
+	# 让血红闪烁然后淡出
+	var btween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	btween.tween_property(blood_rect, "color:a", 0.0, 0.8)
+	
+	# 3. 等待1秒真实时间（在慢动作中让玩家看清死亡）
+	await get_tree().create_timer(1.2, true, false, true).timeout
+	Engine.time_scale = 1.0 # 跨场景前必须恢复时间
+	get_tree().paused = true # 正式冻结游戏
+	
+	# 4. 原木风复古界面构建
+	_show_game_over_ui()
+
+func _show_game_over_ui():
+	var popup = CanvasLayer.new()
+	popup.layer = 100
+	
+	var root_control = Control.new()
+	root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	popup.add_child(root_control)
+	
+	var bg = ColorRect.new()
+	bg.color = Color(0.08, 0.03, 0.02, 0.96) # 极深的暗血木色
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root_control.add_child(bg)
+	
+	var center = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root_control.add_child(center)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 60)
+	center.add_child(vbox)
+	
+	var label = Label.new()
+	label.text = "神木倾倒\n\n自然重归死寂"
+	label.add_theme_font_size_override("font_size", 72)
+	label.add_theme_color_override("font_color", Color(0.9, 0.25, 0.25, 1))
+	label.add_theme_color_override("font_shadow_color", Color(0.15, 0.05, 0.05, 1))
+	label.add_theme_constant_override("shadow_offset_x", 8)
+	label.add_theme_constant_override("shadow_offset_y", 8)
+	label.add_theme_constant_override("outline_size", 16)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(label)
+	
+	# 原木风按钮样式
+	var btn_normal = StyleBoxFlat.new()
+	btn_normal.bg_color = Color(0.18, 0.12, 0.09, 1)
+	btn_normal.border_width_left = 6
+	btn_normal.border_width_right = 6
+	btn_normal.border_color = Color(0.35, 0.20, 0.15, 1)
+	btn_normal.corner_radius_top_left = 8
+	btn_normal.corner_radius_top_right = 8
+	btn_normal.corner_radius_bottom_right = 8
+	btn_normal.corner_radius_bottom_left = 8
+	
+	var btn_hover = btn_normal.duplicate()
+	btn_hover.bg_color = Color(0.40, 0.25, 0.18, 1) # 微微带红的暗金/实木
+	btn_hover.border_color = Color(0.70, 0.40, 0.30, 1)
+	
+	var btn_pressed = btn_normal.duplicate()
+	btn_pressed.bg_color = Color(0.12, 0.08, 0.05, 1)
+	
+	var btn_return = Button.new()
+	btn_return.text = " 逝者如斯（返回年轮） "
+	btn_return.add_theme_font_size_override("font_size", 36)
+	btn_return.add_theme_color_override("font_color", Color(0.95, 0.85, 0.65, 1))
+	btn_return.add_theme_stylebox_override("normal", btn_normal)
+	btn_return.add_theme_stylebox_override("hover", btn_hover)
+	btn_return.add_theme_stylebox_override("pressed", btn_pressed)
+	btn_return.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn_return.custom_minimum_size = Vector2(400, 90)
+	
+	btn_return.pressed.connect(func():
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
+	)
+	vbox.add_child(btn_return)
+	
+	# 强力的渐进淡入特效
+	root_control.modulate.a = 0.0
+	popup.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(popup)
+	
+	var ui_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	ui_tween.tween_property(root_control, "modulate:a", 1.0, 1.2).set_trans(Tween.TRANS_QUAD)

@@ -8,7 +8,7 @@ class_name SkillExecutor
 var active_skills: Dictionary = {}
 var active_skill_levels: Dictionary = {}
 @onready var tree_owner = get_parent()
-const VINE_TENTACLE_SCENE = preload("res://scenes/actors/vine_tentacle.tscn")
+const VINE_TENTACLE_SCENE = preload("res://scenes/effects/vine_tentacle.tscn")
 
 func _ready():
 	print("[SkillExecutor] 技能引擎已加载，开始监听天命总线...")
@@ -86,16 +86,7 @@ func _fire_thorn():
 	var nearest = _get_nearest_target()
 	if not nearest:
 		return
-	var thorn_scene_path = "res://scenes/effects/PoisonSting.tscn"
-	if not ResourceLoader.exists(thorn_scene_path):
-		push_warning("[SkillExecutor] 缺少场景: " + thorn_scene_path)
-		return
-	var thorn_scene = load(thorn_scene_path)
-	if thorn_scene == null:
-		push_warning("[SkillExecutor] PoisonSting 场景加载失败: " + thorn_scene_path)
-		return
-	var thorn = thorn_scene.instantiate()
-	get_tree().current_scene.add_child(thorn)
+	var thorn = PoolManager.get_effect("thorn_shot")
 	var direction = (nearest.global_position - tree_owner.global_position).normalized()
 	var effects = _get_skill_effects("thorn_shot")
 	var final_damage = GameData.player_base_stats.get("attack_power", 10.0) * 0.8
@@ -106,8 +97,7 @@ func _fire_thorn():
 	for i in range(projectile_count):
 		var shot = thorn
 		if i > 0:
-			shot = thorn_scene.instantiate()
-			get_tree().current_scene.add_child(shot)
+			shot = PoolManager.get_effect("thorn_shot")
 		var offset_angle = (float(i) - half) * spread_step
 		var shot_dir = direction.rotated(offset_angle)
 		if shot.has_method("launch"):
@@ -121,18 +111,9 @@ func _fire_bomb():
 	var final_damage = effects.get("explosion_damage", 20.0)
 	var cast_count = maxi(1, int(effects.get("cast_count", 1)))
 	
-	var fruit_scene_path = "res://scenes/effects/FruitRoot.tscn"
-	if not ResourceLoader.exists(fruit_scene_path):
-		push_warning("[SkillExecutor] 缺少场景: " + fruit_scene_path + "，请先在编辑器保存 fruit_root.tscn")
-		return
-	var fruit_scene = load(fruit_scene_path)
-	if fruit_scene == null:
-		push_warning("[SkillExecutor] fruit_root 场景加载失败: " + fruit_scene_path)
-		return
 	for _i in range(cast_count):
 		var target_pos = _pick_random_land_point_around(tree_owner.global_position, 80.0, 600.0)
-		var fruit = fruit_scene.instantiate()
-		get_tree().current_scene.add_child(fruit)
+		var fruit = PoolManager.get_effect("exploding_fruit")
 		fruit.launch(tree_owner.global_position, target_pos, blast_radius, final_damage)
 
 func _fire_lightning_field():
@@ -154,20 +135,11 @@ func _fire_lightning_field():
 	else:
 		target_pos = _pick_random_land_point_around(tree_owner.global_position, min_range, max_range)
 	target_pos = _clamp_skill_target_to_land(target_pos, tree_owner.global_position, min_range, max_range)
-	var field_scene_path = "res://scenes/effects/Flash.tscn"
-	if not ResourceLoader.exists(field_scene_path):
-		push_warning("[SkillExecutor] 缺少场景: " + field_scene_path)
-		return
-	var field_scene = load(field_scene_path)
-	if field_scene == null:
-		push_warning("[SkillExecutor] LightningField 场景加载失败: " + field_scene_path)
-		return
 	for _i in range(cast_count):
 		var aim_pos = target_pos
 		if cast_count > 1:
 			aim_pos = _pick_random_land_point_around(target_pos, 20.0, 120.0)
-		var lightning_field = field_scene.instantiate()
-		get_tree().current_scene.add_child(lightning_field)
+		var lightning_field = PoolManager.get_effect("lightning_field")
 		lightning_field.launch(
 			tree_owner.global_position,
 			aim_pos,
@@ -211,8 +183,7 @@ func _cast_vine_spread():
 	cast_config["tentacle_initial_scale_x"] = float(cast_config.get("tentacle_initial_scale_x", 0.5)) * (1.0 + maxf(0.0, float(vine_level - 1)) * 0.15)
 	for i in range(grab_count):
 		var target_enemy = enemies_in_range[i]
-		var tentacle = VINE_TENTACLE_SCENE.instantiate()
-		get_tree().current_scene.add_child(tentacle)
+		var tentacle = PoolManager.get_effect("vine_tentacle")
 		if tentacle.has_method("launch"):
 			tentacle.launch(target_enemy, final_damage, cast_config)
 
@@ -236,16 +207,7 @@ func _cast_seed_bomb():
 	else:
 		target_pos = _pick_random_land_point_around(tree_owner.global_position, min_seed_distance, spawn_range)
 	target_pos = _clamp_skill_target_to_land(target_pos, tree_owner.global_position, min_seed_distance, spawn_range)
-	var seed_scene_path = "res://scenes/effects/SeedBomb.tscn"
-	if not ResourceLoader.exists(seed_scene_path):
-		push_warning("[SkillExecutor] 缺少场景: " + seed_scene_path + "，请先保存 SeedBomb.tscn")
-		return
-	var seed_scene = load(seed_scene_path)
-	if seed_scene == null:
-		push_warning("[SkillExecutor] SeedBomb 场景加载失败: " + seed_scene_path)
-		return
-	var seed_bomb = seed_scene.instantiate()
-	get_tree().current_scene.add_child(seed_bomb)
+	var seed_bomb = PoolManager.get_effect("seed_bomb")
 	seed_bomb.launch(tree_owner.global_position, target_pos, final_damage, radius, tick_interval, life_time, effects)
 
 # ── 类别 B：元素附魔 (基于每次普攻) ─────────────────────────────
@@ -268,6 +230,62 @@ func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D):
 		var burn_duration = float(fx_fire.get("burn_duration", 3.0))
 		if enemy_node and enemy_node.has_method("apply_burn"):
 			enemy_node.apply_burn(burn_tick_damage, burn_interval, burn_duration)
+			
+	if active_skills.has("lightning_enchant") and is_instance_valid(enemy_node):
+		var fx_lighting = _get_skill_effects("lightning_enchant")
+		var chain_dmg = float(fx_lighting.get("chain_damage", 5.0))
+		var chain_count = int(fx_lighting.get("chain_count", 3))
+		_cast_chain_lightning(enemy_node, enemy_node.global_position, chain_dmg, chain_count)
+
+func _cast_chain_lightning(start_node: Node2D, start_pos: Vector2, chain_damage: float, max_bounces: int) -> void:
+	var chain_targets = [start_node]
+	var current_node = start_node
+	var current_pos = start_pos
+	
+	for _i in range(max_bounces):
+		var nearest = _get_nearest_target_from(current_pos, chain_targets, 300.0)
+		if is_instance_valid(nearest):
+			chain_targets.append(nearest)
+			current_node = nearest
+			current_pos = nearest.global_position
+		else:
+			break
+			
+	if chain_targets.size() <= 1:
+		return
+		
+	var lightning_line = PoolManager.get_effect("lightning_enchant")
+	if not (lightning_line is Line2D):
+		return
+		
+	lightning_line.top_level = true
+	lightning_line.global_position = Vector2.ZERO
+	lightning_line.clear_points()
+	
+	for target in chain_targets:
+		if is_instance_valid(target):
+			lightning_line.add_point(target.global_position)
+			# Do not damage the first target again
+			if target != start_node and target.has_method("take_damage"):
+				target.take_damage(chain_damage, current_pos)
+				
+	lightning_line.modulate = Color(1.5, 1.5, 2.0, 1.0)
+	var tween = create_tween()
+	tween.tween_property(lightning_line, "modulate:a", 0.0, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(PoolManager.return_effect.bind(lightning_line, "lightning_enchant"))
+
+func _get_nearest_target_from(pos: Vector2, exclude_list: Array, max_dist: float) -> Node2D:
+	var enemies = get_tree().get_nodes_in_group("Enemy")
+	var closest_dist = max_dist
+	var nearest_enemy = null
+	for e in enemies:
+		if is_instance_valid(e) and e.process_mode != Node.PROCESS_MODE_DISABLED and e.has_method("take_damage"):
+			if not exclude_list.has(e):
+				var dist = e.global_position.distance_to(pos)
+				if dist < closest_dist:
+					closest_dist = dist
+					nearest_enemy = e
+	return nearest_enemy
 
 func _set_tree_fire_enchant_fx(enabled: bool, level: int = 0) -> void:
 	var particles = tree_owner.get_node_or_null("treehead/FireEnchantParticles")

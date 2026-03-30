@@ -106,12 +106,6 @@ func _render_skill_history():
 		var radius = inner_r + (outer_r - inner_r) * 0.5
 		
 		_draw_skills_on_circle(overlay, skills, radius, stage_id)
-		
-	# 渲染无尽模式（裂痕处）的技能：
-	# 假设无尽模式对应的 ID 是 99
-	var endless_skills = GameData.skill_history_per_stage.get(99, [])
-	if not endless_skills.is_empty():
-		_draw_skills_on_circle(overlay, endless_skills, 40.0, -2) # 为大图标预留更多圆周
 
 func _draw_skills_on_circle(parent: Node2D, skills: Array, radius: float, stage_id: int):
 	var count = skills.size()

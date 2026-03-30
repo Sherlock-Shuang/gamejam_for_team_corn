@@ -31,6 +31,9 @@ func _ready():
 
 # 发射接口：由大树的技能控制器调用
 func launch(start_pos: Vector2, target_pos: Vector2, radius: float, damage: float) -> void:
+	collision_shape.set_deferred("disabled", true)
+	anim_sprite.show()
+	explosion_sprite.hide()
 	global_position = start_pos
 	explosion_radius = radius
 	collision_shape.scale = Vector2.ONE
@@ -114,5 +117,5 @@ func _explode(damage: float) -> void:
 	if 爆炸_sfx:
 		AudioManager.play_sfx(爆炸_sfx, 10, true, 3)
 	
-	# 尘归尘土归土，特效放完立刻销毁
-	tween.chain().tween_callback(queue_free)
+	# 尘归尘土归土，特效放完立刻销毁进入对象池
+	tween.chain().tween_callback(PoolManager.return_effect.bind(self, "exploding_fruit"))

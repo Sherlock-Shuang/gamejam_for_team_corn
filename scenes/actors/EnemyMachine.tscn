@@ -14,7 +14,7 @@ radius = 111.53722
 radius = 110.95613
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_68yk5"]
-radius = 24.775557
+radius = 18.585016
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jq30h"]
 size = Vector2(83.230606, 81.15287)
@@ -163,7 +163,7 @@ collision_layer = 8
 collision_mask = 16
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitBox" unique_id=1107987729]
-scale = Vector2(6.867384, -6.8863735)
+scale = Vector2(12, -12)
 shape = SubResource("CircleShape2D_68yk5")
 
 [node name="Hurtbox" type="Area2D" parent="." unique_id=1683098082 groups=["Enemy"]]

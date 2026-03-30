@@ -86,6 +86,7 @@ func reset() -> void:
 	slow_ratio_applied = 0.0
 	slow_time_left = 0.0
 	speed_multiplier = 1.0
+	resume_combat() # 唤醒时恢复所有碰撞检测框
 	set_physics_process(true)
 	anim.modulate = Color(1.0, 1.0, 1.0, 1.0) 
 	if burn_particles:
@@ -309,6 +310,7 @@ func die(attack_source_position: Vector2) -> void:
 
 func play_death_animation(attack_source_position: Vector2) -> void:
 	set_physics_process(false)
+	suspend_combat() # 死亡击飞时彻底关闭所有受击/攻击逻辑，防止尸体吸伤
 	var knockback_direction = (global_position - attack_source_position).normalized()
 	if knockback_direction == Vector2.ZERO: knockback_direction = Vector2.UP
 	var knockback_distance = 400.0
@@ -320,6 +322,34 @@ func play_death_animation(attack_source_position: Vector2) -> void:
 	
 	# 使用 bind 完美替代 lambda，语法极简，绝不报错！
 	tween.tween_callback(PoolManager.return_enemy.bind(self))
+
+func suspend_combat() -> void:
+	if is_instance_valid(hit_box):
+		hit_box.set_deferred("monitoring", false)
+		hit_box.set_deferred("monitorable", false)
+	var h_box = get_node_or_null("hurtbox")
+	if not is_instance_valid(h_box):
+		h_box = get_node_or_null("Hurtbox")
+	if is_instance_valid(h_box):
+		h_box.set_deferred("monitoring", false)
+		h_box.set_deferred("monitorable", false)
+	if is_instance_valid(separation_area):
+		separation_area.set_deferred("monitoring", false)
+		separation_area.set_deferred("monitorable", false)
+
+func resume_combat() -> void:
+	if is_instance_valid(hit_box):
+		hit_box.set_deferred("monitoring", true)
+		hit_box.set_deferred("monitorable", true)
+	var h_box = get_node_or_null("hurtbox")
+	if not is_instance_valid(h_box):
+		h_box = get_node_or_null("Hurtbox")
+	if is_instance_valid(h_box):
+		h_box.set_deferred("monitoring", true)
+		h_box.set_deferred("monitorable", true)
+	if is_instance_valid(separation_area):
+		separation_area.set_deferred("monitoring", true)
+		separation_area.set_deferred("monitorable", true)
 
 func _on_hit_box_area_entered(area: Area2D) -> void:
 	_on_hitbox_area_entered(area)

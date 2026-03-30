@@ -19,7 +19,7 @@ func _ready() -> void:
 # ==========================================
 func launch(enemy: Node2D, dmg: float, config: Dictionary = {}) -> void:
 	if not is_instance_valid(enemy):
-		queue_free()
+		PoolManager.return_effect(self, "vine_tentacle")
 		return
 		
 	target_enemy = enemy
@@ -41,6 +41,8 @@ func launch(enemy: Node2D, dmg: float, config: Dictionary = {}) -> void:
 		original_collision_mask = collision_object.collision_mask
 		collision_object.collision_layer = 0
 		collision_object.collision_mask = 0
+	if target_enemy.has_method("suspend_combat"):
+		target_enemy.suspend_combat()
 			
 	_play_execution_animation(config)
 
@@ -91,9 +93,11 @@ func _finish_execution() -> void:
 			var collision_object = target_enemy as CollisionObject2D
 			collision_object.collision_layer = original_collision_layer
 			collision_object.collision_mask = original_collision_mask
+		if target_enemy.has_method("resume_combat"):
+			target_enemy.resume_combat()
 		target_enemy.scale = original_scale
 		target_enemy.modulate = original_modulate
-	queue_free()
+	PoolManager.return_effect(self, "vine_tentacle")
 
 func _get_spawn_position_under_enemy(enemy: Node2D, config: Dictionary) -> Vector2:
 	var fallback_offset = float(config.get("spawn_foot_offset", 24.0))

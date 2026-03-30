@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://roruq7mcl5tc"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_pr637"]
+blend_mode = 1
+
+[node name="ChainLightning" type="Line2D" unique_id=1889464086]
+material = SubResource("CanvasItemMaterial_pr637")
+width = 8.0
+default_color = Color(0.9137255, 0.972549, 0.62352943, 1)

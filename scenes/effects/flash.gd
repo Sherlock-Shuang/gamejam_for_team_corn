@@ -101,6 +101,13 @@ func launch(start_pos: Vector2, target_pos: Vector2, radius: float, damage: floa
 	current_damage = damage
 	collision_shape.scale = Vector2.ONE
 	
+	collision_shape.set_deferred("disabled", true)
+	anim_sprite.show()
+	explosion_sprite.hide()
+	anim_sprite.position.y = 0.0
+	anim_sprite.modulate = Color.WHITE
+	explosion_sprite.modulate.a = 1.0
+	
 	# 彻底隔离碰撞形状，防止影响其他同类实例
 	var new_shape = CircleShape2D.new()
 	new_shape.radius = radius
@@ -202,7 +209,7 @@ func _explode(damage: float) -> void:
 	# 尘归尘土归土，彻底清空
 	tween.tween_callback(func():
 		state = 6
-		queue_free()
+		PoolManager.return_effect(self, "lightning_field")
 	)
 
 func damage_from_ratio(ratio: float) -> float:

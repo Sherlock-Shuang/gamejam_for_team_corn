@@ -15,10 +15,12 @@ func _ready() -> void:
 	_find_target_tree()
 	
 	if not GameData.is_endless_mode:
-		if GameData.current_playing_stage == 1:
-			base_wave_interval = 10.0 
-		else:
-			base_wave_interval = 20.0 
+		match GameData.current_playing_stage:
+			1: base_wave_interval = 10.0
+			2: base_wave_interval = 20.0
+			3: base_wave_interval = 33.3
+			4: base_wave_interval = 50.0
+			_: base_wave_interval = 20.0
 	else:
 		base_wave_interval = 8.0 # 无尽模式：节奏快一点，8秒一波
 		

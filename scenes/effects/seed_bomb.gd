@@ -21,6 +21,7 @@ extends Node2D
 @export var 种植_sfx: AudioStream
 
 var damage_timer: Timer
+var life_timer: Timer
 var active_radius: float = 150.0
 var launch_config: Dictionary = {}
 
@@ -37,6 +38,12 @@ func _ready():
 
 # 发射接口：由大树的技能控制器调用
 func launch(start_pos: Vector2, target_pos: Vector2, damage: float, radius: float, tick_interval: float, life_time: float, config: Dictionary = {}) -> void:
+	collision_shape.set_deferred("disabled", true)
+	if is_instance_valid(damage_timer):
+		damage_timer.stop()
+	if is_instance_valid(life_timer):
+		life_timer.stop()
+		
 	global_position = start_pos
 	base_damage = damage
 	damage_interval = tick_interval
@@ -95,16 +102,19 @@ func _start_combat() -> void:
 	await get_tree().physics_frame
 	_deal_continuous_damage()
 	
-	# 🔥【核心机制：持续伤害计时器】
-	# 创建一个定时器，每 0.5 秒自动触发一次伤害结算
-	damage_timer = Timer.new()
-	damage_timer.wait_time = damage_interval
-	damage_timer.autostart = true
-	damage_timer.timeout.connect(_deal_continuous_damage)
-	add_child(damage_timer)
+	if not is_instance_valid(damage_timer):
+		damage_timer = Timer.new()
+		damage_timer.timeout.connect(_deal_continuous_damage)
+		add_child(damage_timer)
+	damage_timer.wait_time = maxf(0.05, damage_interval)
+	damage_timer.start()
 	
-	# ⏳【寿命计时器】：10秒后自动触发枯萎
-	get_tree().create_timer(lifetime).timeout.connect(_wither)
+	if not is_instance_valid(life_timer):
+		life_timer = Timer.new()
+		life_timer.timeout.connect(_wither)
+		add_child(life_timer)
+	life_timer.wait_time = maxf(0.1, lifetime)
+	life_timer.start()
 
 # 每次 Timer 滴答时触发
 func _deal_continuous_damage() -> void:
@@ -142,10 +152,12 @@ func _resolve_collision_shape() -> CollisionShape2D:
 func _wither() -> void:
 	# 停止伤害计算，关掉判定框
 	collision_shape.set_deferred("disabled", true)
-	if damage_timer:
+	if is_instance_valid(damage_timer):
 		damage_timer.stop()
+	if is_instance_valid(life_timer):
+		life_timer.stop()
 	
 	# 🥀【枯萎表现】：缩回到地下然后销毁
 	var tween = create_tween()
 	tween.tween_property(anim, "scale", Vector2.ZERO, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	tween.tween_callback(queue_free)
+	tween.tween_callback(PoolManager.return_effect.bind(self, "seed_bomb"))
