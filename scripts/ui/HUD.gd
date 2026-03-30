@@ -57,6 +57,7 @@ func _ready():
 	hp_label.add_theme_font_size_override("font_size", 32)
 	hp_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	hp_label.add_theme_color_override("font_outline_color", Color(0.15, 0.05, 0.05, 1.0))
+
 	hp_label.add_theme_constant_override("outline_size", 10)
 	
 	hp_label.text = str(int(GameData.current_hp)) + " / " + str(int(GameData.player_base_stats.get("max_hp", 100)))

@@ -9,20 +9,21 @@ extends Node2D
 @onready var timer: Timer = $WaveTimer
 var target_tree: Node2D = null
 var current_wave: int = 0
-const MAX_WAVES_PER_STAGE = 3 
+const MAX_WAVES_PER_STAGE = 20 # 大幅增加上限，由 Main 的倒计时决定关卡结束
 
 func _ready() -> void:
 	_find_target_tree()
 	
 	if not GameData.is_endless_mode:
 		match GameData.current_playing_stage:
-			1: base_wave_interval = 10.0
-			2: base_wave_interval = 20.0
-			3: base_wave_interval = 33.3
-			4: base_wave_interval = 50.0
-			_: base_wave_interval = 20.0
+			1: base_wave_interval = 7.0 # 密度增强
+			2: base_wave_interval = 8.5
+			3: base_wave_interval = 10.0
+			4: base_wave_interval = 12.0
+			_: base_wave_interval = 10.0
 	else:
-		base_wave_interval = 20.0 # 无尽模式：起步 20 秒
+		base_wave_interval = 15.0 # 无尽模式起始节奏加快
+
 		
 	timer.wait_time = base_wave_interval
 	timer.timeout.connect(_on_wave_timeout)

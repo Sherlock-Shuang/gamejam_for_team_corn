@@ -16,7 +16,8 @@
 [ext_resource type="Script" path="res://scripts/ui/river_boundary.gd" id="9_03owx"]
 [ext_resource type="PackedScene" uid="uid://d2xiorp3ppo0y" path="res://scenes/ui/Ripple.tscn" id="10_wkp8b"]
 [ext_resource type="Script" uid="uid://dri7d5wu6dy2q" path="res://scripts/ui/river_boundary.gd" id="9_03owx"]
-[ext_resource type="PackedScene" uid="uid://d2xiorp3ppo0y" path="res://scenes/ui/Ripple.tscn" id="10_wkp8b"][ext_resource type="PackedScene" uid="uid://ceklp4xv5r7d7" path="res://scenes/ui/SkillNotification.tscn" id="10_skill"]
+[ext_resource type="PackedScene" uid="uid://d2xiorp3ppo0y" path="res://scenes/ui/Ripple.tscn" id="10_wkp8b"]
+[ext_resource type="PackedScene" uid="uid://ceklp4xv5r7d7" path="res://scenes/ui/SkillNotification.tscn" id="10_skill"]
 [ext_resource type="PackedScene" uid="uid://dd82ci0r7stpt" path="res://scenes/ui/TutorialUI.tscn" id="11_tut"]
 [ext_resource type="PackedScene" uid="uid://bvncys4wohesx" path="res://scenes/ui/SkillPersistenceUI.tscn" id="12_persist"]
 
