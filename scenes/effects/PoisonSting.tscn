@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bkrm7shrnukpu" path="res://poison_sting.gd" id="1_a08ho"]
 [ext_resource type="Texture2D" uid="uid://clljgkes03qty" path="res://assets/sprites/effects/毒刺.png" id="2_cgqqf"]
+[ext_resource type="AudioStream" uid="uid://cygj33pl0283" path="res://assets/audio/sfx/毒刺2.wav" id="2_usp3i"]
+[ext_resource type="AudioStream" uid="uid://c1l5m3njux5f2" path="res://assets/audio/sfx/被击中.wav" id="3_1ms8p"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_usp3i"]
 radius = 20.0
@@ -12,6 +14,8 @@ position = Vector2(-4, 0)
 script = ExtResource("1_a08ho")
 pierce_count = 2
 launch_end_scale = Vector2(0.2, 1)
+launch_sound = ExtResource("2_usp3i")
+hit_sound = ExtResource("3_1ms8p")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=707920492]
 rotation = -1.5707964
