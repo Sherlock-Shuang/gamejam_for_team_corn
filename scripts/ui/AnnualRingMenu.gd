@@ -11,6 +11,14 @@ var center: Vector2 = Vector2(960, 540)
 var hovered_stage: int = -1
 var time_elapsed: float = 0.0
 
+# --- 时空倒转演出变量 ---
+var is_cinematic_playing: bool = false
+var ring_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0] # 4层年轮的实时转速
+var crack_speed: float = 0.0                        # 中央裂痕的实时转速
+var cinematic_timer: float = 0.0                    # 剧情计时器
+var input_blocker: Control = null
+
+
 @onready var ring_container: Node2D = $RingContainer
 @onready var endless_crack: Sprite2D = $RingContainer/EndlessCrack
 @onready var camera = $Camera2D
@@ -62,15 +70,40 @@ func _ready():
 	_update_layer_visibility()
 	ring_container.scale = Vector2(1.3, 1.3)
 	_update_positions()
+	
+	# 【核心逻辑】：判断是否刚从最终战归来，触发史诗级过场
+	if GameData.just_finished_final_stage:
+		_start_reversal_cinematic()
+		GameData.just_finished_final_stage = false # 重置状态，防止反复触发
+	elif GameData.is_endless_unlocked:
+		# 如果已经通关过，保持常态慢速旋转
+		for i in range(4):
+			ring_speeds[i] = 0.15 + (i * 0.05)
+
 
 func _process(delta):
 	time_elapsed += delta
 	_update_positions()
 	
+	# 刷新年轮与裂痕的旋转
+	_apply_rotations(delta)
+	
+	# 如果正在进行结局剧场
+	if is_cinematic_playing:
+		# 裂痕开始逆时针疯狂加速 (速度不断累加)
+		crack_speed -= delta * 15.0 
+		cinematic_timer += delta
+		
+		# 3秒后进入最终转场
+		if cinematic_timer >= 3.0:
+			_play_ending_video()
+			is_cinematic_playing = false # 停止后续判定
+	
 	# 副标题呼吸动效
 	if subtitle:
 		var alpha = (sin(time_elapsed * 2.0) + 1.0) / 2.0 * 0.4 + 0.3
 		subtitle.modulate.a = alpha
+
 	
 	# 鼠标悬停判定
 	var mouse_pos = get_global_mouse_position()
@@ -127,11 +160,77 @@ func _set_node_state(stage_id: int, active: bool):
 
 func _update_layer_visibility():
 	if endless_crack:
-		endless_crack.visible = GameData.is_endless_unlocked and GameData.current_max_stage >= 4
+		endless_crack.visible = GameData.is_endless_unlocked
 	for stage_id in layers.keys():
 		var layer = layers[stage_id]
 		# 严格逻辑：未通过前置关卡，外部年轮不可见
 		layer.visible = (stage_id <= GameData.current_max_stage)
+
+# ── 结局过场演出逻辑 ───────────────────────────────────────────
+
+func _start_reversal_cinematic():
+	print("[AnnualRingMenu] 警告：检测到时空不稳定性，启动倒转剧场...")
+	is_cinematic_playing = true
+	cinematic_timer = 0.0
+	
+	# 1. 屏蔽所有输入 (添加到 UI 层)
+	input_blocker = Control.new()
+	input_blocker.set_anchors_preset(Control.PRESET_FULL_RECT)
+	input_blocker.mouse_filter = Control.MOUSE_FILTER_STOP
+	# 显式覆盖整个画布
+	input_blocker.size = get_viewport_rect().size
+	if $UI:
+		$UI.add_child(input_blocker)
+	else:
+		add_child(input_blocker)
+	
+	if subtitle:
+		subtitle.text = "因 果 崩 坏 . . ."
+	
+	# 2. 年轮顺次爆发自转 (Tween 接力)
+	var tween = create_tween().set_parallel(true)
+	for i in range(4):
+		# 【关键修复】：索引闭包锁定
+		var idx = i 
+		var delay = idx * 0.5
+		var target_speed = 5.0 + (idx * 2.5) # 外圈转得更快更疯狂
+		
+		# 使用 tween_method 直接动态修改数组内的值
+		tween.tween_method(
+			func(v: float): ring_speeds[idx] = v, 
+			ring_speeds[idx], 
+			target_speed, 
+			1.5
+		).set_delay(delay).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN)
+
+
+
+func _apply_rotations(delta):
+	# 更新 4 层年轮
+	for i in range(4):
+		var layer = layers.get(i + 1)
+		if layer:
+			layer.rotation += ring_speeds[i] * delta
+	
+	# 更新中央裂痕 (倒转)
+	if endless_crack:
+		endless_crack.rotation += crack_speed * delta
+
+func _play_ending_video():
+	print("[AnnualRingMenu] 时空已锁定。启动最终视频播放逻辑...")
+	# 这里是占位符，未来可以对接播放视频或展示静态真结局立绘
+	var fade = ColorRect.new()
+	fade.color = Color.WHITE
+	fade.modulate.a = 0.0
+	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(fade)
+	
+	create_tween().tween_property(fade, "modulate:a", 1.0, 1.5)
+	await get_tree().create_timer(2.0).timeout
+	
+	# 真正进入无尽模式选择
+	get_tree().change_scene_to_file("res://scenes/ui/EndlessSelectUI.tscn")
+
 
 func _input(event):
 	# 调试快捷键
