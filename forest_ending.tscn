@@ -1,0 +1,132 @@
+[gd_scene format=3 uid="uid://sy3s51wf4dv2"]
+
+[ext_resource type="Script" uid="uid://bjyhpm6dul1wf" path="res://scripts/world/ForestEnding.gd" id="1_u846c"]
+[ext_resource type="Texture2D" uid="uid://c0c6rhfbllsli" path="res://assets/sprites/background/背景3.png" id="2_hx00m"]
+[ext_resource type="Texture2D" uid="uid://b08qyu3wmri1p" path="res://assets/sprites/trees/1.png" id="3_6lmcn"]
+[ext_resource type="Texture2D" uid="uid://by1dfh6nhi7yr" path="res://assets/sprites/trees/2.png" id="4_3ff6s"]
+[ext_resource type="Texture2D" uid="uid://dbgblan2msgis" path="res://assets/sprites/trees/3.png" id="5_v7gl8"]
+[ext_resource type="Texture2D" uid="uid://c2oaqf1lunj6g" path="res://assets/sprites/trees/4.png" id="6_bkqts"]
+
+[node name="ForestEnding" type="Node2D" unique_id=461993677]
+script = ExtResource("1_u846c")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=572628928]
+layer = -100
+
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=2112026446]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_hx00m")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Forest" type="Node2D" parent="." unique_id=106800872]
+
+[node name="Tree1" type="Sprite2D" parent="Forest" unique_id=1341879620]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(158, 692)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("3_6lmcn")
+
+[node name="Tree2" type="Sprite2D" parent="Forest" unique_id=1066375759]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(437, 581)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("4_3ff6s")
+
+[node name="Tree3" type="Sprite2D" parent="Forest" unique_id=1462281370]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(783, 387)
+texture = ExtResource("5_v7gl8")
+
+[node name="Tree4" type="Sprite2D" parent="Forest" unique_id=936608453]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1340, 514)
+scale = Vector2(1.1, 1.1)
+texture = ExtResource("6_bkqts")
+
+[node name="Tree5" type="Sprite2D" parent="Forest" unique_id=1928914141]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(-118.000046, 241.99995)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("3_6lmcn")
+
+[node name="Tree6" type="Sprite2D" parent="Forest" unique_id=813305629]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1845, 422)
+texture = ExtResource("4_3ff6s")
+
+[node name="Tree7" type="Sprite2D" parent="Forest" unique_id=1472051482]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(2.0000076, 339.00003)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("5_v7gl8")
+
+[node name="Tree8" type="Sprite2D" parent="Forest" unique_id=1901606568]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(2052, 317)
+scale = Vector2(0.95, 0.95)
+texture = ExtResource("6_bkqts")
+
+[node name="Tree9" type="Sprite2D" parent="Forest" unique_id=1266070788]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(515, 284)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("3_6lmcn")
+
+[node name="Tree10" type="Sprite2D" parent="Forest" unique_id=767121939]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(1488, 414)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("4_3ff6s")
+
+[node name="Tree11" type="Sprite2D" parent="Forest" unique_id=600246698]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(946, 516)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("6_bkqts")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=375107789]
+
+[node name="Label" type="Label" parent="UI" unique_id=37703664]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.2, 0.05, 1)
+theme_override_constants/outline_size = 20
+theme_override_font_sizes/font_size = 80
+text = "万木长青
+THE END"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hint" type="Label" parent="UI" unique_id=2131978230]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 30
+text = "点击屏幕返回主菜单"
+horizontal_alignment = 1
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=627840518]
+position = Vector2(960, 540)
