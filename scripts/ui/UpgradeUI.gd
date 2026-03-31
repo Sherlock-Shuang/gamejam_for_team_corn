@@ -111,6 +111,8 @@ func show_upgrade():
 	
 	for i in range(cards.size()):
 		var card = cards[i] as Button
+		if not card: continue # 安全校验
+		
 		# 重置属性
 		card.scale = Vector2.ONE
 		card.pivot_offset = card.size / 2.0
@@ -128,6 +130,7 @@ func show_upgrade():
 			
 		card.disabled = false
 		card.visible = true
+
 		var skill_data = choices[i]
 		
 		# 填充卡牌内容

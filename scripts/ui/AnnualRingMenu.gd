@@ -163,8 +163,10 @@ func _update_layer_visibility():
 		endless_crack.visible = GameData.is_endless_unlocked
 	for stage_id in layers.keys():
 		var layer = layers[stage_id]
-		# 严格逻辑：未通过前置关卡，外部年轮不可见
-		layer.visible = (stage_id <= GameData.current_max_stage)
+		if layer:
+			# 严格逻辑：未通过前置关卡，外部年轮不可见
+			layer.visible = (stage_id <= GameData.current_max_stage)
+
 
 # ── 结局过场演出逻辑 ───────────────────────────────────────────
 
