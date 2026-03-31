@@ -681,6 +681,21 @@ func get_enemy_stats(enemy_id: String) -> Dictionary:
 		return enemy_stats[enemy_id]
 	push_warning("GameData: 未知敌人 ID -> " + enemy_id)
 	return {}
+	
+## 【调试用】重置所有进度
+func reset_all_progress():
+	current_max_stage = 1
+	is_endless_unlocked = false
+	skill_history_per_stage.clear()
+	save_game()
+	print("[GameData] 所有进度已重置。")
+
+## 【调试用】解锁所有关卡与无尽模式
+func unlock_all():
+	current_max_stage = MAX_STAGES
+	is_endless_unlocked = true
+	save_game()
+	print("[GameData] 所有关卡与无尽模式已解锁。")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  地形判定：不规则河流算法

@@ -134,6 +134,17 @@ func _update_layer_visibility():
 		layer.visible = (stage_id <= GameData.current_max_stage)
 
 func _input(event):
+	# 调试快捷键
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_R:
+			GameData.reset_all_progress()
+			_update_layer_visibility()
+			if subtitle: subtitle.text = "进度已重置，从第一关开始吧"
+		elif event.keycode == KEY_U:
+			GameData.unlock_all()
+			_update_layer_visibility()
+			if subtitle: subtitle.text = "力量已觉醒，所有年轮已开启"
+
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if hovered_stage >= 1:
 			if click_sfx: AudioManager.play_sfx(click_sfx, 0.0, false, 1)
