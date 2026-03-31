@@ -15,8 +15,6 @@ func _ready():
 		
 	# 初始状态：让 Logo 和提示文字完全透明
 	logo.modulate.a = 0.0
-	# 初始状态：让 Logo 和提示文字完全透明
-	logo.modulate.a = 0.0
 	if prompt_label:
 		prompt_label.modulate.a = 0.0
 	
@@ -24,13 +22,21 @@ func _ready():
 	var tween = create_tween()
 	tween.tween_property(logo, "modulate:a", 1.0, 1.5).set_trans(Tween.TRANS_SINE)
 	
-	# 接着让提示文字花 1.0 秒淡入
+	# 等待 2 秒后显示提示文字并开始闪烁
+	await get_tree().create_timer(2.0).timeout
 	if prompt_label:
-		tween.tween_property(prompt_label, "modulate:a", 1.0, 1.0)
+		prompt_label.modulate.a = 1.0
+		_start_blinking()
 		
-	# 为了防止游戏刚启动玩家不小心碰到键盘瞬间跳过，设置 0.5 秒的防误触保护
-	await get_tree().create_timer(0.5).timeout
+	# 两秒后允许跳过
 	can_skip = true
+
+func _start_blinking():
+	if not prompt_label:
+		return
+	var blink_tween = create_tween().set_loops()
+	blink_tween.tween_property(prompt_label, "modulate:a", 0.0, 1.0).set_trans(Tween.TRANS_SINE)
+	blink_tween.tween_property(prompt_label, "modulate:a", 1.0, 1.0).set_trans(Tween.TRANS_SINE)
 
 func _input(event):
 	if not can_skip:

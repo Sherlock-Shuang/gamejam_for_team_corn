@@ -308,6 +308,7 @@ func _play_true_ending_cinematic():
 		if ending_hit_sfx:
 			audio_player.stream = ending_hit_sfx
 			audio_player.pitch_scale = randf_range(0.9, 1.1)
+			audio_player.volume_db = 10.0
 			audio_player.play()
 			
 		# 发送强力屏幕震动
@@ -337,6 +338,7 @@ func _play_true_ending_cinematic():
 	
 	if ending_shatter_sfx:
 		audio_player.stream = ending_shatter_sfx
+		audio_player.volume_db = 15.0
 		audio_player.play()
 	
 	# 最剧烈的震动

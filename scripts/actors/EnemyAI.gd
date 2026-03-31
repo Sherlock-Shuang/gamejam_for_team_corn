@@ -124,6 +124,8 @@ func reset() -> void:
 		velocity = Vector2.ZERO
 
 func _physics_process(delta: float) -> void:
+	if GameData.is_in_ending_cinematic:
+		return
 	if not is_instance_valid(target_tree): return
 	if burn_time_left > 0.0:
 		burn_time_left -= delta
