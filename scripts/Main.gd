@@ -350,23 +350,90 @@ func _play_true_ending_cinematic():
 	# 6. 等待最后的破碎画面停留
 	await get_tree().create_timer(3.0).timeout
 	
-	# 显示感谢名单 / 返回按钮
-	var end_label = Label.new()
-	end_label.text = "THE END\n\n谢谢你，让神木重归安宁。"
-	end_label.add_theme_font_size_override("font_size", 60)
-	end_label.add_theme_color_override("font_color", Color.WHITE)
-	end_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	end_label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	end_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	end_label.modulate.a = 0.0
-	end_layer.add_child(end_label)
+	# 画面一：神罚与归寂 (取代 THE END)
+	var scene_1_box = VBoxContainer.new()
+	scene_1_box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scene_1_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	scene_1_box.modulate.a = 0.0
+	end_layer.add_child(scene_1_box)
 	
-	# 隐去裂痕，浮现字幕
-	var final_tw = create_tween()
-	final_tw.tween_property(hit_rect, "modulate:a", 0.0, 2.0)
-	final_tw.tween_property(end_label, "modulate:a", 1.0, 2.0)
+	var custom_font = load("res://assets/fonts/DongLiShanZhouLiangTongShuZhengKai（FanTi）-2.ttf")
 	
-	await get_tree().create_timer(5.0).timeout
+	var viewport_w = get_viewport().size.x
+	
+	var scene_1_title = Label.new()
+	scene_1_title.text = "神树降下神罚"
+	if custom_font: scene_1_title.add_theme_font_override("font", custom_font)
+	scene_1_title.add_theme_font_size_override("font_size", 120)
+	scene_1_title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+	scene_1_title.add_theme_constant_override("outline_size", 24)
+	scene_1_title.add_theme_color_override("font_outline_color", Color(0.5, 0.2, 0.0))
+	scene_1_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	scene_1_title.custom_minimum_size = Vector2(viewport_w, 0) # 强制横跨全屏
+	scene_1_box.add_child(scene_1_title)
+	
+	var scene_1_sub = Label.new()
+	scene_1_sub.text = "屏幕碎裂，万物归寂"
+	if custom_font: scene_1_sub.add_theme_font_override("font", custom_font)
+	scene_1_sub.add_theme_font_size_override("font_size", 48)
+	scene_1_sub.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	scene_1_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	scene_1_sub.custom_minimum_size = Vector2(viewport_w, 0)
+	scene_1_box.add_child(scene_1_sub)
+
+	# 隐去裂痕，浮现画面一 (带震撼缩放)
+	scene_1_title.pivot_offset = Vector2(viewport_w / 2.0, 60) # 完美定位到屏幕中心
+	scene_1_title.scale = Vector2(0.3, 0.3)
+	
+	var scene_1_tw = create_tween().set_parallel(true)
+	scene_1_tw.tween_property(hit_rect, "modulate:a", 0.0, 1.5)
+	scene_1_tw.tween_property(scene_1_box, "modulate:a", 1.0, 1.5)
+	scene_1_tw.tween_property(scene_1_title, "scale", Vector2(1.0, 1.0), 0.5).set_trans(Tween.TRANS_BOUNCE)
+	
+	# 文本轻微颤动效果
+	for i in range(15):
+		scene_1_tw.tween_property(scene_1_title, "position:x", randf_range(-10, 10), 0.1).set_delay(i * 0.1)
+		
+	await get_tree().create_timer(8.0).timeout
+	
+	# 隐去画面一
+	var fade_1_tw = create_tween()
+	fade_1_tw.tween_property(scene_1_box, "modulate:a", 0.0, 1.5)
+	await fade_1_tw.finished
+	scene_1_box.queue_free()
+
+	# 画面二：记忆与时间
+	var scene_2_box = VBoxContainer.new()
+	scene_2_box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scene_2_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	scene_2_box.add_theme_constant_override("separation", 60)
+	scene_2_box.modulate.a = 0.0
+	end_layer.add_child(scene_2_box)
+	
+	var scene_2_title = Label.new()
+	scene_2_title.text = "世界记住了那棵树，\n但树选择了成为时间本身。"
+	scene_2_title.add_theme_font_size_override("font_size", 60)
+	scene_2_title.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7))
+	scene_2_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	scene_2_box.add_child(scene_2_title)
+	
+	var scene_2_poem = Label.new()
+	scene_2_poem.text = "“孤独不是生长之敌，遗忘才是。\n当最后一片年轮归于混沌，\n你已不再是风景——\n你成了轮回的理由。”"
+	scene_2_poem.add_theme_font_size_override("font_size", 32)
+	scene_2_poem.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 0.8)) # 稍微透明，浮现感
+	scene_2_poem.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	scene_2_box.add_child(scene_2_poem)
+
+	# 浮现画面二
+	var scene_2_tw = create_tween()
+	scene_2_tw.tween_property(scene_2_box, "modulate:a", 1.0, 2.5)
+	await get_tree().create_timer(10.0).timeout
+	
+	# 最终黑屏准备跳转
+	var exit_tw = create_tween()
+	exit_tw.tween_property(scene_2_box, "modulate:a", 0.0, 2.0)
+	await exit_tw.finished
+
 	GameData.just_finished_final_stage = true # 标记为刚刚通关，触发时钟倒流视觉动画
 	get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
 
