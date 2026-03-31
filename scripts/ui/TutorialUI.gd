@@ -2,10 +2,10 @@ extends Control
 
 @onready var close_button: Button = $Panel/VBoxContainer/CloseButton
 @onready var instruction_panel: Panel = $Panel
-@onready var hp_hint_panel: Panel = $HpHintPanel
+@onready var hp_hint_panel: Panel = get_node_or_null("HpHintPanel")
 @onready var skill_hint_panel: Panel = $SkillHintPanel
 @onready var endless_hint_panel: Panel = $EndlessHintPanel
-@onready var hp_close_button: Button = $HpHintPanel/CloseButton
+@onready var hp_close_button: Button = get_node_or_null("HpHintPanel/CloseButton")
 @onready var skill_close_button: Button = $SkillHintPanel/VBox/CloseButton
 @onready var endless_close_button: Button = $EndlessHintPanel/VBox/CloseButton
 

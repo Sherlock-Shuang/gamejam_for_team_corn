@@ -6,6 +6,7 @@ extends Node2D
 
 @export var UI交互_sfx :AudioStream
 @export var click_sfx :AudioStream
+@export var reversal_sfx :AudioStream
 
 var center: Vector2 = Vector2(960, 540)
 var hovered_stage: int = -1
@@ -17,6 +18,7 @@ var ring_speeds: Array[float] = [0.0, 0.0, 0.0, 0.0] # 4层年轮的实时转速
 var crack_speed: float = 0.0                        # 中央裂痕的实时转速
 var cinematic_timer: float = 0.0                    # 剧情计时器
 var input_blocker: Control = null
+var reversal_player: AudioStreamPlayer
 
 
 @onready var ring_container: Node2D = $RingContainer
@@ -47,6 +49,11 @@ const BASE_RADII = {
 @onready var quit_button = $UI/Control/QuitButton
 
 func _ready():
+	reversal_player = AudioStreamPlayer.new()
+	add_child(reversal_player)
+	reversal_player.stream = reversal_sfx
+	reversal_player.volume_db = 0  # 正常音量，可根据需要调整，可根据需要修改
+	
 	quit_button.pressed.connect(func(): get_tree().quit())
 	GameData.is_endless_mode = false
 	
@@ -94,8 +101,12 @@ func _process(delta):
 		crack_speed -= delta * 15.0 
 		cinematic_timer += delta
 		
-		# 3秒后进入最终转场
-		if cinematic_timer >= 3.0:
+		# 音效逐渐加快
+		if reversal_player.playing:
+			reversal_player.pitch_scale += delta * 0.5  # 每秒增加0.5，可调整这个值来控制加快速度
+		
+		# 5秒后进入最终转场
+		if cinematic_timer >= 5.0:
 			_play_ending_video()
 			is_cinematic_playing = false # 停止后续判定
 	
@@ -175,6 +186,11 @@ func _start_reversal_cinematic():
 	is_cinematic_playing = true
 	cinematic_timer = 0.0
 	
+	# 开始播放时钟逆转音效
+	if reversal_player and reversal_sfx:
+		reversal_player.pitch_scale = 1.0  # 重置pitch
+		reversal_player.play()
+	
 	# 1. 屏蔽所有输入 (添加到 UI 层)
 	input_blocker = Control.new()
 	input_blocker.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -220,6 +236,11 @@ func _apply_rotations(delta):
 
 func _play_ending_video():
 	print("[AnnualRingMenu] 时空已锁定。启动最终视频播放逻辑...")
+	
+	# 停止时钟逆转音效
+	if reversal_player.playing:
+		reversal_player.stop()
+	
 	# 这里是占位符，未来可以对接播放视频或展示静态真结局立绘
 	var fade = ColorRect.new()
 	fade.color = Color.WHITE

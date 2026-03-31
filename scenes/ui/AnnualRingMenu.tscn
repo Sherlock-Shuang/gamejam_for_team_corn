@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bhe8ttrdqxxx4" path="res://assets/sprites/UI/wood/4_small.png" id="3"]
 [ext_resource type="AudioStream" uid="uid://c3ievoy48sk17" path="res://assets/audio/sfx/UI交互4.wav" id="3_4bhm6"]
 [ext_resource type="Texture2D" uid="uid://dmoo83aiby6hv" path="res://assets/sprites/UI/wood/3_small.png" id="4"]
+[ext_resource type="AudioStream" uid="uid://puqaofviv7ym" path="res://assets/audio/sfx/时钟快.wav" id="4_4bhm6"]
 [ext_resource type="Texture2D" uid="uid://bj2sa7dpyqo0f" path="res://assets/sprites/UI/wood/2_small.png" id="5"]
 [ext_resource type="Texture2D" uid="uid://blpdyq4alkflm" path="res://assets/sprites/UI/wood/1small.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://dns20vjgbqmlo" path="res://assets/sprites/UI/wood/hurt_small.png" id="7"]
@@ -14,6 +15,7 @@
 script = ExtResource("1")
 "UI交互_sfx" = ExtResource("2_oxqcj")
 click_sfx = ExtResource("3_4bhm6")
+reversal_sfx = ExtResource("4_4bhm6")
 
 [node name="Background" type="ColorRect" parent="." unique_id=346731634]
 anchors_preset = 15
