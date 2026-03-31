@@ -58,7 +58,7 @@ func _ready():
 			1: level_timer = 50.0
 			2: level_timer = 60.0
 			3: level_timer = 80.0
-			4: level_timer = 2.0
+			4: level_timer = 5.0
 			_: level_timer = 60.0
 		print("[Main] 关卡计时器初始化: ", level_timer, "s")
 	
@@ -200,6 +200,23 @@ func _level_completed():
 		_show_level_clear_popup(false)
 
 func _play_true_ending_cinematic():
+	GameData.is_in_ending_cinematic = true
+	# 停止游戏：树不再攻击，怪物停止行进
+	var skill_executor = tree.get_node_or_null("SkillExecutor")
+	if skill_executor:
+		skill_executor.set_process(false)
+		# 停止所有技能定时器
+		for child in skill_executor.get_children():
+			if child is Timer:
+				child.stop()
+	
+	$WaveManager/WaveTimer.stop()
+	
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	for enemy in enemies:
+		if enemy.has_method("set_physics_process"):
+			enemy.set_physics_process(false)
+	
 	# 1. 禁用所有 UI 和普通进程的干扰！
 	hud.hide()
 	if is_instance_valid(upgrade_ui):
@@ -320,9 +337,7 @@ func _play_true_ending_cinematic():
 	
 	if ending_shatter_sfx:
 		audio_player.stream = ending_shatter_sfx
-		audio_player.pitch_scale = 1.0
 		audio_player.play()
-
 	
 	# 最剧烈的震动
 	var cam = get_viewport().get_camera_2d()
