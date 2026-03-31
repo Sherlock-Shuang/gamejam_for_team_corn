@@ -1,14 +1,13 @@
 extends Control
 
-@onready var anim_player: AnimationPlayer = $AnimationPlayer
-@onready var close_button: Button = $Panel/CloseButton
+@onready var close_button: Button = $Panel/VBoxContainer/CloseButton
 @onready var instruction_panel: Panel = $Panel
 @onready var hp_hint_panel: Panel = $HpHintPanel
 @onready var skill_hint_panel: Panel = $SkillHintPanel
 @onready var endless_hint_panel: Panel = $EndlessHintPanel
 @onready var hp_close_button: Button = $HpHintPanel/CloseButton
-@onready var skill_close_button: Button = $SkillHintPanel/CloseButton
-@onready var endless_close_button: Button = $EndlessHintPanel/CloseButton
+@onready var skill_close_button: Button = $SkillHintPanel/VBox/CloseButton
+@onready var endless_close_button: Button = $EndlessHintPanel/VBox/CloseButton
 
 func _ready():
 	# 初始状态

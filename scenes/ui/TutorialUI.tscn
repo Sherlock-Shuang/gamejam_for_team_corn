@@ -57,49 +57,46 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -450.0
-offset_top = -300.0
-offset_right = 450.0
-offset_bottom = 300.0
+offset_left = -480.0
+offset_top = -320.0
+offset_right = 480.0
+offset_bottom = 320.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Title" type="Label" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 40.0
-offset_right = 200.0
-offset_bottom = 100.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Title" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
 theme_override_font_sizes/font_size = 56
 text = "—— 生长指引 ——"
 horizontal_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -380.0
-offset_top = -140.0
-offset_right = 380.0
-offset_bottom = 180.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 40
+[node name="Spacer" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
 
-[node name="Step1" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="ContentVBox" type="VBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="Step1" type="HBoxContainer" parent="Panel/VBoxContainer/ContentVBox"]
 layout_mode = 2
 theme_override_constants/separation = 30
+alignment = 1
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/Step1"]
+[node name="Icon" type="Label" parent="Panel/VBoxContainer/ContentVBox/Step1"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.7, 0.3, 1)
@@ -108,18 +105,19 @@ text = "❶"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Text" type="Label" parent="Panel/VBoxContainer/Step1"]
+[node name="Text" type="Label" parent="Panel/VBoxContainer/ContentVBox/Step1"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
 theme_override_font_sizes/font_size = 32
 text = "【鼠标向下拖拽】：压缩蓄力
 松开向正上方爆发突刺攻击！"
 
-[node name="Step2" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="Step2" type="HBoxContainer" parent="Panel/VBoxContainer/ContentVBox"]
 layout_mode = 2
 theme_override_constants/separation = 30
+alignment = 1
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/Step2"]
+[node name="Icon" type="Label" parent="Panel/VBoxContainer/ContentVBox/Step2"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.7, 0.3, 1)
@@ -128,18 +126,19 @@ text = "❷"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Text" type="Label" parent="Panel/VBoxContainer/Step2"]
+[node name="Text" type="Label" parent="Panel/VBoxContainer/ContentVBox/Step2"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
 theme_override_font_sizes/font_size = 32
 text = "【鼠标左右拖拽】：左右弯曲蓄力
 松开后，树干将向反方向猛力横扫！"
 
-[node name="Step3" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="Step3" type="HBoxContainer" parent="Panel/VBoxContainer/ContentVBox"]
 layout_mode = 2
 theme_override_constants/separation = 30
+alignment = 1
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer/Step3"]
+[node name="Icon" type="Label" parent="Panel/VBoxContainer/ContentVBox/Step3"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.7, 0.3, 1)
@@ -148,82 +147,26 @@ text = "❸"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Text" type="Label" parent="Panel/VBoxContainer/Step3"]
+[node name="Text" type="Label" parent="Panel/VBoxContainer/ContentVBox/Step3"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
 theme_override_font_sizes/font_size = 32
 text = "【击杀敌人】：掉落经验星辰
 升级并选择年轮进化你的神木！"
 
-[node name="CloseButton" type="Button" parent="Panel"]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -150.0
-offset_top = -100.0
-offset_right = 150.0
-offset_bottom = -30.0
-grow_horizontal = 2
-grow_vertical = 0
+[node name="Spacer2" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(300, 80)
+layout_direction = 2
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "已知晓，开始扎根"
-
-[node name="HpHintPanel" type="Panel" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 30.0
-offset_top = -300.0
-offset_right = 530.0
-offset_bottom = -150.0
-grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="VBox" type="VBoxContainer" parent="HpHintPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="HintText" type="Label" parent="HpHintPanel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
-theme_override_font_sizes/font_size = 28
-text = "↙ 这里显示神木的当前状态"
-horizontal_alignment = 1
-
-[node name="DescText" type="Label" parent="HpHintPanel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.8, 0.7, 1)
-theme_override_font_sizes/font_size = 20
-text = "注意：受到攻击时，
-形态会随生命值减少而衰弱。"
-horizontal_alignment = 1
-
-[node name="CloseButton" type="Button" parent="HpHintPanel"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -40.0
-offset_top = 10.0
-offset_bottom = 50.0
-grow_horizontal = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = " X "
 
 [node name="SkillHintPanel" type="Panel" parent="."]
 visible = false
@@ -234,43 +177,36 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -350.0
-offset_top = -180.0
+offset_top = -200.0
 offset_right = 350.0
-offset_bottom = 180.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Title" type="Label" parent="SkillHintPanel"]
+[node name="VBox" type="VBoxContainer" parent="SkillHintPanel"]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 25.0
-offset_right = 200.0
-offset_bottom = 75.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Title" type="Label" parent="SkillHintPanel/VBox"]
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
 theme_override_font_sizes/font_size = 42
 text = "—— 能力觉醒 ——"
 horizontal_alignment = 1
 
-[node name="Content" type="Label" parent="SkillHintPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -225.0
-offset_top = -65.0
-offset_right = 225.0
-offset_bottom = 65.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Content" type="Label" parent="SkillHintPanel/VBox"]
+custom_minimum_size = Vector2(450, 0)
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
-theme_override_constants/line_spacing = 4
+theme_override_constants/line_spacing = 8
 theme_override_font_sizes/font_size = 28
 text = "你获得了第一个神木能力！
 所有习得技能将固定在右下角。
@@ -278,25 +214,17 @@ text = "你获得了第一个神木能力！
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="CloseButton" type="Button" parent="SkillHintPanel"]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -80.0
-offset_right = 120.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
+[node name="CloseButton" type="Button" parent="SkillHintPanel/VBox"]
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "点击扎根"
 
 [node name="Arrow" type="Label" parent="SkillHintPanel"]
+visible = false
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -321,43 +249,36 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -350.0
-offset_top = -180.0
+offset_top = -200.0
 offset_right = 350.0
-offset_bottom = 180.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Title" type="Label" parent="EndlessHintPanel"]
+[node name="VBox" type="VBoxContainer" parent="EndlessHintPanel"]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 25.0
-offset_right = 200.0
-offset_bottom = 75.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Title" type="Label" parent="EndlessHintPanel/VBox"]
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
 theme_override_font_sizes/font_size = 42
 text = "—— 无尽挑战 ——"
 horizontal_alignment = 1
 
-[node name="Content" type="Label" parent="EndlessHintPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -225.0
-offset_top = -65.0
-offset_right = 225.0
-offset_bottom = 65.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Content" type="Label" parent="EndlessHintPanel/VBox"]
+custom_minimum_size = Vector2(450, 0)
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
-theme_override_constants/line_spacing = 4
+theme_override_constants/line_spacing = 8
 theme_override_font_sizes/font_size = 28
 text = "无尽模式已开启！
 你可以随时按下 [1], [2], [3], [4] 键
@@ -365,19 +286,10 @@ text = "无尽模式已开启！
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="CloseButton" type="Button" parent="EndlessHintPanel"]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -80.0
-offset_right = 120.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
+[node name="CloseButton" type="Button" parent="EndlessHintPanel/VBox"]
+custom_minimum_size = Vector2(240, 60)
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
