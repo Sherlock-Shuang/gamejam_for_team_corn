@@ -50,6 +50,7 @@ var slow_ratio_applied: float = 0.0
 var slow_time_left: float = 0.0
 
 func _ready() -> void:
+	add_to_group("enemies")
 	current_health = max_health
 	var trees = get_tree().get_nodes_in_group("Tree")
 	if trees.size() > 0:
@@ -322,8 +323,8 @@ func die(attack_source_position: Vector2) -> void:
 	_clear_burn()
 	_clear_slow()
 	SignalBus.on_enemy_died.emit(exp_drop, global_position)
-	# 呼叫全局管家播放死亡惨叫！
-	if 死亡惨叫_sfx:
+	# 呼叫全局管家播放死亡惨叫！（结局动画时不播放）
+	if 死亡惨叫_sfx and not GameData.is_in_ending_cinematic:
 		AudioManager.play_sfx(死亡惨叫_sfx, 0, true, 4)
 	play_death_animation(attack_source_position)
 
