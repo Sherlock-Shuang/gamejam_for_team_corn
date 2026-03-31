@@ -79,7 +79,7 @@ func prewarm(enemy_type: String, count: int) -> void:
 	print("[PoolManager] 成功预热 %d 个 %s" % [count, enemy_type])
 
 ## 获取怪物（供 WaveManager 调用）
-func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
+func get_enemy(enemy_type: String, spawn_pos: Vector2, is_elite: bool = false) -> Node2D:
 	if not _pools.has(enemy_type):
 		push_error("[PoolManager] 找不到该怪物类型：" + enemy_type)
 		return null
@@ -106,7 +106,7 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 	if GameData.is_in_river(safe_spawn_pos):
 		safe_spawn_pos = GameData.clamp_to_river_bank(safe_spawn_pos, 8.0)
 	enemy.global_position = safe_spawn_pos
-	_apply_enemy_stats(enemy, enemy_type)
+	_apply_enemy_stats(enemy, enemy_type, is_elite)
 	
 	# ==========================================
 	# 关键修复：直接重置节点的暂停模式和可见性
@@ -122,7 +122,7 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2) -> Node2D:
 		
 	return enemy
 
-func _apply_enemy_stats(enemy: Node, enemy_type: String) -> void:
+func _apply_enemy_stats(enemy: Node, enemy_type: String, is_elite: bool = false) -> void:
 	var stats = GameData.get_enemy_stats(enemy_type)
 	if stats.is_empty():
 		# 数据表缺失时的兜底
@@ -131,14 +131,48 @@ func _apply_enemy_stats(enemy: Node, enemy_type: String) -> void:
 	# 【动态难度】：根据无尽模式的时长提升敌人属性
 	var mult = GameData.get_endless_multiplier()
 	
-	if enemy.get("max_health") != null and stats.has("hp"):
-		enemy.max_health = float(stats["hp"]) * mult
-	if enemy.get("speed") != null and stats.has("speed"):
-		enemy.speed = float(stats["speed"])
-	if enemy.get("damage") != null and stats.has("damage"):
-		enemy.damage = float(stats["damage"]) * mult
-	if enemy.get("exp_drop") != null and stats.has("exp_drop"):
-		enemy.exp_drop = float(stats["exp_drop"])
+	# === 基础属性应用 ===
+	var final_hp = float(stats["hp"]) * mult
+	var final_speed = float(stats["speed"]) * mult
+	var final_damage = float(stats["damage"]) * mult
+	var final_scale = 1.0
+	var final_exp = float(stats.get("exp_drop", 1.0))
+	
+	# === 精英怪变异逻辑 ===
+	if is_elite:
+		final_hp *= 3.0      # 生命三倍
+		final_speed *= 2.0   # 速度两倍
+		final_scale = 2.0    # 体型两倍
+		final_exp *= 5.0     # 精英经验更多
+		
+		# 尝试处理攻击距离 (如果对象暴露了该变量)
+		if enemy.get("attack_range") != null:
+			enemy.attack_range *= 2.0
+		elif enemy.get("damage_radius") != null:
+			enemy.damage_radius *= 2.0
+		
+		# 还可以加一个小光晕标记，如果有的话，这里演示改变调制色
+		enemy.modulate = Color(2.0, 1.0, 1.0) # 稍微变红
+	else:
+		enemy.modulate = Color.WHITE # 恢复普通
+		
+	# === 实装到 Node ===
+	if enemy.get("max_health") != null:
+		enemy.max_health = final_hp
+		if enemy.get("current_health") != null:
+			enemy.current_health = final_hp # 刚出的满血
+			
+	if enemy.get("speed") != null:
+		enemy.speed = final_speed
+		
+	if enemy.get("damage") != null:
+		enemy.damage = final_damage
+		
+	if enemy.get("exp_drop") != null:
+		enemy.exp_drop = final_exp
+		
+	if enemy is Node2D:
+		enemy.scale = Vector2(final_scale, final_scale)
 
 
 ## 回收怪物（供 EnemyAI 死亡击飞结束后调用）
@@ -155,7 +189,13 @@ func return_enemy(node: Node) -> void:
 		
 	var pool_array = _pools[path_key]
 	
+	# 还原精英状态的影响 (Scale)
+	if node is Node2D:
+		node.scale = Vector2.ONE
+	node.modulate = Color.WHITE
+	
 	# 避免重复回收报错
+
 	if pool_array.has(node):
 		return
 		

@@ -87,10 +87,12 @@ func _fire_thorn():
 	if not nearest:
 		return
 	var thorn = PoolManager.get_effect("thorn_shot")
-	var direction = (nearest.global_position - tree_owner.global_position).normalized()
 	var effects = _get_skill_effects("thorn_shot")
+	var direction = (nearest.global_position - tree_owner.global_position).normalized()
 	var final_damage = GameData.player_base_stats.get("attack_power", 10.0) * 0.8
 	final_damage = effects.get("poison_damage", final_damage)
+	# 应用全局技能倍率
+	final_damage *= GameData.player_base_stats.get("skill_damage_mult", 1.0)
 	var projectile_count = maxi(1, int(effects.get("projectile_count", 1)))
 	var spread_step = deg_to_rad(10.0)
 	var half = float(projectile_count - 1) * 0.5
@@ -108,7 +110,7 @@ func _fire_bomb():
 		return
 	var effects = _get_skill_effects("exploding_fruit")
 	var blast_radius = effects.get("radius", 150.0)
-	var final_damage = effects.get("explosion_damage", 20.0)
+	var final_damage = effects.get("explosion_damage", 20.0) * GameData.player_base_stats.get("skill_damage_mult", 1.0)
 	var cast_count = maxi(1, int(effects.get("cast_count", 1)))
 	
 	for _i in range(cast_count):
@@ -121,7 +123,7 @@ func _fire_lightning_field():
 		return
 	var effects = _get_skill_effects("lightning_field")
 	var blast_radius = effects.get("radius", 320.0)
-	var final_damage = effects.get("explosion_damage", 24.0)
+	var final_damage = effects.get("explosion_damage", 24.0) * GameData.player_base_stats.get("skill_damage_mult", 1.0)
 	var min_range = effects.get("cast_range_min", 120.0)
 	var max_range = effects.get("cast_range_max", 650.0)
 	var speed_ratio = effects.get("speed_ratio", 0.4)
@@ -167,6 +169,7 @@ func _cast_vine_spread():
 	var base_damage = float(effects.get("damage", 100.0))
 	var atk = float(GameData.player_base_stats.get("attack_power", 10.0))
 	var final_damage = base_damage + atk * 0.5
+	final_damage *= GameData.player_base_stats.get("skill_damage_mult", 1.0)
 	var enemies_in_range = _get_active_enemies_in_radius(search_radius)
 	if enemies_in_range.is_empty():
 		var nearest = _get_nearest_target()
@@ -199,7 +202,7 @@ func _cast_seed_bomb():
 	var life_time = effects.get("lifetime", 10.0)
 	var base_damage = effects.get("sapling_damage", 12.0)
 	var base_atk = GameData.player_base_stats.get("attack_power", 0.0)
-	var final_damage = base_damage + base_atk * 0.5
+	var final_damage = (base_damage + base_atk * 0.5) * GameData.player_base_stats.get("skill_damage_mult", 1.0)
 	var spawn_range = effects.get("cast_range", 600.0)
 	var min_seed_distance = 120.0
 	var target_pos = tree_owner.global_position
@@ -230,12 +233,14 @@ func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D):
 		if not fx_fire.has("burn_tick_damage"):
 			burn_tick_damage = float(fx_fire.get("burn_dps", 4.0)) * burn_interval
 		var burn_duration = float(fx_fire.get("burn_duration", 3.0))
+		
 		if enemy_node and enemy_node.has_method("apply_burn"):
-			enemy_node.apply_burn(burn_tick_damage, burn_interval, burn_duration)
+			var final_burn = burn_tick_damage * GameData.player_base_stats.get("skill_damage_mult", 1.0)
+			enemy_node.apply_burn(final_burn, burn_interval, burn_duration)
 			
 	if active_skills.has("lightning_enchant") and is_instance_valid(enemy_node):
 		var fx_lighting = _get_skill_effects("lightning_enchant")
-		var chain_dmg = float(fx_lighting.get("chain_damage", 5.0))
+		var chain_dmg = float(fx_lighting.get("chain_damage", 5.0)) * GameData.player_base_stats.get("skill_damage_mult", 1.0)
 		var chain_count = int(fx_lighting.get("chain_count", 3))
 		_cast_chain_lightning(enemy_node, enemy_node.global_position, chain_dmg, chain_count)
 
@@ -385,6 +390,11 @@ func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictiona
 		if prev_atk > 0.0:
 			step_atk = next_atk / prev_atk
 		GameData.player_base_stats["attack_power"] *= step_atk
+		
+		# 【新增特性】：光合强化每次升级，都要把全技能伤害 * 1.2
+		if skill_id == "photosynthesis":
+			GameData.player_base_stats["skill_damage_mult"] *= 1.2
+			print("[SkillExecutor] 光合强化升级！全技能伤害系数提升为: ", GameData.player_base_stats["skill_damage_mult"])
 	if new_eff.has("range_mult"):
 		var prev_range = float(prev_eff.get("range_mult", 1.0))
 		var next_range = float(new_eff.get("range_mult", 1.0))

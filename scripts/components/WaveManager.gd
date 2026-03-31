@@ -1,8 +1,9 @@
 extends Node2D
 
 @export var base_wave_interval: float = 4.0 
-@export var spawn_radius: float = 1100.0
-@export var min_spawn_distance: float = 1000.0
+@export var spawn_radius: float = 1400.0
+@export var min_spawn_distance: float = 1250.0
+
 @export var spawn_uniform_jitter: float = 0.35
 @export var spawn_retry_limit: int = 8
 
@@ -16,13 +17,13 @@ func _ready() -> void:
 	
 	if not GameData.is_endless_mode:
 		match GameData.current_playing_stage:
-			1: base_wave_interval = 7.0 # 密度增强
-			2: base_wave_interval = 8.5
-			3: base_wave_interval = 10.0
-			4: base_wave_interval = 12.0
-			_: base_wave_interval = 10.0
+			1: base_wave_interval = 12.0 # 给予玩家更多喘息时间
+			2: base_wave_interval = 7.5
+			3: base_wave_interval = 6.0 # 频率大幅增加
+			4: base_wave_interval = 4.5 # 极高频率
+			_: base_wave_interval = 6.0
 	else:
-		base_wave_interval = 15.0 # 无尽模式起始节奏加快
+		base_wave_interval = 8.0 # 无尽模式起始节奏就拉满
 
 		
 	timer.wait_time = base_wave_interval
@@ -68,11 +69,16 @@ func _on_wave_timeout() -> void:
 	
 	SignalBus.on_wave_started.emit(current_wave)
 	
-	# 出怪数量大幅增加：基础 15 个 + 每波增加 5 个 + 关卡难度加成
+	# 出怪数量：基础值随关卡动态调整（第一关最少，后面激增）
+	var base_count = 25
+	if GameData.current_playing_stage == 1: base_count = 15
+	
 	var difficulty_mult = GameData.current_playing_stage
 	if GameData.is_endless_mode: difficulty_mult = 6 
 	
-	var enemies_to_spawn = 15 + (current_wave * 5) + (difficulty_mult * 5)
+	var enemies_to_spawn = base_count + (current_wave * 8) + (difficulty_mult * 12)
+
+
 	
 	var center_pos = target_tree.global_position
 	var spawn_positions = get_uniform_spawn_positions(center_pos, enemies_to_spawn)
@@ -82,12 +88,18 @@ func _on_wave_timeout() -> void:
 		var spawn_pos = spawn_positions[i]
 		var enemy_type_to_spawn = get_enemy_type_for_wave(current_wave, randf())
 		
-		var spawn_func = func(target_spawn_pos: Vector2, type: String):
+		# 精英判定：第 3, 4 关或无尽模式有 1% 概率产生精英。
+		var roll_elite = false
+		if GameData.is_endless_mode or GameData.current_playing_stage >= 3:
+			if randf() < 0.01:
+				roll_elite = true
+		
+		var spawn_func = func(target_spawn_pos: Vector2, type: String, elite: bool):
 			if not is_instance_valid(target_tree):
 				return
-			PoolManager.get_enemy(type, target_spawn_pos)
+			PoolManager.get_enemy(type, target_spawn_pos, elite)
 		
-		get_tree().create_timer(random_delay, false).timeout.connect(spawn_func.bind(spawn_pos, enemy_type_to_spawn))
+		get_tree().create_timer(random_delay, false).timeout.connect(spawn_func.bind(spawn_pos, enemy_type_to_spawn, roll_elite))
 
 func get_enemy_type_for_wave(wave: int, roll: float) -> String:
 	var stage = GameData.current_playing_stage

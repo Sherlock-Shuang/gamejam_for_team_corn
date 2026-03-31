@@ -58,7 +58,7 @@ func _ready():
 			1: level_timer = 50.0
 			2: level_timer = 60.0
 			3: level_timer = 80.0
-			4: level_timer = 100.0
+			4: level_timer = 2.0
 			_: level_timer = 60.0
 		print("[Main] 关卡计时器初始化: ", level_timer, "s")
 	
@@ -69,6 +69,7 @@ func _ready():
 	var skill_executor_script = load("res://scripts/components/SkillExecutor.gd")
 	var skill_executor = skill_executor_script.new()
 	skill_executor.name = "SkillExecutor"
+
 	tree.add_child(skill_executor)
 	print("[Main] SkillExecutor 已成功挂载到 PlayerTree 下。")
 	
@@ -106,8 +107,9 @@ func _level_up():
 	
 	print("[Main] 升级了！当前等级: ", GameData.current_level)
 	SignalBus.on_level_up.emit(GameData.current_level)
-		
+
 func _on_skill_chosen(skill_id: String):
+
 	# 如果正在恢复历史技能，不要再次记录到当前历史中
 	if GameData.is_restoring_history:
 		return
