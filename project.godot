@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="树独"
-run/main_scene="uid://eerxg7vwvutd"
+run/main_scene="res://scenes/ui/SplashScreen.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
 description="gamejam_for_team_corn project"
 
@@ -30,13 +30,15 @@ UiSoundManager="*uid://duyq33175e1s1"
 
 [display]
 
-window/size/viewport_width=1920
-window/size/viewport_height=1080
+window/size/viewport_width=2560
+window/size/viewport_height=1600
 window/size/mode=3
 window/size/borderless=true
 window/size/window_width_override=1280
 window/size/window_height_override=720
+window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
 
 [gd_project]
 
@@ -45,6 +47,10 @@ config_version=4
 [global_group]
 
 Tree=""
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
 
 [layer_names]
 
@@ -62,3 +68,7 @@ Tree=""
 
 2d/default_gravity=0.0
 2d/default_gravity_vector=Vector2(0, 0)
+
+[rendering]
+
+textures/vram_compression/import_etc2_astc=true

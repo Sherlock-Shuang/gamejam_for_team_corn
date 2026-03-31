@@ -210,20 +210,19 @@ func return_enemy(node: Node) -> void:
 	pool_array.append(node)
 
 ## 新关卡重置：强制回收所有正在活动的敌人与特效
+## 🔥【性能优化】：单次遍历 O(n) 替代原 O(n²) 双层循环
 func reset_pools() -> void:
-	for pool_key in _pools.keys():
-		var pool_array = _pools[pool_key]
-		for child in get_children():
-			if child.has_meta("pool_key") and child.get_meta("pool_key") == pool_key:
-				if not pool_array.has(child):
-					return_enemy(child)
-					
-	for effect_key in _effect_pools.keys():
-		var effect_array = _effect_pools[effect_key]
-		for child in get_children():
-			if child.has_meta("effect_key") and child.get_meta("effect_key") == effect_key:
-				if not effect_array.has(child):
-					return_effect(child, effect_key)
+	for child in get_children():
+		if not is_instance_valid(child):
+			continue
+		if child.has_meta("pool_key"):
+			var key = child.get_meta("pool_key")
+			if _pools.has(key) and not _pools[key].has(child):
+				return_enemy(child)
+		elif child.has_meta("effect_key"):
+			var key = child.get_meta("effect_key")
+			if _effect_pools.has(key) and not _effect_pools[key].has(child):
+				return_effect(child, key)
 
 ## -------------------------------------------------------------
 ## 特效对象池相关接口

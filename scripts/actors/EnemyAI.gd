@@ -49,6 +49,12 @@ var burn_tick_left: float = 0.0
 var slow_ratio_applied: float = 0.0
 var slow_time_left: float = 0.0
 
+# 🔥【性能优化】：受击闪白使用内联计时器替代 create_timer
+var _flash_timer: float = 0.0
+
+# 🔥【性能优化】：河道避障缓存，隔5帧才重计算一次
+var _cached_river_force: Vector2 = Vector2.ZERO
+
 func _ready() -> void:
 	add_to_group("enemies")
 	current_health = max_health
@@ -100,6 +106,8 @@ func reset() -> void:
 	slow_ratio_applied = 0.0
 	slow_time_left = 0.0
 	speed_multiplier = 1.0
+	_flash_timer = 0.0           # 🔥 清理闪白残留
+	_cached_river_force = Vector2.ZERO  # 🔥 清理河道缓存
 	resume_combat() # 唤醒时恢复所有碰撞检测框
 	set_physics_process(true)
 	anim.modulate = Color(1.0, 1.0, 1.0, 1.0) 
@@ -127,6 +135,13 @@ func _physics_process(delta: float) -> void:
 	if GameData.is_in_ending_cinematic:
 		return
 	if not is_instance_valid(target_tree): return
+	
+	# 🔥【性能优化】：受击闪白内联计时器
+	if _flash_timer > 0.0:
+		_flash_timer -= delta
+		if _flash_timer <= 0.0:
+			anim.modulate = Color(1, 1, 1, 1)
+	
 	if burn_time_left > 0.0:
 		burn_time_left -= delta
 		burn_tick_left -= delta
@@ -149,10 +164,8 @@ func _physics_process(delta: float) -> void:
 		attack_timer -= delta
 		if attack_timer <= 0.0:
 			if is_instance_valid(target_tree) and target_tree.has_method("take_damage"):
-				# 🎵 新增：在这里播放攻击音效！
 				target_tree.take_damage(damage)
 				if 攻击_sfx:
-					# 建议稍微给一点随机音调 (pitch) 变化，比如 randf_range(0.9, 1.1)，会让群殴听起来更自然
 					AudioManager.play_sfx(攻击_sfx, 15, false, 3)
 			attack_timer = attack_cooldown
 
@@ -165,17 +178,17 @@ func _physics_process(delta: float) -> void:
 	# ==========================================
 	var nav_target = target_tree.global_position
 	
-	# 👇 使用全局统一的防河流目标点修正
-	if GameData.is_in_river(nav_target):
-		nav_target = GameData.clamp_to_river_bank(nav_target, river_avoid_margin)
-		
+	# 🔥【性能优化】：河道检测改为隔5帧执行一次，削减多边形碰撞查询开销
+	frame_count += 1
+	if frame_count % 5 == 0:
+		if GameData.is_in_river(nav_target):
+			nav_target = GameData.clamp_to_river_bank(nav_target, river_avoid_margin)
+		_cached_river_force = _calculate_river_avoidance_force()
+	
 	var dir_to_tree = (nav_target - global_position).normalized()
 	var seek_force = dir_to_tree * speed * attraction_weight
 	
-	# 注：已移除 cached_repulsion 计算逻辑
-	
-	var boundary_force = _calculate_river_avoidance_force()
-	var desired_velocity = seek_force + boundary_force
+	var desired_velocity = seek_force + _cached_river_force
 	var final_speed = desired_velocity.limit_length(speed) * speed_multiplier
 	velocity = velocity.lerp(final_speed, 0.1)
 
@@ -183,14 +196,12 @@ func _physics_process(delta: float) -> void:
 	# 2. 视线与朝向控制 (完美分离飞行与地面单位)
 	# ==========================================
 	if is_flying_unit:
-		# 飞虫逻辑：优先看向飞行方向；速度很小时，直接看向树避免朝向卡死
 		if velocity.length() > 0.01:
 			rotation = velocity.angle() + (PI / 2)
 		else:
 			look_at(target_tree.global_position)
 			rotation += PI / 2.0
 	else:
-		# 地面单位逻辑：如果不是飞行单位（如甲虫、河狸），保持水平，只做左右翻转
 		if velocity.x < 0:
 			anim.flip_h = true
 		elif velocity.x > 0:
@@ -198,16 +209,17 @@ func _physics_process(delta: float) -> void:
 
 	# 执行 Godot 内部移动逻辑
 	move_and_slide()
-	_enforce_river_boundary()
+	# 🔥【性能优化】：河道兆底也隄5帧
+	if frame_count % 5 == 0:
+		_enforce_river_boundary()
 
-	# 条件：允许移动、没有在攻击、且确实有速度（不在原地挂机）
-	# 🎵 修改后：放宽速度判定(>1.0即可)，音量调小一点(-5.0)，音调恢复正常并加入随机
+	# 🔥【性能优化】：行走音效降频，只有20%的怪物会播放脚步声（通过帧号取模实现，0 GC）
 	if can_move and not is_attacking and velocity.length() > 1.0:
 		walk_sfx_timer -= delta
 		if walk_sfx_timer <= 0.0:
-			if 行走_sfx:
+			if 行走_sfx and frame_count % 5 == 0: # 只有特定帧的怪物才发出声音
 				AudioManager.play_sfx(行走_sfx, 10, false, 3)
-			walk_sfx_timer = WALK_SFX_COOLDOWN # 重置脚步声计时器
+			walk_sfx_timer = WALK_SFX_COOLDOWN
 
 # 这个空函数是留给河狸等特殊怪物的
 func _custom_behavior(delta: float) -> void:
@@ -309,9 +321,9 @@ func take_damage(dmg: float, attack_source_position: Vector2, knockback_force: f
 		
 	current_health -= dmg
 	
-	# 简单的受击闪白光 Juice
+	# 🔥【性能优化】：受击闪白改用内联计时器，彻底消除临时 Timer 对象创建
 	anim.modulate = Color(10, 10, 10, 1) # 瞬间高亮
-	get_tree().create_timer(0.1).timeout.connect(func(): if is_instance_valid(self): anim.modulate = Color(1,1,1,1))
+	_flash_timer = 0.1
 	
 	if current_health <= 0:
 		die(attack_source_position)

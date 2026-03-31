@@ -12,6 +12,12 @@ var target_tree: Node2D = null
 var current_wave: int = 0
 const MAX_WAVES_PER_STAGE = 20 # 大幅增加上限，由 Main 的倒计时决定关卡结束
 
+# ==========================================
+# 🔥【性能核心】：全局出怪上限，防止无尽模式雪崩
+# ==========================================
+const MAX_ALIVE_ENEMIES: int = 250  # 同屏活跃敌人硬上限（已解除部分限制）
+const MAX_PER_WAVE: int = 120       # 单波最大生成数（配合上限放宽）
+
 func _ready() -> void:
 	_find_target_tree()
 	
@@ -41,6 +47,14 @@ func _find_target_tree():
 	else:
 		target_tree = null
 
+## 🔥【性能优化】：统计当前场上活跃敌人数量
+func _count_alive_enemies() -> int:
+	var count = 0
+	for child in PoolManager.get_children():
+		if child.has_meta("pool_key") and child.process_mode != Node.PROCESS_MODE_DISABLED and child.visible:
+			count += 1
+	return count
+
 func _on_wave_timeout() -> void:
 	if not is_instance_valid(target_tree):
 		_find_target_tree()
@@ -69,17 +83,28 @@ func _on_wave_timeout() -> void:
 	
 	SignalBus.on_wave_started.emit(current_wave)
 	
-	# 出怪数量：基础值随关卡动态调整（第一关最少，后面激增）
+	# 🔥【性能优化】：先检查场上数量，到达上限直接跳过本波
+	var alive_count = _count_alive_enemies()
+	if alive_count >= MAX_ALIVE_ENEMIES:
+		print("[WaveManager] 场上敌人已满 (%d/%d)，暂缓出怪" % [alive_count, MAX_ALIVE_ENEMIES])
+		return
+	
+	# 出怪数量：改用亚线性增长（对数曲线），防止后期帧率崩塌
 	var base_count = 25
 	if GameData.current_playing_stage == 1: base_count = 15
 	
 	var difficulty_mult = GameData.current_playing_stage
 	if GameData.is_endless_mode: difficulty_mult = 6 
 	
-	var enemies_to_spawn = base_count + (current_wave * 8) + (difficulty_mult * 12)
-
-
+	# 🔥 核心公式重构：对数增长 + 硬上限 (玩家调整版)
+	var wave_bonus = int(3.0 * log(maxf(current_wave, 1.0)) * 15.0) 
+	var enemies_to_spawn = mini(base_count + wave_bonus + (difficulty_mult * 10), MAX_PER_WAVE)
 	
+	# 再次检查：不要超过全局上限的剩余空间
+	enemies_to_spawn = mini(enemies_to_spawn, MAX_ALIVE_ENEMIES - alive_count)
+	if enemies_to_spawn <= 0:
+		return
+
 	var center_pos = target_tree.global_position
 	var spawn_positions = get_uniform_spawn_positions(center_pos, enemies_to_spawn)
 	
@@ -96,6 +121,9 @@ func _on_wave_timeout() -> void:
 		
 		var spawn_func = func(target_spawn_pos: Vector2, type: String, elite: bool):
 			if not is_instance_valid(target_tree):
+				return
+			# 延迟生成时再次检查上限
+			if _count_alive_enemies() >= MAX_ALIVE_ENEMIES:
 				return
 			PoolManager.get_enemy(type, target_spawn_pos, elite)
 		

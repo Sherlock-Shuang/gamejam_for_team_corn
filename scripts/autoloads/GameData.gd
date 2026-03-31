@@ -30,7 +30,7 @@ var is_in_ending_cinematic: bool = false               # 是否正在播放结�
 func get_endless_multiplier() -> float:
 	if not is_endless_mode: return 1.0
 	# 阶梯式增长：10s(1.1x), 20s(1.2x), 30s(1.3x)...
-	return 1.0 + floor(endless_time / 10.0) * 0.02
+	return 1.0 + floor(endless_time / 10.0) * 0.05
 
 
 
