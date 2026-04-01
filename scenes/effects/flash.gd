@@ -236,7 +236,7 @@ func _apply_flight_contact_damage(ratio_damage: float) -> void:
 		if _flight_hit_enemy_ids.has(enemy_id):
 			continue
 		_flight_hit_enemy_ids[enemy_id] = true
-		enemy.take_damage(ratio_damage, global_position)
+		enemy.take_damage(ratio_damage, global_position, 0.0, "lightning_field")
 
 func _apply_explosion_snapshot_damage(damage: float) -> void:
 	var hit_enemy_ids: Dictionary = {}
@@ -247,10 +247,10 @@ func _apply_explosion_snapshot_damage(damage: float) -> void:
 		if hit_enemy_ids.has(enemy_id):
 			continue
 		hit_enemy_ids[enemy_id] = true
-		enemy.take_damage(damage, global_position)
+		enemy.take_damage(damage, global_position, 0.0, "lightning_field")
 
 func _apply_linger_damage_tick(ratio_damage: float) -> void:
 	for enemy in _get_active_enemies():
 		if enemy.global_position.distance_to(global_position) > explosion_radius:
 			continue
-		enemy.take_damage(ratio_damage, global_position)
+		enemy.take_damage(ratio_damage, global_position, 0.0, "lightning_field")

@@ -16,7 +16,7 @@
 [ext_resource type="AudioStream" uid="uid://bphtnq431nuqx" path="res://assets/audio/sfx/蓄力3.wav" id="12_mpiro"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3dh50"]
-size = Vector2(188, 60)
+size = Vector2(77, 21)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mwoif"]
 radius = 12.0
@@ -67,11 +67,11 @@ color = Color(0.9843137, 0.8, 0.019607844, 0.2784314)
 color_ramp = SubResource("GradientTexture1D_5du0u")
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_63up5"]
-radius = 20.604177
+radius = 9.958473
 
 [sub_resource type="Gradient" id="Gradient_exg44"]
-offsets = PackedFloat32Array(0.003690037, 0.13653137, 1)
-colors = PackedColorArray(0.99215686, 0.88235295, 0, 1, 0.03529412, 0.5137255, 0.9254902, 1, 0.09803922, 0.101960786, 0.9019608, 0)
+offsets = PackedFloat32Array(0.016129032, 0.13653137, 1)
+colors = PackedColorArray(0.3529412, 0.84313726, 0.9411765, 1, 0.105882354, 0.78039217, 0.96862745, 1, 0.09803922, 0.45490196, 0.7254902, 0)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_ga87b"]
 gradient = SubResource("Gradient_exg44")
@@ -86,10 +86,10 @@ inherit_velocity_ratio = 0.027
 direction = Vector3(0, -1, 0)
 initial_velocity_min = 122.96
 initial_velocity_max = 241.04999
-gravity = Vector3(0, -10, 0)
+gravity = Vector3(0, -2, 0)
 scale_max = 1.5999999
 scale_curve = SubResource("CurveTexture_5du0u")
-color = Color(0.14901961, 0.23529412, 0.972549, 0.2784314)
+color = Color(0.23921569, 0.67058825, 0.9529412, 0.2784314)
 color_ramp = SubResource("GradientTexture1D_ga87b")
 
 [node name="tree" type="Node2D" unique_id=850654834 groups=["Tree"]]
@@ -101,7 +101,7 @@ collision_layer = 4
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treeroot" unique_id=1608856074]
-position = Vector2(-7, 7)
+position = Vector2(-1.5, -10)
 shape = SubResource("RectangleShape2D_3dh50")
 
 [node name="RootSprite1" type="Sprite2D" parent="treeroot" unique_id=283189642]
@@ -145,6 +145,7 @@ thrust_duration = 0.22
 "释放破空_sfx" = ExtResource("8_exg44")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="treehead" unique_id=2046942878]
+visible = false
 position = Vector2(0, -132)
 shape = SubResource("CapsuleShape2D_mwoif")
 metadata/_edit_group_ = true
@@ -156,7 +157,6 @@ scale = Vector2(0.1920189, 0.15904239)
 texture = ExtResource("1_8y28y")
 
 [node name="HeadSprite2" type="Sprite2D" parent="treehead" unique_id=1434424522]
-visible = false
 position = Vector2(-3, -161.00002)
 scale = Vector2(0.23, 0.191)
 texture = ExtResource("7_ffmh2")
@@ -180,10 +180,11 @@ collision_mask = 2
 
 [node name="Shape1" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=1048735965]
 visible = false
-polygon = PackedVector2Array(-1, -194, -46, -143, -7, -18, 78, -149, 14, -212)
+position = Vector2(-24, -21)
+polygon = PackedVector2Array(-1, -194, -28, -151, 23, 17, 81, -148, 14, -232)
 
 [node name="Shape2" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=308933481]
-visible = false
+position = Vector2(-2, -29)
 scale = Vector2(1.1, 1.1)
 polygon = PackedVector2Array(1, -254, -98, -217, -134, -153, -141, -70, 141, -78, 138, -194)
 disabled = true
@@ -209,7 +210,6 @@ position = Vector2(0, -210)
 stream = ExtResource("12_mpiro")
 
 [node name="FireEnchantParticles" type="GPUParticles2D" parent="treehead" unique_id=1415579518]
-visible = false
 z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(1.0000007, -206)
@@ -241,27 +241,28 @@ collision_mask = 8
 
 [node name="CollisionShape2D1" type="CollisionShape2D" parent="HurtBox" unique_id=2006727376]
 visible = false
-position = Vector2(-3, -115)
-scale = Vector2(0.4861854, -2.8972795)
+position = Vector2(-2, -48)
+scale = Vector2(1.1911235, -1.8132933)
 shape = SubResource("CircleShape2D_63up5")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="HurtBox" unique_id=887704042]
 visible = false
-position = Vector2(-4, -151)
-scale = Vector2(2.042057, 5.085929)
+position = Vector2(-2, -59)
+scale = Vector2(4.3298097, 4.391467)
 shape = SubResource("CircleShape2D_63up5")
 disabled = true
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="HurtBox" unique_id=1732775799]
 visible = false
-position = Vector2(-2, -178)
-scale = Vector2(-4.2854714, 6.5985126)
+position = Vector2(-5, -95.00001)
+scale = Vector2(3.5784144, 8.54826)
 shape = SubResource("CircleShape2D_63up5")
 disabled = true
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="HurtBox" unique_id=912886804]
-position = Vector2(3, -178)
-scale = Vector2(6.437018, 7.0925484)
+visible = false
+position = Vector2(-4, -111)
+scale = Vector2(5.9570174, 9.0264435)
 shape = SubResource("CircleShape2D_63up5")
 disabled = true
 

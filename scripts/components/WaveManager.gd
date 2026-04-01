@@ -27,7 +27,7 @@ func _ready() -> void:
 			1: base_wave_interval = 12.0
 			2: base_wave_interval = 7.5
 			3: base_wave_interval = 6.0
-			4: base_wave_interval = 4.5
+			4: base_wave_interval = 6.0
 			_: base_wave_interval = 6.0
 	else:
 		base_wave_interval = 8.0
@@ -106,19 +106,39 @@ func _on_wave_timeout() -> void:
 		return
 
 	var center_pos = target_tree.global_position
-	var spawn_positions = get_uniform_spawn_positions(center_pos, enemies_to_spawn)
 	print("[WaveManager] 波次 %d: 生成 %d 个敌人, alive=%d, endless=%s, tree_pos=%s" % [current_wave, enemies_to_spawn, alive_count, GameData.is_endless_mode, center_pos])
+	# 预先计算分布参数，但不立即分配位置，因为 beetle 需要不同的半径
+	var start_angle = PI + randf_range(0.0, PI / float(enemies_to_spawn))
+	var segment = PI / float(enemies_to_spawn)
+	var jitter = segment * clampf(spawn_uniform_jitter, 0.0, 0.49)
 	
 	for i in range(enemies_to_spawn):
 		var random_delay = randf_range(0.0, base_wave_interval * 0.8)
-		var spawn_pos = spawn_positions[i]
 		var enemy_type_to_spawn = get_enemy_type_for_wave(current_wave, randf())
 		
-		# 精英判定：第 3, 4 关或无尽模式有 1% 概率产生精英。
-		var roll_elite = false
-		if GameData.is_endless_mode or GameData.current_playing_stage >= 3:
-			if randf() < 0.01:
-				roll_elite = true
+		# 为不同敌人设置不同的生成半径
+		var custom_min = min_spawn_distance
+		var custom_max = spawn_radius
+		if enemy_type_to_spawn == "beetle":
+			custom_min = 700.0
+			custom_max = 1100.0
+			
+		var angle = start_angle + segment * float(i) + randf_range(-jitter, jitter)
+		angle = clampf(angle, PI, TAU)
+		var spawn_pos = get_spawn_position_with_river_rule(center_pos, angle, custom_min, custom_max)
+		
+		# 【难度提升计划 B】：阶梯式精英率提升
+		var elite_chance = 0.01
+		if GameData.current_playing_stage == 3:
+			elite_chance = 0.02
+		elif GameData.current_playing_stage == 4:
+			elite_chance = 0.03
+		
+		# 无尽模式：随着波数（Wave）每增加 10 波，精英率额外提升 1%
+		if GameData.is_endless_mode:
+			elite_chance = 0.01 + floor(current_wave / 10.0) * 0.01
+			
+		var roll_elite = (randf() < elite_chance)
 		
 		var spawn_func = func(target_spawn_pos: Vector2, type: String, elite: bool):
 			if not is_instance_valid(target_tree):
@@ -194,20 +214,30 @@ func get_uniform_spawn_positions(center_pos: Vector2, count: int) -> Array[Vecto
 		points.append(get_spawn_position_with_river_rule(center_pos, angle))
 	return points
 
-func get_spawn_position_with_river_rule(center_pos: Vector2, angle: float) -> Vector2:
-	var min_r = maxf(0.0, minf(min_spawn_distance, spawn_radius - 1.0))
-	var max_r = maxf(min_r + 1.0, spawn_radius)
+func get_spawn_position_with_river_rule(center_pos: Vector2, angle: float, min_r_override: float = -1.0, max_r_override: float = -1.0) -> Vector2:
+	var min_r = min_spawn_distance if min_r_override < 0 else min_r_override
+	var max_r = spawn_radius if max_r_override < 0 else max_r_override
+	
+	min_r = maxf(0.0, min_r)
+	max_r = maxf(min_r + 1.0, max_r)
+	
 	for _attempt in range(max(1, spawn_retry_limit)):
 		var dist = sqrt(lerpf(min_r * min_r, max_r * max_r, randf()))
 		var spawn_pos = center_pos + Vector2.from_angle(angle) * dist
-		if spawn_pos.distance_to(center_pos) < min_spawn_distance:
+		
+		# 【修复】：此处应使用局部 min_r 检查，而不是全局 min_spawn_distance
+		if spawn_pos.distance_to(center_pos) < min_r:
 			continue
+			
 		if GameData.is_in_river(spawn_pos):
 			continue
+			
 		return spawn_pos
+		
+	# 最终兜底：沿原始角度在最大半径处生成，避免全部挤在 Vector2.UP
 	var fallback = center_pos + Vector2.from_angle(angle) * max_r
-	if fallback.distance_to(center_pos) < min_spawn_distance:
-		fallback = center_pos + Vector2.UP * min_spawn_distance
 	if GameData.is_in_river(fallback):
-		fallback = center_pos + Vector2.UP * max_r
-	return GameData.clamp_to_river_bank(fallback, 24.0)
+		# 如果最大半径处在水里，尝试往回缩一点，或者强制挪到岸边
+		fallback = GameData.clamp_to_river_bank(fallback, 24.0)
+		
+	return fallback

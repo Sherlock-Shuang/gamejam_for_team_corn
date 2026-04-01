@@ -72,6 +72,9 @@ func prewarm(enemy_type: String, count: int) -> void:
 		enemy.process_mode = Node.PROCESS_MODE_DISABLED
 		enemy.hide()
 		
+		# 【重要】：记录关卡原始缩放率，防止在不同精英怪转换中体型无限膨胀/缩水
+		enemy.set_meta("base_scale", enemy.scale)
+		
 		# 直接作为 PoolManager 的子节点，永远不 Remove！
 		add_child(enemy)
 		_pools[enemy_type].append(enemy)
@@ -99,6 +102,7 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2, is_elite: bool = false) -
 	if not enemy:
 		enemy = enemy_scenes[enemy_type].instantiate()
 		enemy.set_meta("pool_key", enemy_type)
+		enemy.set_meta("base_scale", enemy.scale)
 		add_child(enemy)
 		
 	# 唤醒怪物！
@@ -135,32 +139,36 @@ func _apply_enemy_stats(enemy: Node, enemy_type: String, is_elite: bool = false)
 	var final_hp = float(stats["hp"]) * mult
 	var final_speed = float(stats["speed"]) * mult
 	var final_damage = float(stats["damage"]) * mult
+	
+	# 【难度提升计划 D】：基于剧情模式关卡的全局速度倍率
+	var stage_speed_mult = 1.0
+	if not GameData.is_endless_mode: # 无尽模式不适用固定倍率，因为它自己有增长
+		if GameData.current_playing_stage == 3:
+			stage_speed_mult = 1.2
+		elif GameData.current_playing_stage >= 4:
+			stage_speed_mult = 1.4
+	final_speed *= stage_speed_mult
+	
 	var final_scale = 1.0
 	var final_exp = float(stats.get("exp_drop", 1.0))
 	
-	# === 精英怪变异逻辑 ===
 	if is_elite:
-		final_hp *= 3.0      # 生命三倍
-		final_speed *= 2.0   # 速度两倍
-		final_scale = 2.0    # 体型两倍
-		final_exp *= 5.0     # 精英经验更多
-		
-		# 尝试处理攻击距离 (如果对象暴露了该变量)
-		if enemy.get("attack_range") != null:
-			enemy.attack_range *= 2.0
-		elif enemy.get("damage_radius") != null:
-			enemy.damage_radius *= 2.0
-		
-		# 还可以加一个小光晕标记，如果有的话，这里演示改变调制色
-		enemy.modulate = Color(2.0, 1.0, 1.0) # 稍微变红
+		final_hp *= 5.0      # 【难度提升 C】：精英血量 5 倍
+		final_speed *= 1.3   
+		final_scale = 1.8    
+		final_exp *= 6.0     # 经验也对应给多一点平衡
+		enemy.modulate = Color(2.5, 0.4, 0.4, 1.0) # 极高浓度的狂暴深红 (警告色)
 	else:
-		enemy.modulate = Color.WHITE # 恢复普通
-		
+		# 普通怪：完全重置属性到标准倍率
+		enemy.modulate = Color.WHITE
+		final_scale = 1.0
+	
 	# === 实装到 Node ===
+	# 关键：这些属性直接覆盖，不要使用 *=，否则池化循环后会无限倍增！
 	if enemy.get("max_health") != null:
 		enemy.max_health = final_hp
 		if enemy.get("current_health") != null:
-			enemy.current_health = final_hp # 刚出的满血
+			enemy.current_health = final_hp
 			
 	if enemy.get("speed") != null:
 		enemy.speed = final_speed
@@ -170,9 +178,15 @@ func _apply_enemy_stats(enemy: Node, enemy_type: String, is_elite: bool = false)
 		
 	if enemy.get("exp_drop") != null:
 		enemy.exp_drop = final_exp
+
+	# 攻击范围修正（必须要有一个基础值，如果没有就从 GameData 取，或者假设为 1.0）
+	if enemy.get("attack_range") != null:
+		# 如果是精英，基于默认值修正，而不是基于当前值（防止累加）
+		enemy.attack_range = 1.0 * (2.0 if is_elite else 1.0)
 		
 	if enemy is Node2D:
-		enemy.scale = Vector2(final_scale, final_scale)
+		var base_s = enemy.get_meta("base_scale", Vector2.ONE)
+		enemy.scale = base_s * final_scale
 
 
 ## 回收怪物（供 EnemyAI 死亡击飞结束后调用）
@@ -189,9 +203,9 @@ func return_enemy(node: Node) -> void:
 		
 	var pool_array = _pools[path_key]
 	
-	# 还原精英状态的影响 (Scale)
+	# 还原精英状态的影响 (Scale) — 使用 base_scale 精确恢复，防止体型漂移
 	if node is Node2D:
-		node.scale = Vector2.ONE
+		node.scale = node.get_meta("base_scale", Vector2.ONE)
 	node.modulate = Color.WHITE
 	
 	# 避免重复回收报错

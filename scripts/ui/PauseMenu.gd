@@ -41,11 +41,11 @@ func _ready():
 		)
 
 func _on_continue_pressed():
-	get_tree().paused = false
+	GameData.set_game_paused(false)
 	queue_free()
 
 func _on_return_pressed():
-	get_tree().paused = false
+	GameData.set_game_paused(false)
 	get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
 
 func _on_quit_pressed():

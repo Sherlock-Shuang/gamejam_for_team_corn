@@ -263,6 +263,7 @@ func _input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if hovered_stage >= 1:
 			if click_sfx: AudioManager.play_sfx(click_sfx, 0.0, false, 1)
+			GameData.reset_run() # 🔴 【新增】：在大地图点选任何一关，都视为一次“新游戏的开始”，需要彻底重置
 			GameData.current_playing_stage = hovered_stage
 			get_tree().change_scene_to_file("res://Main.tscn")
 		elif hovered_stage == -2:

@@ -88,11 +88,12 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("Enemy"):
 		var enemy = area.get_parent()
 		if enemy and enemy.has_method("take_damage"):
-			enemy.take_damage(damage, global_position)
+			# 局部慢放：匕首和敌人短暂定格
+			_trigger_local_slowmo(enemy)
+			
+			enemy.take_damage(damage, global_position, 0.0, "thorn_shot")
 			
 			# 🎵 调用全局管理器播放击中音效
-			# 参数：音效资源 | 音量(0.0) | 开启随机音调(true) | 限制同屏最多播放数(比如5)
-			# 因为你有穿透，打中一排怪时，max_instances 会完美发挥作用拦截爆音！
 			if hit_sound:
 				AudioManager.play_sfx(hit_sound, 20, true, 5)
 			
@@ -100,6 +101,48 @@ func _on_area_entered(area: Area2D) -> void:
 			current_pierce += 1
 			if current_pierce >= pierce_count:
 				_destroy_sting()
+
+func _trigger_local_slowmo(enemy: Node) -> void:
+	# 1. 暂停物理处理
+	set_physics_process(false)
+	if enemy.has_method("set_physics_process"):
+		enemy.set_physics_process(false)
+	
+	# 2. 视觉冲击：极致高亮 (甚至可以超过 1.0 产生辉光感)
+	sprite.modulate = Color(5, 5, 5, 1)
+	var original_enemy_mod = Color.WHITE
+	if "anim" in enemy:
+		original_enemy_mod = enemy.anim.modulate
+		enemy.anim.modulate = Color(4, 4, 4, 1)
+	
+	# 3. 形状冲击：匕首轻微缩短，敌人在受击点轻微形变
+	var old_scale = sprite.scale
+	sprite.scale = old_scale * Vector2(0.7, 1.3) # 挤压感
+	
+	var enemy_anim = null
+	var old_enemy_scale = Vector2.ONE
+	if "anim" in enemy:
+		enemy_anim = enemy.anim
+		old_enemy_scale = enemy_anim.scale
+		enemy_anim.scale = old_enemy_scale * 1.1 # 轻微膨胀
+	
+	# 4. 0.12 秒的“灵魂定格” (Game Jam 经验值)
+	var freeze_time = 0.12
+	var timer = get_tree().create_timer(freeze_time, false) # 不受全局 TimeScale 影响
+	timer.timeout.connect(func():
+		# 恢复物理
+		set_physics_process(true)
+		if is_instance_valid(enemy):
+			enemy.set_physics_process(true)
+			if enemy_anim:
+				enemy_anim.modulate = original_enemy_mod
+				enemy_anim.scale = old_enemy_scale
+		
+		# 恢复视觉和形状
+		var recover_tween = create_tween().set_parallel(true)
+		recover_tween.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.1)
+		recover_tween.tween_property(sprite, "scale", old_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	)
 
 # ==========================================
 # 信号连接 2：飞出屏幕自动销毁

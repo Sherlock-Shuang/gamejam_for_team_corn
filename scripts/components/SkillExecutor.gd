@@ -14,8 +14,60 @@ func _ready():
 	print("[SkillExecutor] 技能引擎已加载，开始监听天命总线...")
 	SignalBus.on_upgrade_selected.connect(_on_skill_unlocked)
 	SignalBus.on_enemy_hit.connect(_on_enemy_hit)
+	SignalBus.on_enemy_died.connect(_on_enemy_died_global)
 	_set_tree_fire_enchant_fx(false, 0)
 	_set_tree_ice_enchant_fx(false, 0)
+	
+	# 如果是跨关卡进入，自动从 GameData 同步已有的技能状态
+	_sync_on_ready()
+
+func _sync_on_ready():
+	if GameData.current_run_skill_ids.is_empty():
+		return
+	
+	print("[SkillExecutor] 正在从存档同步 %d 个现有能力..." % GameData.current_run_skill_ids.size())
+	for skill_id in GameData.current_run_skill_ids:
+		if GameData.skill_pool.has(skill_id):
+			var data = GameData.skill_pool[skill_id]
+			var lv = GameData.get_skill_level(skill_id)
+			active_skills[skill_id] = data
+			active_skill_levels[skill_id] = lv
+			
+			# 特殊视觉：附魔
+			if skill_id == "fire_enchant": _set_tree_fire_enchant_fx(true, lv)
+			if skill_id == "ice_enchant": _set_tree_ice_enchant_fx(true, lv)
+			
+			# 初始化衍生攻击计数器
+			var category = data.get("category", "")
+			if category == "衍生攻击":
+				_setup_derived_attack(skill_id)
+			elif category == "基础数值":
+				var effects = GameData.get_skill_effects(skill_id, lv)
+				# 🔥【关键修复】：同步到新场景的 Node 属性，但跳过 GameData 的增量计算（避免叠加两次数值）
+				_apply_base_stats(skill_id, {}, effects, false)
+			
+			SignalBus.on_skill_actived.emit(skill_id)
+
+# ── 大规模击杀全局定格系统 ──────────────────────────────────────
+const AOE_KILL_THRESHOLD: int = 10
+const AOE_KILL_WINDOW: float = 0.3
+var _aoe_kill_count: int = 0
+var _aoe_kill_reset_timer: float = 0.0
+
+func _process(delta):
+	if _aoe_kill_reset_timer > 0.0:
+		_aoe_kill_reset_timer -= delta
+		if _aoe_kill_reset_timer <= 0.0:
+			_aoe_kill_count = 0
+
+func _on_enemy_died_global(_exp_value: float, _pos: Vector2, cause: String) -> void:
+	# 仅酱爆和球状闪电的击杀计入全局卡肉计数
+	if cause == "exploding_fruit" or cause == "lightning_field":
+		_aoe_kill_reset_timer = AOE_KILL_WINDOW
+		_aoe_kill_count += 1
+		if _aoe_kill_count >= AOE_KILL_THRESHOLD:
+			_aoe_kill_count = 0
+			GameData.trigger_hit_stop(0.05, 0.07)
 
 func _on_skill_unlocked(skill_id: String):
 	var payload = GameData.decode_upgrade_payload(skill_id)
@@ -217,7 +269,7 @@ func _cast_seed_bomb():
 
 # ── 类别 B：元素附魔 (基于每次普攻) ─────────────────────────────
 # 监听 treehead 发来的击中信号，判定有没有元素状态，直接附加给你
-func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D):
+func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D, cause: String = ""):
 	if active_skills.has("ice_enchant"):
 		var fx = _get_skill_effects("ice_enchant")
 		if enemy_node and enemy_node.has_method("apply_slow"):
@@ -246,14 +298,15 @@ func _on_enemy_hit(damage: float, enemy_pos: Vector2, enemy_node: Node2D):
 
 func _cast_chain_lightning(start_node: Node2D, start_pos: Vector2, chain_damage: float, max_bounces: int) -> void:
 	var chain_targets = [start_node]
-	var current_node = start_node
+	var last_node = start_node
 	var current_pos = start_pos
 	
+	# 允许传导回之前的目标（但不能立刻跳回上一个），提升混沌感
 	for _i in range(max_bounces):
-		var nearest = _get_nearest_target_from(current_pos, chain_targets, 300.0)
+		var nearest = _get_nearest_target_from(current_pos, [last_node], 500.0)
 		if is_instance_valid(nearest):
 			chain_targets.append(nearest)
-			current_node = nearest
+			last_node = nearest
 			current_pos = nearest.global_position
 		else:
 			break
@@ -267,38 +320,65 @@ func _cast_chain_lightning(start_node: Node2D, start_pos: Vector2, chain_damage:
 		
 	lightning_line.top_level = true
 	lightning_line.global_position = Vector2.ZERO
-	lightning_line.z_index = 100 # 强制置顶，防止在 PoolManager 里被 Main 背景遮盖！
+	lightning_line.z_index = 100
 	lightning_line.z_as_relative = false
 	
-	# 非常关键：把这根线的透明度重置回 1.0，否则上次使用完它已经是全透明了！
 	var current_mod = lightning_line.modulate
 	current_mod.a = 1.0
 	lightning_line.modulate = current_mod
 	
-	# 根据电动力学等级极大化增加粗度 (每次升级+30)
+	# 🔥【关键修复】：防止旧的淡出 Tween 干扰新的闪电
+	var old_tween = lightning_line.get_meta("fade_tween", null)
+	if old_tween and old_tween.is_valid():
+		old_tween.kill()
+	
 	var skill_level = _get_skill_level("lightning_enchant")
 	
-	# 记录初始宽度，防止拿回对象池后无限叠加变粗
 	if not lightning_line.has_meta("base_width"):
 		lightning_line.set_meta("base_width", lightning_line.width)
 		
 	var base_width = lightning_line.get_meta("base_width")
 	lightning_line.width = base_width + float(skill_level - 1) * 30.0
 	
+	# --- 同步绘制环节 (不再 await，防止池化冲突) ---
 	lightning_line.clear_points()
-	
-	for target in chain_targets:
+	for i in range(chain_targets.size()):
+		var target = chain_targets[i]
 		if is_instance_valid(target):
 			lightning_line.add_point(target.global_position)
-			# Do not damage the first target again
-			if target != start_node and target.has_method("take_damage"):
-				target.take_damage(chain_damage, current_pos)
+			
+	# --- 异步反馈环节 (使用计时器延迟，不阻塞 Line2D 的后续操作) ---
+	for i in range(chain_targets.size()):
+		var target = chain_targets[i]
+		var delay = float(i) * 0.05
+		if delay <= 0:
+			_apply_chain_hit_feedback(target, chain_damage, i == 0)
+		else:
+			get_tree().create_timer(delay, false).timeout.connect(func():
+				if is_instance_valid(target):
+					_apply_chain_hit_feedback(target, chain_damage, false)
+			)
+
+	# 可能在执行过程中 Line2D 已返还，需确保安全
+	if not is_instance_valid(lightning_line):
+		return
 				
 	var tween = create_tween()
-	# 去掉了原来代码里强加的 Color(1.8, 1.8, 2.5, 1.0)，这会覆盖你贴图的本色！
-	# 把持续时间拉长一点到 0.35 秒，太快了人眼没注意
-	tween.tween_property(lightning_line, "modulate:a", 0.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	lightning_line.set_meta("fade_tween", tween)
+	# 持续时间延长到 0.45 秒（匹配传导总时长），然后淡出
+	tween.tween_property(lightning_line, "modulate:a", 0.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(PoolManager.return_effect.bind(lightning_line, "lightning_enchant"))
+
+func _apply_chain_hit_feedback(target: Node2D, damage: float, is_first: bool):
+	if not is_instance_valid(target): return
+	
+	# 伤害应用 (跳过首个目标，因为它已经被普攻打过了)
+	if not is_first and target.has_method("take_damage"):
+		target.take_damage(damage, target.global_position, 0.0, "lightning_enchant")
+	
+	# 视觉闪白定格
+	if target.has_method("trigger_local_freeze"):
+		target.trigger_local_freeze(0.05)
 
 func _get_nearest_target_from(pos: Vector2, exclude_list: Array, max_dist: float) -> Node2D:
 	var enemies = get_tree().get_nodes_in_group("Enemy")
@@ -356,52 +436,62 @@ func _set_tree_ice_enchant_fx(enabled: bool, level: int = 0) -> void:
 		index += 1
 
 # ── 类别 C：基础属性被动提升 ────────────────────────────────────
-func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictionary):
+func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictionary, update_gamedata: bool = true):
 	if new_eff.has("max_hp_bonus"):
-		var prev_bonus = float(prev_eff.get("max_hp_bonus", 0.0))
-		var new_bonus = float(new_eff.get("max_hp_bonus", 0.0))
-		var add_bonus = maxf(0.0, new_bonus - prev_bonus)
-		GameData.player_base_stats["max_hp"] += add_bonus
-		GameData.current_hp += add_bonus
-		GameData.current_hp = minf(GameData.current_hp, GameData.player_base_stats["max_hp"])
-		SignalBus.on_player_hp_changed.emit(GameData.current_hp, GameData.player_base_stats["max_hp"])
+		if update_gamedata:
+			var prev_bonus = float(prev_eff.get("max_hp_bonus", 0.0))
+			var new_bonus = float(new_eff.get("max_hp_bonus", 0.0))
+			var add_bonus = maxf(0.0, new_bonus - prev_bonus)
+			GameData.player_base_stats["max_hp"] += add_bonus
+			GameData.current_hp += add_bonus
+			GameData.current_hp = minf(GameData.current_hp, GameData.player_base_stats["max_hp"])
+			SignalBus.on_player_hp_changed.emit(GameData.current_hp, GameData.player_base_stats["max_hp"])
+			
 		if skill_id == "thick_bark" and tree_owner.has_method("apply_trunk_width_multiplier"):
 			var prev_mult = float(prev_eff.get("trunk_width_mult", 1.0))
 			var new_mult = float(new_eff.get("trunk_width_mult", 1.0))
 			var step_mult = 1.0
 			if prev_mult > 0.0:
 				step_mult = new_mult / prev_mult
+			# 如果是同步模式，直接应用全量倍率
+			if not update_gamedata: step_mult = new_mult
 			tree_owner.apply_trunk_width_multiplier(step_mult)
 	if new_eff.has("hp_regen"):
-		var prev_regen = float(prev_eff.get("hp_regen", 0.0))
-		var next_regen = float(new_eff.get("hp_regen", 0.0))
-		GameData.player_base_stats["hp_regen"] += maxf(0.0, next_regen - prev_regen)
+		if update_gamedata:
+			var prev_regen = float(prev_eff.get("hp_regen", 0.0))
+			var next_regen = float(new_eff.get("hp_regen", 0.0))
+			GameData.player_base_stats["hp_regen"] += maxf(0.0, next_regen - prev_regen)
+			
 		if skill_id == "deep_roots" and tree_owner.has_method("apply_root_scale_multiplier"):
 			var prev_root = float(prev_eff.get("root_scale_mult", 1.0))
 			var next_root = float(new_eff.get("root_scale_mult", 1.0))
 			var step_root = 1.0
 			if prev_root > 0.0:
 				step_root = next_root / prev_root
+			if not update_gamedata: step_root = next_root
 			tree_owner.apply_root_scale_multiplier(step_root)
 	if new_eff.has("attack_mult"):
-		var prev_atk = float(prev_eff.get("attack_mult", 1.0))
-		var next_atk = float(new_eff.get("attack_mult", 1.0))
-		var step_atk = 1.0
-		if prev_atk > 0.0:
-			step_atk = next_atk / prev_atk
-		GameData.player_base_stats["attack_power"] *= step_atk
-		
-		# 【新增特性】：光合强化每次升级，都要把全技能伤害 * 1.2
-		if skill_id == "photosynthesis":
-			GameData.player_base_stats["skill_damage_mult"] *= 1.2
-			print("[SkillExecutor] 光合强化升级！全技能伤害系数提升为: ", GameData.player_base_stats["skill_damage_mult"])
+		if update_gamedata:
+			var prev_atk = float(prev_eff.get("attack_mult", 1.0))
+			var next_atk = float(new_eff.get("attack_mult", 1.0))
+			var step_atk = 1.0
+			if prev_atk > 0.0:
+				step_atk = next_atk / prev_atk
+			GameData.player_base_stats["attack_power"] *= step_atk
+			
+			# 【新增特性】：光合强化每次升级，都要把全技能伤害 * 1.2
+			if skill_id == "photosynthesis":
+				GameData.player_base_stats["skill_damage_mult"] *= 1.2
+				print("[SkillExecutor] 光合强化升级！全技能伤害系数提升为: ", GameData.player_base_stats["skill_damage_mult"])
 	if new_eff.has("range_mult"):
-		var prev_range = float(prev_eff.get("range_mult", 1.0))
-		var next_range = float(new_eff.get("range_mult", 1.0))
-		var step_range = 1.0
-		if prev_range > 0.0:
-			step_range = next_range / prev_range
-		GameData.player_base_stats["attack_range"] *= step_range
+		if update_gamedata:
+			var prev_range = float(prev_eff.get("range_mult", 1.0))
+			var next_range = float(new_eff.get("range_mult", 1.0))
+			var step_range = 1.0
+			if prev_range > 0.0:
+				step_range = next_range / prev_range
+			GameData.player_base_stats["attack_range"] *= step_range
+			
 		if skill_id == "wide_canopy":
 			if tree_owner.has_method("apply_canopy_scale_multiplier"):
 				var prev_canopy = float(prev_eff.get("canopy_sprite_mult", 1.0))
@@ -409,6 +499,7 @@ func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictiona
 				var step_canopy = 1.0
 				if prev_canopy > 0.0:
 					step_canopy = next_canopy / prev_canopy
+				if not update_gamedata: step_canopy = next_canopy
 				tree_owner.apply_canopy_scale_multiplier(step_canopy)
 			var treehead = tree_owner.get_node_or_null("treehead")
 			if treehead and treehead.has_method("apply_hit_shape_scale_multiplier"):
@@ -417,6 +508,7 @@ func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictiona
 				var step_hit = 1.0
 				if prev_hit > 0.0:
 					step_hit = next_hit / prev_hit
+				if not update_gamedata: step_hit = next_hit
 				treehead.apply_hit_shape_scale_multiplier(step_hit)
 	if new_eff.has("stretch_scale_bonus"):
 		var treehead = tree_owner.get_node_or_null("treehead")

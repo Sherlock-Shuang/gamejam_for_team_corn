@@ -109,7 +109,7 @@ var growth_stages: Array = [
 #  经验值公式: 每级所需经验 = base * (level ^ exponent)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var exp_base: float = 50.0
-var exp_exponent: float = 1.3
+var exp_exponent: float = 1.4 # 从 1.3 增加到 1.5，让后期由于怪物密度大导致的快速升级得到平衡
 
 func get_exp_to_next_level(level: int) -> float:
 	return exp_base * pow(level, exp_exponent)
@@ -124,14 +124,14 @@ var skill_pool: Dictionary = {
 		"category": "衍生攻击",
 		"description": "自动向最近的敌人发射毒刺，造成持续中毒伤害。",
 		"icon": "",
-		"max_level": 3,
-		"effects": {"poison_damage": 20, "interval": 2.0, "pierce_count": 2, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+		"max_level": 5,
+		"effects": {"poison_damage": 20, "interval": 1.5, "pierce_count": 2, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
 		"level_effects": [
-			{"poison_damage": 20, "interval": 2.0, "pierce_count": 2, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
-			{"poison_damage": 20, "interval": 1.8, "pierce_count": 4, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
-			{"poison_damage": 20, "interval": 1.6, "pierce_count": 6, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
-			{"poison_damage": 20, "interval": 1.4, "pierce_count": 8, "projectile_count": 1, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
-			{"poison_damage": 20, "interval": 1.0, "pierce_count": 10, "projectile_count": 1, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62}
+			{"poison_damage": 20, "interval": 1.5, "pierce_count": 5, "projectile_count": 1, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 25, "interval": 1.2, "pierce_count": 6, "projectile_count": 2, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 25, "interval": 0.9, "pierce_count": 7, "projectile_count": 3, "speed_mult": 1.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 30, "interval": 0.6, "pierce_count": 9, "projectile_count": 4, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62},
+			{"poison_damage": 40, "interval": 0.5, "pierce_count": 10, "projectile_count": 5, "speed_mult": 2.0, "launch_end_scale_x": 0.1, "launch_end_scale_y": 0.62}
 		],
 		"upgrade_routes": [
 			{"id": "damage_up", "title": "毒性强化", "description": "伤害提升", "effects": {"poison_damage": 8}},
@@ -145,17 +145,21 @@ var skill_pool: Dictionary = {
 		"category": "衍生攻击",
 		"description": "定期抛射果实，落地后爆炸对范围内敌人造成伤害。",
 		"icon": "",
-		"max_level": 3,
-		"effects": {"explosion_damage": 22, "radius": 300.0, "interval": 4.0, "cast_count": 1},
+		"max_level": 5,
+		"effects": {"explosion_damage": 22, "radius": 300.0, "interval": 3.0, "cast_count": 1},
 		"level_effects": [
-			{"explosion_damage": 22, "radius": 300.0, "interval": 4.0, "cast_count": 1},
-			{"explosion_damage": 32, "radius": 350.0, "interval": 3.35, "cast_count": 2},
-			{"explosion_damage": 32, "radius": 410.0, "interval": 2.75, "cast_count": 3}
+			{"explosion_damage": 22, "radius": 300.0, "interval": 3.0, "cast_count": 1},
+			{"explosion_damage": 32, "radius": 350.0, "interval": 3.0, "cast_count": 3},
+			{"explosion_damage": 32, "radius": 410.0, "interval": 2.75, "cast_count": 5},
+			{"explosion_damage": 38, "radius": 480.0, "interval": 2.2, "cast_count": 7},
+			{"explosion_damage": 42, "radius": 560.0, "interval": 1.6, "cast_count": 9}
 		],
 		"level_descriptions": [
 			"周期性向地面投掷爆裂果实，造成大范围爆炸。",
 			"果实数量翻倍，爆炸半径与威力显著提升。",
-			"果实数量增至3个，极大范围的高能爆破。"
+			"果实数量增至3个，极大范围的高能爆破。",
+			"果实产量惊人，连环爆炸几乎覆盖主战场。",
+			"神木之赐：爆裂果实如雨点般落下，彻底净化森林。"
 		],
 		"upgrade_routes": [
 			{"id": "radius_up", "title": "果实膨胀", "description": "判定半径提升", "effects": {"radius": 40.0}},
@@ -170,17 +174,21 @@ var skill_pool: Dictionary = {
 		"category": "衍生攻击",
 		"description": "投射缓慢移动的闪电球，扩散后形成短暂滞留电场。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.4, "linger_scale_ratio": 0.06, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.12},
 		"level_effects": [
-			{"explosion_damage": 24, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.1, "linger_scale_ratio": 0.025, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.2},
-			{"explosion_damage": 30, "radius": 350.0, "interval": 2.4, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.46, "linger_duration": 0.14, "linger_scale_ratio": 0.026, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.18},
-			{"explosion_damage": 36, "radius": 400.0, "interval": 2.7, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.48, "linger_duration": 0.2, "linger_scale_ratio": 0.025, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.15}
+			{"explosion_damage": 18, "radius": 300.0, "interval": 3.0, "cast_count": 1, "cast_range_min": 150.0, "cast_range_max": 650.0, "speed_ratio": 0.4, "linger_duration": 0.1, "linger_scale_ratio": 0.018, "burst_overshoot_ratio": 1.1, "scale_settle_duration": 0.2},
+			{"explosion_damage": 20, "radius": 350.0, "interval": 2.4, "cast_count": 2, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.46, "linger_duration": 0.14, "linger_scale_ratio": 0.018, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.18},
+			{"explosion_damage": 24, "radius": 400.0, "interval": 2.7, "cast_count": 3, "cast_range_min": 150.0, "cast_range_max": 700.0, "speed_ratio": 0.48, "linger_duration": 0.2, "linger_scale_ratio": 0.019, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.15},
+			{"explosion_damage": 36, "radius": 460.0, "interval": 2.2, "cast_count": 4, "cast_range_min": 150.0, "cast_range_max": 750.0, "speed_ratio": 0.52, "linger_duration": 0.28, "linger_scale_ratio": 0.020, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.12},
+			{"explosion_damage": 40, "radius": 520.0, "interval": 2.0, "cast_count": 5, "cast_range_min": 150.0, "cast_range_max": 800.0, "speed_ratio": 0.55, "linger_duration": 0.35, "linger_scale_ratio": 0.020, "burst_overshoot_ratio": 1.2, "scale_settle_duration": 0.1}
 		],
 		"level_descriptions": [
 			"投射缓慢移动的闪电球，扩散后形成短暂滞留电场。",
 			"闪电球数量翻倍，电场范围与持续时间增加。",
-			"电场进入超载状态，造成持续的高频雷击伤害。"
+			"电场进入超载状态，造成持续的高频雷击伤害。",
+			"雷暴升级，产生的闪电球数量与电场范围显著增强。",
+			"天谴：超载电场长时间滞留，大面积抹杀一切侵略者。"
 		],
 		"upgrade_routes": [
 			{"id": "radius_up", "title": "电场扩容", "description": "判定半径提升", "effects": {"radius": 45.0}},
@@ -195,17 +203,21 @@ var skill_pool: Dictionary = {
 		"category": "衍生攻击",
 		"description": "在地表蔓延藤蔓，把一定数量的敌人拖进地下",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"target_count": 3, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.3},
 		"level_effects": [
 			{"target_count": 4, "search_radius": 350.0, "damage": 100.0, "interval": 4.0, "rise_duration": 0.22, "hold_duration": 0.2, "sink_duration": 0.4, "tentacle_peak_scale": 1.2, "tentacle_initial_scale_x": 0.36},
 			{"target_count": 5, "search_radius": 430.0, "damage": 145.0, "interval": 3.4, "rise_duration": 0.2, "hold_duration": 0.24, "sink_duration": 0.36, "tentacle_peak_scale": 1.28, "tentacle_initial_scale_x": 0.4},
-			{"target_count": 6, "search_radius": 520.0, "damage": 205.0, "interval": 2.8, "rise_duration": 0.18, "hold_duration": 0.28, "sink_duration": 0.32, "tentacle_peak_scale": 1.36, "tentacle_initial_scale_x": 0.5}
+			{"target_count": 6, "search_radius": 520.0, "damage": 205.0, "interval": 2.8, "rise_duration": 0.18, "hold_duration": 0.28, "sink_duration": 0.32, "tentacle_peak_scale": 1.36, "tentacle_initial_scale_x": 0.5},
+			{"target_count": 8, "search_radius": 600.0, "damage": 280.0, "interval": 2.4, "rise_duration": 0.16, "hold_duration": 0.32, "sink_duration": 0.28, "tentacle_peak_scale": 1.45, "tentacle_initial_scale_x": 0.6},
+			{"target_count": 10, "search_radius": 700.0, "damage": 400.0, "interval": 1.8, "rise_duration": 0.14, "hold_duration": 0.36, "sink_duration": 0.24, "tentacle_peak_scale": 1.55, "tentacle_initial_scale_x": 0.7}
 		],
 		"level_descriptions": [
 			"在地表蔓延藤蔓，将附近的4名敌人拖进地下。",
 			"数量上限增至5名，捕获范围与单次伤害提升。",
-			"终极触手形态，一次性吞噬6名敌人，攻击频率大幅加快。"
+			"终极触手形态，一次性吞噬6名敌人，攻击频率大幅加快。",
+			"捕获数量增至8名，藤蔓更粗壮且陷阱生效极快。",
+			"大地的愤怒：地底触手疯狂伸展，瞬间吞没整支伐木工小队。"
 		],
 		"upgrade_routes": [
 			{"id": "range_up", "title": "藤网扩张", "description": "扩大索敌范围", "effects": {"search_radius": 60.0}},
@@ -218,17 +230,21 @@ var skill_pool: Dictionary = {
 		"category": "衍生攻击",
 		"description": "播撒种子，短暂延迟后长出小树苗对周围敌人造成伤害。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"sapling_damage": 12, "delay": 1.5, "interval": 3.5, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
 		"level_effects": [
-			{"sapling_damage": 12, "delay": 1.5, "interval": 3.0, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
-			{"sapling_damage": 18, "delay": 1.2, "interval": 2.4, "radius": 300.0, "damage_interval": 0.45, "lifetime": 11.5, "cast_range": 640.0, "fly_scale": 0.11, "grown_scale": 0.24, "grow_duration": 0.26},
-			{"sapling_damage": 27, "delay": 1.0, "interval": 1.6, "radius": 360.0, "damage_interval": 0.4, "lifetime": 13.0, "cast_range": 700.0, "fly_scale": 0.12, "grown_scale": 0.28, "grow_duration": 0.22}
+			{"sapling_damage": 10, "delay": 1.5, "interval": 3.0, "radius": 250.0, "damage_interval": 0.5, "lifetime": 10.0, "cast_range": 600.0, "fly_scale": 0.1, "grown_scale": 0.2, "grow_duration": 0.3},
+			{"sapling_damage": 16, "delay": 1.2, "interval": 2.4, "radius": 300.0, "damage_interval": 0.45, "lifetime": 11.5, "cast_range": 640.0, "fly_scale": 0.11, "grown_scale": 0.24, "grow_duration": 0.26},
+			{"sapling_damage": 24, "delay": 1.0, "interval": 1.6, "radius": 360.0, "damage_interval": 0.4, "lifetime": 13.0, "cast_range": 700.0, "fly_scale": 0.12, "grown_scale": 0.28, "grow_duration": 0.22},
+			{"sapling_damage": 32, "delay": 0.8, "interval": 1.1, "radius": 430.0, "damage_interval": 0.35, "lifetime": 15.0, "cast_range": 760.0, "fly_scale": 0.14, "grown_scale": 0.35, "grow_duration": 0.18},
+			{"sapling_damage": 40, "delay": 0.7, "interval": 0.8, "radius": 520.0, "damage_interval": 0.3, "lifetime": 18.0, "cast_range": 850.0, "fly_scale": 0.16, "grown_scale": 0.45, "grow_duration": 0.14}
 		],
 		"level_descriptions": [
 			"由于树冠种子掉落，在地面长出带有尖刺的幼苗。",
 			"幼苗生长时间缩短，毒性伤害与攻击半径提升。",
-			"种子几乎瞬间着陆生长，形成一片致命的密林陷阱。"
+			"种子几乎瞬间着陆生长，形成一片致命的密林陷阱。",
+			"小树苗毒性大增，几乎在落地瞬间就能长成并造成重创。",
+			"神木化身：播撒出的种子瞬间形成参天大树，撕碎一切不敬之物。"
 		],
 		"upgrade_routes": [
 			{"id": "damage_up", "title": "幼苗毒性", "description": "种子伤害提升", "effects": {"sapling_damage": 6.0}},
@@ -241,17 +257,21 @@ var skill_pool: Dictionary = {
 		"category": "元素附魔",
 		"description": "攻击附带火焰，使敌人持续燃烧3秒。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"burn_dps": 4, "burn_duration": 3.0, "burn_interval": 0.4, "burn_tick_damage": 5.0},
 		"level_effects": [
 			{"burn_dps": 4, "burn_duration": 3.0, "burn_interval": 0.4, "burn_tick_damage": 5.0},
 			{"burn_dps": 6, "burn_duration": 3.5, "burn_interval": 0.3, "burn_tick_damage": 7.0},
-			{"burn_dps": 9, "burn_duration": 4.0, "burn_interval": 0.2, "burn_tick_damage": 9.0}
+			{"burn_dps": 9, "burn_duration": 4.0, "burn_interval": 0.2, "burn_tick_damage": 9.0},
+			{"burn_dps": 14, "burn_duration": 4.5, "burn_interval": 0.15, "burn_tick_damage": 12.0},
+			{"burn_dps": 22, "burn_duration": 5.0, "burn_interval": 0.1, "burn_tick_damage": 16.0}
 		],
 		"level_descriptions": [
 			"普攻赋予三昧真火，使敌人每秒承受高额灼烧。",
 			"火焰穿透力增强，灼烧频率与持续时间增加。",
-			"地狱之火，灼烧伤害呈指数级跳跃，快速灰化强敌。"
+			"地狱之火，灼烧伤害呈指数级跳跃，快速灰化强敌。",
+			"极温之焰：燃烧频率大幅提高，灼烧效果难以驱散。",
+			"红莲地狱：所有受到攻击的敌人都会在极短时间内化为灰烬。"
 		],
 	},
 	"ice_enchant": {
@@ -260,17 +280,21 @@ var skill_pool: Dictionary = {
 		"category": "元素附魔",
 		"description": "攻击附带冰冻效果，减速敌人50%持续2秒。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"slow_percent": 0.5, "slow_duration": 2.0},
 		"level_effects": [
 			{"slow_percent": 0.5, "slow_duration": 3.0},
 			{"slow_percent": 0.58, "slow_duration": 3.5},
-			{"slow_percent": 0.65, "slow_duration": 4.0}
+			{"slow_percent": 0.65, "slow_duration": 4.0},
+			{"slow_percent": 0.73, "slow_duration": 4.8},
+			{"slow_percent": 0.8, "slow_duration": 5.4}
 		],
 		"level_descriptions": [
 			"为普攻注入极寒，造成50%减速效果。",
 			"寒气扩散，减速效果持续时间增加。",
-			"绝对零度，减速效果极大幅度提升，几乎冻结强敌。"
+			"绝对零度，减速效果极大幅度提升，几乎冻结强敌。",
+			"极寒加深：减速效果达到 75%，敌人动作变得极为迟钝。",
+			"凝望深渊：近乎 90% 的停顿效果，将怪物的动作近乎冻结在时间中。"
 		],
 	},
 	"lightning_enchant": {
@@ -279,17 +303,21 @@ var skill_pool: Dictionary = {
 		"category": "元素附魔",
 		"description": "攻击附带连锁闪电，跳跃至最多3个相邻敌人。",
 		"icon": "",
-		"max_level": 3,
-		"effects": {"chain_damage": 12, "chain_count": 3},
+		"max_level": 5,
+		"effects": {"chain_damage": 6, "chain_count": 10},
 		"level_effects": [
-			{"chain_damage": 12, "chain_count": 3},
-			{"chain_damage": 20, "chain_count": 6},
-			{"chain_damage": 25, "chain_count": 9}
+			{"chain_damage": 4, "chain_count": 12},
+			{"chain_damage": 9, "chain_count": 20},
+			{"chain_damage": 12, "chain_count": 30},
+			{"chain_damage": 16, "chain_count": 40},
+			{"chain_damage": 18, "chain_count": 50}
 		],
 		"level_descriptions": [
 			"普攻产生连锁闪电，在3个敌人间跳跃。",
 			"电弧分支增多，最多在6个目标间造成传导。",
-			"雷神降世，单次攻击可传导至9个目标，伴随粗壮电弧。"
+			"雷神降世，单次攻击可传导至9个目标，伴随粗壮电弧。",
+			"高压电弧：弹射次数翻倍至14次，单次伤害显著提升。",
+			"雷霆万钧：狂暴的连锁闪电足以瞬间清空整个屏幕的杂鱼。"
 		],
 	},
 	"thick_bark": {
@@ -298,17 +326,21 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "树干硬化，最大生命值 +20。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"max_hp_bonus": 20, "trunk_width_mult": 1.2},
 		"level_effects": [
 			{"max_hp_bonus": 50, "trunk_width_mult": 1.3},
 			{"max_hp_bonus": 100, "trunk_width_mult": 1.6},
-			{"max_hp_bonus": 150, "trunk_width_mult": 1.9}
+			{"max_hp_bonus": 150, "trunk_width_mult": 1.9},
+			{"max_hp_bonus": 250, "trunk_width_mult": 2.3},
+			{"max_hp_bonus": 400, "trunk_width_mult": 2.8}
 		],
 		"level_descriptions": [
 			"树皮增厚，生命值上限提升 50 点。",
-			"生命上限提升 100 点，树干外观变得更加厚实。",
-			"金刚外围，生命上限提升 150 点，大幅度提高容错。"
+			"生命上限提升 100 点，树体外观变得更加厚实。",
+			"金刚外壳，生命上限提升 150 点，大幅度提高容错。",
+			"地堡防御：生命上限增加 250 点，树干外观厚重如磐石。",
+			"不灭神木：生命上限增加 450 点，任何物理攻击都难以撼动。"
 		],
 	},
 	"deep_roots": {
@@ -317,17 +349,21 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "根系深扎大地，每秒恢复2点生命。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"hp_regen": 2.0, "root_scale_mult": 1.3},
 		"level_effects": [
 			{"hp_regen": 1.0, "root_scale_mult": 1.3},
-			{"hp_regen": 2.0, "root_scale_mult": 1.79},
-			{"hp_regen": 3.0, "root_scale_mult": 2.397}
+			{"hp_regen": 3.0, "root_scale_mult": 1.79},
+			{"hp_regen": 5.0, "root_scale_mult": 2.397},
+			{"hp_regen": 7.0, "root_scale_mult": 3.2},
+			{"hp_regen": 10.0, "root_scale_mult": 4.5}
 		],
 		"level_descriptions": [
 			"根系稍微深扎，每秒恢复 1 点生命值。",
 			"根系穿透岩层，回血速度翻倍，根系范围扩大。",
-			"源源不断的生命力，极致的自我修补速度。"
+			"源源不断的生命力，极致自我修补速度。",
+			"地脉共鸣：每秒恢复 8 点生命，扎根极深赋予无穷潜力。",
+			"大地之子：肉眼可见的恐怖回血速度，只要不被秒杀就能瞬间重生。"
 		],
 	},
 	"wide_canopy": {
@@ -336,17 +372,21 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "树冠扩展，攻击范围增加30%。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"range_mult": 1.2, "canopy_sprite_mult": 1.2, "hitbox_shape_mult": 1.2},
 		"level_effects": [
 			{"range_mult": 1.2, "canopy_sprite_mult": 1.2, "hitbox_shape_mult": 1.2},
 			{"range_mult": 1.44, "canopy_sprite_mult": 1.44, "hitbox_shape_mult": 1.44},
-			{"range_mult": 1.728, "canopy_sprite_mult": 1.728, "hitbox_shape_mult": 1.728}
+			{"range_mult": 1.728, "canopy_sprite_mult": 1.728, "hitbox_shape_mult": 1.728},
+			{"range_mult": 2.15, "canopy_sprite_mult": 2.15, "hitbox_shape_mult": 2.15},
+			{"range_mult": 2.8, "canopy_sprite_mult": 2.8, "hitbox_shape_mult": 2.8}
 		],
 		"level_descriptions": [
 			"树冠向外舒展，攻击范围增加 20%。",
 			"树冠进一步遮天蔽日，攻击半径大幅越迁。",
-			"冠绝全林，极广阔的防御圈，将敌人阻隔在远方。"
+			"冠绝全林，极广阔的防御圈，将敌人阻隔在远方。",
+			"遮天蔽日：攻击范围扩充至两倍以上，形成不可逾越的领域。",
+			"远古巨木：整片森林皆在你的树冠笼罩之下，掌控局势。"
 		],
 	},
 	"elastic_trunk": {
@@ -355,17 +395,21 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "树干柔韧度大幅增强，形变拉伸极限增加！",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"stretch_scale_bonus": 0.5},
 		"level_effects": [
 			{"stretch_scale_bonus": 0.8},
 			{"stretch_scale_bonus": 1.6},
-			{"stretch_scale_bonus": 2.4}
+			{"stretch_scale_bonus": 2.4},
+			{"stretch_scale_bonus": 3.2},
+			{"stretch_scale_bonus": 4.0}
 		],
 		"level_descriptions": [
 			"树干弹性提升，形变拉伸极限增加 0.8。",
 			"拉伸极限翻倍，反弹爆发力增强。",
-			"如橡胶般柔韧，最大拉伸距离达至巅峰。"
+			"如橡胶般柔韧，最大拉伸距离达至巅峰。",
+			"超级纤维：树干可以进行极大幅度的弯曲和蓄力，爆发力惊人。",
+			"时空回旋：极致的弹性让你在弹射瞬间如同撕裂空间，力道无穷。"
 		],
 	},
 	"photosynthesis": {
@@ -374,17 +418,21 @@ var skill_pool: Dictionary = {
 		"category": "基础数值",
 		"description": "增强光合作用，普攻提升25%，且每次升级都使其他全技能伤害提升20%。",
 		"icon": "",
-		"max_level": 3,
+		"max_level": 5,
 		"effects": {"attack_mult": 1.3},
 		"level_effects": [
 			{"attack_mult": 1.8},
 			{"attack_mult": 2.7},
-			{"attack_mult": 4}
+			{"attack_mult": 4.0},
+			{"attack_mult": 6.2},
+			{"attack_mult": 10.0}
 		],
 		"level_descriptions": [
 			"光合效率提升，普攻提升80%，所有技能额外20%增益。",
 			"光合作用过载，普攻倍率达 2.7x，全技能再次20%增幅。",
-			"神木神迹，普攻伤害暴涨至 4.0x，全技能伤害叠乘至极限。"
+			"神木神迹，普攻伤害暴涨至 4.0x，全技能伤害叠乘至极限。",
+			"超强效光合：普攻倍率达 6.2x，对所有技能的增益效果再次裂变。",
+			"太阳神恩惠：普攻伤害狂增至 10.0x，你已成为森林中绝对的主宰。"
 		],
 	},
 }
@@ -395,22 +443,22 @@ var skill_pool: Dictionary = {
 var enemy_stats: Dictionary = {
 	# 第一阶段：自然虫害
 	"beetle": {
-		"name": "甲虫", "hp": 20, "speed": 150.0, "damage": 3.0,
-		"exp_drop": 1.0, "phase": 1
+		"name": "甲虫", "hp": 22, "speed": 120.0, "damage": 3.0,
+		"exp_drop": 2.0, "phase": 1
 	},
 	# 第二阶段：哺乳动物
 	"beaver": {
-		"name": "河狸", "hp": 120, "speed": 90.0, "damage": 8.0,
-		"exp_drop": 3.0, "phase": 2
+		"name": "河狸", "hp": 120, "speed": 60.0, "damage": 8.0,
+		"exp_drop": 4.0, "phase": 2
 	},
 	# 第三阶段：人类
 	"lumberjack": {
-		"name": "伐木工", "hp": 350, "speed": 100.0, "damage": 8.0,
-		"exp_drop": 5.0, "phase": 3
+		"name": "伐木工", "hp": 300, "speed": 70.0, "damage": 9.0,
+		"exp_drop": 6.0, "phase": 3
 	},
 	"mech_boss": {
-		"name": "伐木机甲", "hp": 800, "speed": 80.0, "damage": 14.0,
-		"exp_drop": 50.0, "phase": 3
+		"name": "伐木机甲", "hp": 700, "speed": 60.0, "damage": 14.0,
+		"exp_drop": 10.0, "phase": 3
 	},
 }
 
@@ -440,22 +488,29 @@ var wave_table: Array = [
 
 ## 随机抽取 count 个不重复的技能
 func get_random_skills(count: int = 3) -> Array:
-	var candidates: Array = []
-	for skill_id in skill_pool.keys():
-		if not can_upgrade_skill(skill_id):
-			continue
+	var unique_skill_ids: Array = []
+	for s_id in skill_pool.keys():
+		if can_upgrade_skill(s_id):
+			unique_skill_ids.append(s_id)
+	
+	unique_skill_ids.shuffle()
+	
+	var result: Array = []
+	var selected_count = mini(count, unique_skill_ids.size())
+	
+	for i in range(selected_count):
+		var skill_id = unique_skill_ids[i]
 		var routes = get_skill_upgrade_routes(skill_id)
 		var cur_level = get_skill_level(skill_id)
+		
+		# 如果是新技能或者没有路线，直接作为候选
 		if cur_level <= 0 or routes.is_empty():
-			candidates.append(_build_upgrade_candidate(skill_id, ""))
+			result.append(_build_upgrade_candidate(skill_id, ""))
 		else:
-			for route in routes:
-				candidates.append(_build_upgrade_candidate(skill_id, str(route.get("id", ""))))
-	candidates.shuffle()
-	var result: Array = []
-	var n = mini(count, candidates.size())
-	for i in range(n):
-		result.append(candidates[i])
+			# 如果有路线，随机选一个路线作为该技能的本次展示项
+			var random_route = routes.pick_random()
+			result.append(_build_upgrade_candidate(skill_id, str(random_route.get("id", ""))))
+			
 	return result
 
 func _build_upgrade_candidate(skill_id: String, route_id: String) -> Dictionary:
@@ -781,8 +836,8 @@ func apply_historical_skills():
 			SignalBus.on_upgrade_selected.emit(skill_id)
 	is_restoring_history = false
 
-## 重置单局状态 (进入新关卡前调用，保留局外进度)
-func reset_for_new_game():
+## 重置单局完整状态 (开始第一关或重新开始时调用)
+func reset_run():
 	player_base_stats = DEFAULT_PLAYER_BASE_STATS.duplicate(true)
 	current_level = 1
 	current_exp = 0.0
@@ -800,7 +855,41 @@ func reset_for_new_game():
 	# 重置对象池，防止上一关的敌人卡在屏幕中
 	if PoolManager.has_method("reset_pools"):
 		PoolManager.reset_pools()
-	
+	print("[GameData] 完整重置：等级 1，无技能")
+
+## 增量重置 (进入下一关时调用，保留技能和等级)
+func reset_stage():
+	# 保留等级、经验和技能列表，仅重置波次和池
+	current_wave = 0
+	endless_time = 0.0
+	# HP 建议恢复满，如果是硬核模式可以注释掉下一行
+	current_hp = player_base_stats["max_hp"]
+	SignalBus.on_player_hp_changed.emit(current_hp, player_base_stats["max_hp"])
+
+	if PoolManager.has_method("reset_pools"):
+		PoolManager.reset_pools()
+	print("[GameData] 关卡重置：级数 %d 已保留" % current_level)
+
 # 下面的代码兼容之前的 Main.gd 里的旧版 reset 调用
 func reset():
-	reset_for_new_game()
+	reset_run()
+
+# ── 全局打击定格 (Hit-Stop) ──────────────────────────────────────
+# time_scale_value: 定格期间的时间缩放 (0.05 = 几乎停止)
+# duration: 定格持续时间（秒，真实时间）
+func trigger_hit_stop(time_scale_value: float = 0.05, duration: float = 0.07) -> void:
+	Engine.time_scale = time_scale_value
+	# 使用 SceneTree timer 并乘以 time_scale，这样定格时间是真实时间
+	var tree = Engine.get_main_loop() as SceneTree
+	if tree:
+		await tree.create_timer(duration * time_scale_value).timeout
+	Engine.time_scale = 1.0
+
+# ── 安全暂停系统 (避免 SceneTree null 报错) ──────────────────────
+func set_game_paused(value: bool) -> void:
+	var tree = Engine.get_main_loop() as SceneTree
+	if tree:
+		tree.paused = value
+	else:
+		# 极罕见情况：如果 Engine 拿不到 tree，通过打印警告代替崩溃
+		push_warning("[GameData] 尝试设置暂停状态 %s 但 SceneTree 为空" % value)

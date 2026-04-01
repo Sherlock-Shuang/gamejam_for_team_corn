@@ -25,7 +25,7 @@ func _on_skill_acquired(payload: String):
 	name_label.text = "获得技能: " + skill_name
 	
 	# 如果是本局第一个技能且是第一关，触发暂停指引
-	if GameData.current_playing_stage == 1 and GameData.current_run_skill_ids.size() <= 1 and not GameData.is_restoring_history:
+	if GameData.current_playing_stage == 1 and GameData.current_run_skill_ids.size() == 0 and not GameData.is_restoring_history:
 		_play_first_skill_hint()
 	else:
 		_play_animation()

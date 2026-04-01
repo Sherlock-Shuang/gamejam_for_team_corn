@@ -17,15 +17,21 @@ var style_pressed: StyleBoxFlat
 
 func _ready():
 	hide()
+	# 🔥【关键修复】：让 UI 在游戏暂停时依然可以点击和运行
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	# 初始化卡片材质
 	_init_styles()
 	_apply_styles_to_cards()
 	
-	# 监听升级信号 → 自动弹出面板
-	if SignalBus.on_level_up.is_connected(_on_level_up):
-		SignalBus.on_level_up.disconnect(_on_level_up)
-	SignalBus.on_level_up.connect(_on_level_up)
+	# 监听升级后的打开信号 (由 Main.gd 发出的携带具体技能列表的信号)
+	if SignalBus.open_upgrade_ui.is_connected(_on_open_upgrade_ui):
+		SignalBus.open_upgrade_ui.disconnect(_on_open_upgrade_ui)
+	SignalBus.open_upgrade_ui.connect(_on_open_upgrade_ui)
+
+func _on_open_upgrade_ui(choices: Array):
+	if visible: return # 防止多个弹窗堆叠
+	show_upgrade(choices)
 
 func _init_styles():
 	style_normal = StyleBoxFlat.new()
@@ -79,34 +85,33 @@ func _apply_styles_to_cards():
 			desc_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.7))
 
 func _on_card_hovered(card: Button):
-	var tween = create_tween()
+	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(card, "scale", Vector2(1.05, 1.05), 0.1).set_trans(Tween.TRANS_SINE)
 
 func _on_card_exited(card: Button):
-	var tween = create_tween()
+	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(card, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_SINE)
 
-func _on_level_up(_new_level: int):
-	show_upgrade()
 
-func show_upgrade():
-	get_tree().paused = true
+
+func show_upgrade(choices: Array):
+	GameData.set_game_paused(true)
 	show()
 
-	# 👇 【新增：在这里播放升级提示音】
+	# 👇 【播放升级提示音】
 	if 升级_sfx:
-		# 这里不需要随机音高，正常原声播放即可
-		AudioManager.play_sfx(升级_sfx, 25)  # 音量可以根据需要调整
+		AudioManager.play_sfx(升级_sfx, 25) 
+		
 	root_node.modulate.a = 0.0
-	var enter_tween = create_tween()
+	# 这里必须设置 set_pause_mode，确保 Tween 在游戏暂停时也能播放！
+	var enter_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	enter_tween.tween_property(root_node, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_CUBIC)
 	
 	var cards = card_container.get_children()
-	var choices = GameData.get_random_skills(cards.size())
 
 	if choices.is_empty():
 		hide()
-		get_tree().paused = false
+		GameData.set_game_paused(false)
 		return
 	
 	for i in range(cards.size()):
@@ -163,10 +168,10 @@ func _on_card_selected(skill_id: String):
 	# 点击卡片确认时也播放一下音效
 	if 升级_sfx:
 		AudioManager.play_sfx(升级_sfx, -5.0, true) 
-	var exit_tween = create_tween()
+	var exit_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	exit_tween.tween_property(root_node, "modulate:a", 0.0, 0.15)
 	exit_tween.tween_callback(func():
 		hide()
+		GameData.set_game_paused(false)
 		SignalBus.on_upgrade_selected.emit(skill_id)
-		get_tree().paused = false
 	)

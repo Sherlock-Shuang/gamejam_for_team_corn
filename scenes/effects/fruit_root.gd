@@ -95,7 +95,7 @@ func _explode(damage: float) -> void:
 			var enemy_id = enemy.get_instance_id()
 			if not hit_enemy_ids.has(enemy_id):
 				hit_enemy_ids[enemy_id] = true
-				enemy.take_damage(damage, global_position)
+				enemy.take_damage(damage, global_position, 0.0, "exploding_fruit")
 			
 	# ==========================================
 	# 🎨 特效表现 (Juice)：动态适配物理判定范围！
