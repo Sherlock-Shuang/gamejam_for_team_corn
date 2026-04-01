@@ -12,6 +12,7 @@ class_name EnemyBase
 @export var 死亡惨叫_sfx: AudioStream
 @export var 行走_sfx: AudioStream
 @export var 攻击_sfx: AudioStream
+@export var death_knockback_distance: float = 400.0
 
 var walk_sfx_timer: float = 0.0
 const WALK_SFX_COOLDOWN: float = 0.3 # 每 0.3 秒播放一次脚步声（可根据动画节奏调整）
@@ -21,6 +22,7 @@ var speed: float = 0.0
 var max_health: float = 0.0
 var exp_drop: float = 0.0
 var damage: float = 0.0
+var is_elite: bool = false # 标识是否为精英单位
 
 @onready var separation_area: Area2D = $SeparationArea
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D # 统一获取动画节点
@@ -315,7 +317,7 @@ func _clear_burn() -> void:
 		burn_particles.emitting = false
 		burn_particles.hide()
 
-func take_damage(dmg: float, attack_source_position: Vector2, knockback_force: float = 0.0) -> void:
+func take_damage(dmg: float, attack_source_position: Vector2, knockback_force: float = 0.0, cause: String = "") -> void:
 	if current_health <= 0:
 		return # 防止同一帧被多个判定框打中多次触发死亡
 		
@@ -326,20 +328,21 @@ func take_damage(dmg: float, attack_source_position: Vector2, knockback_force: f
 	_flash_timer = 0.1
 	
 	if current_health <= 0:
-		die(attack_source_position)
+		die(attack_source_position, cause)
 	else:
 		if knockback_force > 0.0:
 			var kb_dir = (global_position - attack_source_position).normalized()
 			if kb_dir == Vector2.ZERO: kb_dir = Vector2.UP
 			velocity += kb_dir * knockback_force
 
-func die(attack_source_position: Vector2) -> void:
+func die(attack_source_position: Vector2, cause: String = "") -> void:
 	_clear_burn()
 	_clear_slow()
-	SignalBus.on_enemy_died.emit(exp_drop, global_position)
-	# 呼叫全局管家播放死亡惨叫！（结局动画时不播放）
+	
+	SignalBus.on_enemy_died.emit(exp_drop, global_position, cause)
 	if 死亡惨叫_sfx and not GameData.is_in_ending_cinematic:
 		AudioManager.play_sfx(死亡惨叫_sfx, 0, true, 4)
+		
 	play_death_animation(attack_source_position)
 
 func play_death_animation(attack_source_position: Vector2) -> void:
@@ -347,15 +350,14 @@ func play_death_animation(attack_source_position: Vector2) -> void:
 	suspend_combat() # 死亡击飞时彻底关闭所有受击/攻击逻辑，防止尸体吸伤
 	var knockback_direction = (global_position - attack_source_position).normalized()
 	if knockback_direction == Vector2.ZERO: knockback_direction = Vector2.UP
-	var knockback_distance = 400.0
-	var knockback_duration = 0.4
-	tween = create_tween().set_parallel(true)
-	
-	# 让击飞方向永远是从大树往外弹！绝对不会往回飞！
 	var out_dir = Vector2.UP
 	if is_instance_valid(target_tree):
 		out_dir = (global_position - target_tree.global_position).normalized()
 	if out_dir == Vector2.ZERO: out_dir = Vector2.UP
+	
+	var knockback_distance = death_knockback_distance
+	var knockback_duration = 0.4
+	tween = create_tween().set_parallel(true)
 	
 	# 1. 强力击飞离场
 	tween.tween_property(self, "global_position", global_position + out_dir * 150.0, knockback_duration)\
@@ -421,3 +423,27 @@ func _on_hit_box_area_entered(area: Area2D) -> void:
 
 func _on_hit_box_body_entered(body: Node2D) -> void:
 	_on_hitbox_body_entered(body)
+
+# ── 局部定格：被电动力学等技能命中时，短暂冻结该敌人并高频闪白 ──
+func trigger_local_freeze(duration: float = 0.05) -> void:
+	if current_health <= 0:
+		return
+	set_physics_process(false)
+	
+	# 确保动画表现为高亮
+	anim.modulate = Color(10, 10, 10, 1)
+	
+	# 如果已经有局部定格动画正在运行中，打断它，从最高亮重新开始闪烁
+	if has_meta("freeze_tw") and is_instance_valid(get_meta("freeze_tw")):
+		get_meta("freeze_tw").kill()
+		
+	var tw = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	set_meta("freeze_tw", tw)
+	
+	# 快速衰减回正常颜色，而不是一直保持惨白，产生“反复触电频闪”的视觉效果
+	tw.tween_property(anim, "modulate", Color.WHITE, duration * 0.9)
+	tw.tween_callback(func():
+		if is_instance_valid(self):
+			set_physics_process(true)
+			anim.modulate = Color.WHITE
+	)

@@ -37,10 +37,15 @@ func _ready():
 	)
 	
 	# 初始化显示
-	_update_tree_shape(1.0)
-	exp_ring.value = 0
-	level_label.text = "Lv.1"
-	wave_label.text = "WAVE 1"
+	_on_hp_changed(GameData.current_hp, GameData.player_base_stats.get("max_hp", 100))
+	
+	var needed = GameData.get_exp_to_next_level(GameData.current_level)
+	var exp_ratio = 0.0
+	if needed > 0:
+		exp_ratio = GameData.current_exp / needed
+	exp_ring.value = exp_ratio * 100.0
+	level_label.text = "Lv." + str(GameData.current_level)
+	wave_label.text = "WAVE " + str(maxi(1, GameData.current_wave))
 	
 	_apply_hud_styles()
 	

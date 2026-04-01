@@ -46,6 +46,13 @@ var base_hit_shape_scales: Array[Vector2] = []
 @export var whip_overshoot_ratio: float = 1.2
 @export var damage_velocity_threshold: float = 3.0   
 @export var damage_multiplier: float = 1.0           
+@export var hit_knockback: float = 120.0           
+
+@export_group("Charge Damage Tiers")
+@export var tier_damage_perfect: float = 40
+@export var tier_damage_high: float = 15.0
+@export var tier_damage_mid: float = 9.0
+@export var tier_damage_low: float = 5.0
 
 # ==========================================
 # 音乐参数
@@ -193,13 +200,13 @@ func _process(delta: float) -> void:
 # ==========================================
 func calculate_tier_damage(charge_ratio: float) -> float:
 	if charge_ratio >= 0.93:       # 达到 93% 以上 (即差距在 7% 以内) -> 完美蓄力！
-		return 20.0
+		return tier_damage_perfect
 	elif charge_ratio >= 0.80:     # 达到 80% 到 93% 之间 (差距在 7%~20%)
-		return 12.0
+		return tier_damage_high
 	elif charge_ratio >= 0.60:     # 达到 60% 到 80% 之间 (差距在 20%~40%)
-		return 7.0
+		return tier_damage_mid
 	else:                          # 连 60% 都没到 -> 软弱无力
-		return 4.0
+		return tier_damage_low
 
 func _start_drag():
 	is_dragging = true
@@ -376,14 +383,33 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 			# 真正的最终伤害 = 玩家自身基础攻击力 + 形态加成 + 刚才松手瞬间锁定好的蓄力段位伤害
 			var final_damage = base_atk + stage_bonus + locked_attack_damage
 			
-			# 参数说明: (音频文件, 音量微调, 开启随机音调, 同屏最多允许同时播 3 个)
+			# 传入 hit_knockback 的瞬时击退力度，产生出色的打击后坐力效果
+			var was_alive = enemy_body.get("current_health") > 0.0 if enemy_body.get("current_health") != null else true
+			enemy_body.take_damage(final_damage, global_position, hit_knockback, "canopy_hit")
+			SignalBus.on_enemy_hit.emit(final_damage, enemy_body.global_position, enemy_body, "canopy_hit")
 			
-			# 传入 800.0 的瞬时击退力度，产生出色的打击后坐力效果
-			enemy_body.take_damage(final_damage, global_position, 800.0)
-			SignalBus.on_enemy_hit.emit(final_damage, enemy_body.global_position, enemy_body)
-			trigger_hit_stop()
+			# 计数：如果这一击杀死了敌人，则计数
+			var is_dead = not is_instance_valid(enemy_body) or enemy_body.get("current_health") <= 0.0
+			if was_alive and is_dead:
+				_kills_this_swing += 1
+				if _kills_this_swing >= 10:
+					_trigger_mass_kill_hitstop()
 
+var _kills_this_swing: int = 0
+var _last_hitstop_time: float = -1.0
+
+## 在挥舞开始时重置击杀计数 (由外部攻击逻辑调用)
+func reset_swing_kills() -> void:
+	_kills_this_swing = 0
+
+## 树冠普攻卡肉：仅在一次挥舞中满足 10+ 击杀时触发
+func _trigger_mass_kill_hitstop() -> void:
+	var now = Time.get_ticks_msec() / 1000.0
+	if now - _last_hitstop_time < 0.15:
+		return
+	_last_hitstop_time = now
+	GameData.trigger_hit_stop(0.05, 0.08)
+
+## 保留旧函数签名以防其它地方调用
 func trigger_hit_stop() -> void:
-	Engine.time_scale = 0.05
-	await get_tree().create_timer(0.1 * Engine.time_scale).timeout 
-	Engine.time_scale = 1.0
+	pass # 不再每次击中都全局定格

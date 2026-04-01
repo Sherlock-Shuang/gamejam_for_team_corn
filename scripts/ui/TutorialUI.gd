@@ -29,7 +29,7 @@ func _ready():
 
 func show_tutorial():
 	visible = true
-	get_tree().set_deferred("paused", true) # 延后一帧暂停，确保覆盖 Main.gd 的初始化
+	GameData.call_deferred("set_game_paused", true) # 延后一帧暂停，确保覆盖 Main.gd 的初始化
 	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(self, "modulate:a", 1.0, 0.5)
 	
@@ -60,11 +60,11 @@ func _on_hp_hint_closed():
 	await tween.finished
 	hp_hint_panel.visible = false
 	visible = false
-	get_tree().paused = false
+	GameData.set_game_paused(false)
 
 func show_skill_hint():
 	visible = true
-	get_tree().set_deferred("paused", true)
+	GameData.call_deferred("set_game_paused", true)
 	modulate.a = 1.0
 	skill_hint_panel.visible = true
 	skill_hint_panel.modulate.a = 0.0
@@ -79,12 +79,12 @@ func _on_skill_hint_closed():
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	await tween.finished
 	visible = false
-	get_tree().paused = false
+	GameData.set_game_paused(false)
 	queue_free()
 
 func show_endless_hint():
 	visible = true
-	get_tree().set_deferred("paused", true)
+	GameData.call_deferred("set_game_paused", true)
 	modulate.a = 1.0
 	endless_hint_panel.visible = true
 	endless_hint_panel.modulate.a = 0.0
@@ -99,5 +99,5 @@ func _on_endless_hint_closed():
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	await tween.finished
 	visible = false
-	get_tree().paused = false
+	GameData.set_game_paused(false)
 	queue_free()

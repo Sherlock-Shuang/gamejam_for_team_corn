@@ -34,13 +34,18 @@ const HP_REGEN_TICK: float = 0.5 # 每 0.5 秒回血一次
 func _ready():
 	# 确保从其他场景（或被特效卡主时间的时候）返回时，时间流速和暂停状态是正常的
 	Engine.time_scale = 1.0
-	get_tree().paused = false
+	GameData.set_game_paused(false)
 
 	
 	print("[Main] 游戏启动，正在建立各系统连接...")
 
 	# 初始化数据
-	GameData.reset()
+	# 无尽模式 或 第一关：完整重置（全新开局）
+	# 剧情模式第 2~4 关：仅增量重置（保留等级和技能）
+	if GameData.is_endless_mode or GameData.current_playing_stage == 1:
+		GameData.reset_run()
+	else:
+		GameData.reset_stage()
 	
 	# 根据当前正在游玩的关卡，让树苗直接长到对应的第二/第三种形态
 	if tree.has_method("evolve_to_stage"):
@@ -73,8 +78,7 @@ func _ready():
 	tree.add_child(skill_executor)
 	print("[Main] SkillExecutor 已成功挂载到 PlayerTree 下。")
 	
-	# 加载历史技能叠加 (除了无尽模式)
-	GameData.apply_historical_skills()
+	# 初始技能加载已迁移至 SkillExecutor._sync_on_ready()，通过内部同步保证稳定
 	
 	# 监听玩家的选择
 	SignalBus.on_upgrade_selected.connect(_on_skill_chosen)
@@ -99,22 +103,41 @@ func _ready():
 
 
 func _level_up():
-	if not is_level_active: return # 如果过关或进了结局，彻底禁止升级
+	if not is_level_active: return 
 	
 	var needed = GameData.get_exp_to_next_level(GameData.current_level)
 	GameData.current_level += 1
 	GameData.current_exp = maxf(0.0, GameData.current_exp - needed)
 	
-	print("[Main] 升级了！当前等级: ", GameData.current_level)
+	print("[Main] 升级了！当前级: ", GameData.current_level)
 	SignalBus.on_level_up.emit(GameData.current_level)
+	
+	# --- 1. 获取候选技能并弹出 UI ---
+	var candidates = GameData.get_random_skills(3)
+	
+	if candidates.is_empty():
+		print("[Main] 所有技能已升满。")
+		return
+		
+	# 弹出三选一 UI
+	SignalBus.open_upgrade_ui.emit(candidates)
 
 func _on_skill_chosen(skill_id: String):
-
 	# 如果正在恢复历史技能，不要再次记录到当前历史中
 	if GameData.is_restoring_history:
 		return
 
 	print("[Main] 收到进化指令: ", skill_id)
+	
+	# --- 2. 检查是否还有连续升级 ---
+	# 我们在此处延迟检查，在玩家选完一个之后立即检查是否满足下一级条件
+	# 延迟一点时间确保 UI 关闭逻辑彻底完成
+	get_tree().create_timer(0.2).timeout.connect(func():
+		var next_needed = GameData.get_exp_to_next_level(GameData.current_level)
+		if GameData.current_exp >= next_needed:
+			_level_up()
+	)
+	
 	var payload = GameData.decode_upgrade_payload(skill_id)
 	var real_skill_id = str(payload.get("skill_id", skill_id))
 	
@@ -369,7 +392,7 @@ func _play_true_ending_cinematic():
 	scene_1_title.add_theme_constant_override("outline_size", 24)
 	scene_1_title.add_theme_color_override("font_outline_color", Color(0.5, 0.2, 0.0))
 	scene_1_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	scene_1_title.custom_minimum_size = Vector2(viewport_w, 0) # 强制横跨全屏
+	scene_1_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scene_1_box.add_child(scene_1_title)
 	
 	var scene_1_sub = Label.new()
@@ -378,11 +401,11 @@ func _play_true_ending_cinematic():
 	scene_1_sub.add_theme_font_size_override("font_size", 48)
 	scene_1_sub.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	scene_1_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	scene_1_sub.custom_minimum_size = Vector2(viewport_w, 0)
+	scene_1_sub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scene_1_box.add_child(scene_1_sub)
 
 	# 隐去裂痕，浮现画面一 (带震撼缩放)
-	scene_1_title.pivot_offset = Vector2(viewport_w / 2.0, 60) # 完美定位到屏幕中心
+	scene_1_title.pivot_offset = scene_1_title.size / 2.0
 	scene_1_title.scale = Vector2(0.3, 0.3)
 	
 	var scene_1_tw = create_tween().set_parallel(true)
@@ -390,9 +413,10 @@ func _play_true_ending_cinematic():
 	scene_1_tw.tween_property(scene_1_box, "modulate:a", 1.0, 1.5)
 	scene_1_tw.tween_property(scene_1_title, "scale", Vector2(1.0, 1.0), 0.5).set_trans(Tween.TRANS_BOUNCE)
 	
-	# 文本轻微颤动效果
+	# 文本轻微颤动效果（基于 0 点偏移，结束后复位）
 	for i in range(15):
 		scene_1_tw.tween_property(scene_1_title, "position:x", randf_range(-10, 10), 0.1).set_delay(i * 0.1)
+	scene_1_tw.chain().tween_property(scene_1_title, "position:x", 0.0, 0.05) # 颤动结束后强制归零
 		
 	await get_tree().create_timer(8.0).timeout
 	
@@ -472,7 +496,7 @@ func _show_level_clear_popup(is_final: bool):
 		btn_end.add_theme_font_size_override("font_size", 40)
 		btn_end.custom_minimum_size = Vector2(400, 100)
 		btn_end.pressed.connect(func():
-			get_tree().paused = false
+			GameData.set_game_paused(false)
 			get_tree().change_scene_to_file("res://scenes/ui/EndingScene.tscn")
 		)
 		btn_container.add_child(btn_end)
@@ -484,7 +508,7 @@ func _show_level_clear_popup(is_final: bool):
 		btn_next.add_theme_color_override("font_color", Color(0.9, 1.0, 0.5))
 		btn_next.custom_minimum_size = Vector2(400, 100)
 		btn_next.pressed.connect(func():
-			get_tree().paused = false
+			GameData.set_game_paused(false)
 			# 如果还能往后打，直接把当前游玩关卡+1
 			GameData.current_playing_stage = min(GameData.current_playing_stage + 1, GameData.MAX_STAGES)
 			get_tree().change_scene_to_file("res://Main.tscn")
@@ -497,13 +521,13 @@ func _show_level_clear_popup(is_final: bool):
 		btn_return.add_theme_font_size_override("font_size", 28)
 		btn_return.custom_minimum_size = Vector2(400, 80)
 		btn_return.pressed.connect(func():
-			get_tree().paused = false
+			GameData.set_game_paused(false)
 			get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
 		)
 		btn_container.add_child(btn_return)
 		
 	# 暂停游戏物理，等待玩家点击
-	get_tree().paused = true
+	GameData.set_game_paused(true)
 	popup.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(popup)
 
@@ -514,9 +538,9 @@ func _on_pause_requested():
 		# 实例化 PauseMenu (如果尚未打开的话)
 		var pause_menu = load("res://scenes/ui/PauseMenu.tscn").instantiate()
 		add_child(pause_menu)
-		get_tree().paused = true
+		GameData.set_game_paused(true)
 
-func _on_enemy_died(exp_value: float, position: Vector2):
+func _on_enemy_died(exp_value: float, position: Vector2, cause: String = ""):
 	if not is_level_active: return # 关卡停止后不再产生新经验
 	
 	print("[Main] 敌人死亡，获得经验: ", exp_value)
@@ -570,7 +594,7 @@ func _on_game_over():
 	# 3. 等待1秒真实时间（在慢动作中让玩家看清死亡）
 	await get_tree().create_timer(1.2, true, false, true).timeout
 	Engine.time_scale = 1.0 # 跨场景前必须恢复时间
-	get_tree().paused = true # 正式冻结游戏
+	GameData.set_game_paused(true) # 正式冻结游戏
 	
 	# 4. 原木风复古界面构建
 	_show_game_over_ui()
@@ -636,7 +660,7 @@ func _show_game_over_ui():
 	btn_return.custom_minimum_size = Vector2(400, 90)
 	
 	btn_return.pressed.connect(func():
-		get_tree().paused = false
+		GameData.set_game_paused(false)
 		get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")
 	)
 	vbox.add_child(btn_return)

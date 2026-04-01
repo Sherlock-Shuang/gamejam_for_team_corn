@@ -8,10 +8,10 @@ extends Node
 # ═══════════════════════════════════════════════════════════════
 
 # ── 战斗事件 (Dev A 负责 emit) ──────────────────────────────────
-## 任意敌人死亡时广播，携带经验值和死亡位置
-signal on_enemy_died(exp_value: float, position: Vector2)
+## 任意敌人死亡时广播，携带经验值、死亡位置及致死来源
+signal on_enemy_died(exp_value: float, position: Vector2, cause: String)
 ## 敌人被击中时广播 (传递目标 Node2D 方便外接状态)
-signal on_enemy_hit(damage: float, position: Vector2, enemy_node: Node2D)
+signal on_enemy_hit(damage: float, position: Vector2, enemy_node: Node2D, cause: String)
 
 # ── 经验与升级 (Dev A emit → Dev B/UI 接收) ─────────────────────
 ## 经验值变化，ratio = current_exp / exp_needed (0.0 ~ 1.0)
