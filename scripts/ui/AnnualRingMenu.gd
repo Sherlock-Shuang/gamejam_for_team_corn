@@ -203,7 +203,7 @@ func _start_reversal_cinematic():
 		add_child(input_blocker)
 	
 	if subtitle:
-		subtitle.text = "因 果 崩 坏 . . ."
+		subtitle.text = "时 光 倒 流 . . ."
 	
 	# 2. 年轮顺次爆发自转 (Tween 接力)
 	var tween = create_tween().set_parallel(true)
@@ -237,22 +237,15 @@ func _apply_rotations(delta):
 func _play_ending_video():
 	print("[AnnualRingMenu] 时空已锁定。启动最终视频播放逻辑...")
 	
-	# 停止时钟逆转音效
+	# 停止所有当前正在播放的声音 (由 AudioManager 处理或直接停止播放器)
 	if reversal_player.playing:
 		reversal_player.stop()
 	
-	# 这里是占位符，未来可以对接播放视频或展示静态真结局立绘
-	var fade = ColorRect.new()
-	fade.color = Color.WHITE
-	fade.modulate.a = 0.0
-	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(fade)
+	# 🎵 可选：让大管家也清静一下
+	AudioManager.stop_all()
 	
-	create_tween().tween_property(fade, "modulate:a", 1.0, 1.5)
-	await get_tree().create_timer(2.0).timeout
-	
-	# 真正进入无尽模式选择
-	get_tree().change_scene_to_file("res://scenes/ui/EndlessSelectUI.tscn")
+	# 真正进入结尾视频场景
+	get_tree().change_scene_to_file("res://scenes/ui/EndingVideo.tscn")
 
 
 func _input(event):

@@ -789,6 +789,7 @@ func reset_for_new_game():
 	current_hp = player_base_stats["max_hp"]
 	current_wave = 0
 	endless_time = 0.0
+	is_in_ending_cinematic = false
 	current_run_skill_ids.clear()
 	current_run_skill_levels.clear()
 	current_run_skill_route_bonus.clear()

@@ -20,25 +20,26 @@ const MAX_PER_WAVE: int = 120       # 单波最大生成数（配合上限放宽
 
 func _ready() -> void:
 	_find_target_tree()
+	print("[WaveManager] _ready: is_endless=%s, stage=%d, target_tree=%s" % [GameData.is_endless_mode, GameData.current_playing_stage, target_tree])
 	
 	if not GameData.is_endless_mode:
 		match GameData.current_playing_stage:
-			1: base_wave_interval = 12.0 # 给予玩家更多喘息时间
+			1: base_wave_interval = 12.0
 			2: base_wave_interval = 7.5
-			3: base_wave_interval = 6.0 # 频率大幅增加
-			4: base_wave_interval = 4.5 # 极高频率
+			3: base_wave_interval = 6.0
+			4: base_wave_interval = 4.5
 			_: base_wave_interval = 6.0
 	else:
-		base_wave_interval = 8.0 # 无尽模式起始节奏就拉满
+		base_wave_interval = 8.0
 
 		
 	timer.wait_time = base_wave_interval
 	timer.timeout.connect(_on_wave_timeout)
 	timer.start()
 	
-	# 第一波在开局不久后立即出现 (无尽模式更快出现)
 	var first_wave_delay = 0.5 if GameData.is_endless_mode else 1.5
 	get_tree().create_timer(first_wave_delay).timeout.connect(_on_wave_timeout)
+	print("[WaveManager] 定时器启动: interval=%.1f, first_delay=%.1f" % [base_wave_interval, first_wave_delay])
 
 func _find_target_tree():
 	var trees = get_tree().get_nodes_in_group("Tree")
@@ -59,6 +60,7 @@ func _on_wave_timeout() -> void:
 	if not is_instance_valid(target_tree):
 		_find_target_tree()
 		if not is_instance_valid(target_tree):
+			print("[WaveManager] 警告: 找不到目标树，跳过本波！")
 			return
 	
 	if not GameData.is_endless_mode and current_wave >= MAX_WAVES_PER_STAGE:
@@ -70,12 +72,14 @@ func _on_wave_timeout() -> void:
 		if main_node and "level_timer" in main_node:
 			elapsed = float(main_node.level_timer)
 			
-		if elapsed < 60.0:
-			base_wave_interval = 20.0
-		elif elapsed < 100.0:
-			base_wave_interval = 15.0
-		else:
+		if elapsed < 30.0:
 			base_wave_interval = 8.0
+		elif elapsed < 60.0:
+			base_wave_interval = 6.0
+		elif elapsed < 120.0:
+			base_wave_interval = 5.0
+		else:
+			base_wave_interval = 4.0
 		timer.wait_time = base_wave_interval
 		
 	current_wave += 1
@@ -83,30 +87,27 @@ func _on_wave_timeout() -> void:
 	
 	SignalBus.on_wave_started.emit(current_wave)
 	
-	# 🔥【性能优化】：先检查场上数量，到达上限直接跳过本波
 	var alive_count = _count_alive_enemies()
 	if alive_count >= MAX_ALIVE_ENEMIES:
 		print("[WaveManager] 场上敌人已满 (%d/%d)，暂缓出怪" % [alive_count, MAX_ALIVE_ENEMIES])
 		return
 	
-	# 出怪数量：改用亚线性增长（对数曲线），防止后期帧率崩塌
 	var base_count = 25
 	if GameData.current_playing_stage == 1: base_count = 15
 	
 	var difficulty_mult = GameData.current_playing_stage
 	if GameData.is_endless_mode: difficulty_mult = 6 
 	
-	# 🔥 核心公式重构：对数增长 + 硬上限 (玩家调整版)
 	var wave_bonus = int(3.0 * log(maxf(current_wave, 1.0)) * 15.0) 
 	var enemies_to_spawn = mini(base_count + wave_bonus + (difficulty_mult * 10), MAX_PER_WAVE)
 	
-	# 再次检查：不要超过全局上限的剩余空间
 	enemies_to_spawn = mini(enemies_to_spawn, MAX_ALIVE_ENEMIES - alive_count)
 	if enemies_to_spawn <= 0:
 		return
 
 	var center_pos = target_tree.global_position
 	var spawn_positions = get_uniform_spawn_positions(center_pos, enemies_to_spawn)
+	print("[WaveManager] 波次 %d: 生成 %d 个敌人, alive=%d, endless=%s, tree_pos=%s" % [current_wave, enemies_to_spawn, alive_count, GameData.is_endless_mode, center_pos])
 	
 	for i in range(enemies_to_spawn):
 		var random_delay = randf_range(0.0, base_wave_interval * 0.8)

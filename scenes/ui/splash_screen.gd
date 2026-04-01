@@ -2,7 +2,7 @@ extends Control
 @export var 前置_bgm: AudioStream
 @export var 点击_sfx: AudioStream
 # 👉 这里填入你真正的游戏主界面路径（比如之前的年轮选关界面）
-@export var next_scene_path: String = "res://scenes/ui/IntroScene.tscn"
+@export var next_scene_path: String = "res://scenes/ui/OpeningVideo.tscn"
 @onready var logo = $TextureRect
 @onready var prompt_label = $Label
 

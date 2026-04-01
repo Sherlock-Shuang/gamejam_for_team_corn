@@ -32,9 +32,9 @@ var _hp_regen_accumulator: float = 0.0
 const HP_REGEN_TICK: float = 0.5 # 每 0.5 秒回血一次
 
 func _ready():
-	# 确保从其他场景（或被特效卡主时间的时候）返回时，时间流速和暂停状态是正常的
 	Engine.time_scale = 1.0
 	get_tree().paused = false
+	GameData.is_in_ending_cinematic = false
 
 	
 	print("[Main] 游戏启动，正在建立各系统连接...")
@@ -351,15 +351,24 @@ func _play_true_ending_cinematic():
 	await get_tree().create_timer(3.0).timeout
 	
 	# 画面一：神罚与归寂 (取代 THE END)
+	print("[Cinematic] 进入画面一：神罚与归寂")
+	var viewport_size = get_viewport().size
+	var viewport_w = viewport_size.x
+	
+	var scene_1_root = Control.new()
+	scene_1_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scene_1_root.modulate.a = 0.0
+	end_layer.add_child(scene_1_root)
+	
+	var scene_1_center = CenterContainer.new()
+	scene_1_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scene_1_root.add_child(scene_1_center)
+	
 	var scene_1_box = VBoxContainer.new()
-	scene_1_box.set_anchors_preset(Control.PRESET_FULL_RECT)
-	scene_1_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	scene_1_box.modulate.a = 0.0
-	end_layer.add_child(scene_1_box)
+	scene_1_box.add_theme_constant_override("separation", 30)
+	scene_1_center.add_child(scene_1_box)
 	
 	var custom_font = load("res://assets/fonts/DongLiShanZhouLiangTongShuZhengKai（FanTi）-2.ttf")
-	
-	var viewport_w = get_viewport().size.x
 	
 	var scene_1_title = Label.new()
 	scene_1_title.text = "神树降下神罚"
@@ -369,7 +378,6 @@ func _play_true_ending_cinematic():
 	scene_1_title.add_theme_constant_override("outline_size", 24)
 	scene_1_title.add_theme_color_override("font_outline_color", Color(0.5, 0.2, 0.0))
 	scene_1_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	scene_1_title.custom_minimum_size = Vector2(viewport_w, 0) # 强制横跨全屏
 	scene_1_box.add_child(scene_1_title)
 	
 	var scene_1_sub = Label.new()
@@ -378,37 +386,48 @@ func _play_true_ending_cinematic():
 	scene_1_sub.add_theme_font_size_override("font_size", 48)
 	scene_1_sub.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	scene_1_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	scene_1_sub.custom_minimum_size = Vector2(viewport_w, 0)
 	scene_1_box.add_child(scene_1_sub)
 
-	# 隐去裂痕，浮现画面一 (带震撼缩放)
-	scene_1_title.pivot_offset = Vector2(viewport_w / 2.0, 60) # 完美定位到屏幕中心
+	# 等待一帧让布局系统计算出 label 的实际尺寸
+	await get_tree().process_frame
+	print("[Cinematic] 标题尺寸: %s, 位置: %s" % [scene_1_title.size, scene_1_title.global_position])
+
+	# 隐去裂痕，浮现画面一 (带震撼缩放，从屏幕正中央展开)
+	scene_1_title.pivot_offset = scene_1_title.size / 2.0
 	scene_1_title.scale = Vector2(0.3, 0.3)
 	
 	var scene_1_tw = create_tween().set_parallel(true)
 	scene_1_tw.tween_property(hit_rect, "modulate:a", 0.0, 1.5)
-	scene_1_tw.tween_property(scene_1_box, "modulate:a", 1.0, 1.5)
+	scene_1_tw.tween_property(scene_1_root, "modulate:a", 1.0, 1.5)
 	scene_1_tw.tween_property(scene_1_title, "scale", Vector2(1.0, 1.0), 0.5).set_trans(Tween.TRANS_BOUNCE)
 	
-	# 文本轻微颤动效果
-	for i in range(15):
+	# 文本轻微颤动效果（结束后归零）
+	for i in range(14):
 		scene_1_tw.tween_property(scene_1_title, "position:x", randf_range(-10, 10), 0.1).set_delay(i * 0.1)
+	scene_1_tw.tween_property(scene_1_title, "position:x", 0.0, 0.1).set_delay(1.4)
 		
 	await get_tree().create_timer(8.0).timeout
 	
 	# 隐去画面一
 	var fade_1_tw = create_tween()
-	fade_1_tw.tween_property(scene_1_box, "modulate:a", 0.0, 1.5)
+	fade_1_tw.tween_property(scene_1_root, "modulate:a", 0.0, 1.5)
 	await fade_1_tw.finished
-	scene_1_box.queue_free()
+	scene_1_root.queue_free()
 
 	# 画面二：记忆与时间
+	print("[Cinematic] 进入画面二：记忆与时间")
+	var scene_2_root = Control.new()
+	scene_2_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scene_2_root.modulate.a = 0.0
+	end_layer.add_child(scene_2_root)
+	
+	var scene_2_center = CenterContainer.new()
+	scene_2_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scene_2_root.add_child(scene_2_center)
+	
 	var scene_2_box = VBoxContainer.new()
-	scene_2_box.set_anchors_preset(Control.PRESET_FULL_RECT)
-	scene_2_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	scene_2_box.add_theme_constant_override("separation", 60)
-	scene_2_box.modulate.a = 0.0
-	end_layer.add_child(scene_2_box)
+	scene_2_center.add_child(scene_2_box)
 	
 	var scene_2_title = Label.new()
 	scene_2_title.text = "世界记住了那棵树，\n但树选择了成为时间本身。"
@@ -426,13 +445,14 @@ func _play_true_ending_cinematic():
 
 	# 浮现画面二
 	var scene_2_tw = create_tween()
-	scene_2_tw.tween_property(scene_2_box, "modulate:a", 1.0, 2.5)
+	scene_2_tw.tween_property(scene_2_root, "modulate:a", 1.0, 2.5)
 	await get_tree().create_timer(10.0).timeout
 	
 	# 最终黑屏准备跳转
 	var exit_tw = create_tween()
-	exit_tw.tween_property(scene_2_box, "modulate:a", 0.0, 2.0)
+	exit_tw.tween_property(scene_2_root, "modulate:a", 0.0, 2.0)
 	await exit_tw.finished
+	scene_2_root.queue_free()
 
 	GameData.just_finished_final_stage = true # 标记为刚刚通关，触发时钟倒流视觉动画
 	get_tree().change_scene_to_file("res://scenes/ui/AnnualRingMenu.tscn")

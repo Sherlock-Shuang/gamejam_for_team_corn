@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://opening_video_uid"]
+
+[ext_resource type="PackedScene" uid="uid://videoplayerscene_uid_placeholder" path="res://scenes/ui/VideoPlayerScene.tscn" id="1_base"]
+
+[node name="OpeningVideo" instance=ExtResource("1_base")]
+frames_folder = "res://assets/开头/frames"
+frames_fps = 24.0
+audio_path = "res://assets/开头/4月1日.mp3"
+next_scene_path = "res://scenes/ui/IntroScene.tscn"
