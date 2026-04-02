@@ -54,7 +54,9 @@ func _ready():
 	# HUD._ready() 先于 Main._ready() 执行，可能读到上一局残留的 current_level
 	if hud and hud.has_node("HUDMargin/HUDContainer/RingContainer/LevelLabel"):
 		hud.get_node("HUDMargin/HUDContainer/RingContainer/LevelLabel").text = "Lv." + str(GameData.current_level)
-		hud.get_node("HUDMargin/HUDContainer/RingContainer/ExpRing").value = 0.0
+		var needed = GameData.get_exp_to_next_level(GameData.current_level)
+		var exp_ratio = GameData.current_exp / needed if needed > 0 else 0.0
+		hud.get_node("HUDMargin/HUDContainer/RingContainer/ExpRing").value = exp_ratio * 100.0
 	
 	# 根据当前正在游玩的关卡，让树苗直接长到对应的第二/第三种形态
 	if tree.has_method("evolve_to_stage"):

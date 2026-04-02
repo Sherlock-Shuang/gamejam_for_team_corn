@@ -13,7 +13,6 @@ extends Control
 @onready var audio_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var skip_label: Label = $SkipLabel
 
-var can_skip: bool = false
 var playing: bool = false
 var elapsed: float = 0.0
 var current_frame_idx: int = -1
@@ -22,7 +21,7 @@ var _display_texture: ImageTexture
 
 func _ready():
 	if skip_label:
-		skip_label.modulate.a = 0.0
+		skip_label.visible = false
 
 	AudioManager.stop_all()
 
@@ -31,6 +30,7 @@ func _ready():
 
 	if total_frames == 0:
 		push_error("[FramePlayer] 未找到任何帧文件！路径: %s" % frames_folder)
+		_transition_to_next()
 		return
 
 	if audio_path:
@@ -38,11 +38,6 @@ func _ready():
 
 	if auto_play:
 		start_playback()
-
-	await get_tree().create_timer(2.0).timeout
-	can_skip = true
-	if skip_label:
-		create_tween().tween_property(skip_label, "modulate:a", 0.5, 1.0)
 
 
 func _count_frames() -> int:
@@ -100,15 +95,6 @@ func _show_frame(index: int):
 		display.texture = _display_texture
 	else:
 		_display_texture.update(image)
-
-
-func _input(event: InputEvent):
-	if not can_skip:
-		return
-
-	if (event is InputEventMouseButton and event.pressed) or \
-	   (event is InputEventKey and event.pressed):
-		_transition_to_next()
 
 
 func _transition_to_next():

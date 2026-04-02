@@ -109,8 +109,8 @@ var growth_stages: Array = [
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  经验值公式: 每级所需经验 = base * (level ^ exponent)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-var exp_base: float = 50.0
-var exp_exponent: float = 1.25
+var exp_base: float = 40.0
+var exp_exponent: float = 1.2
 
 func get_exp_to_next_level(level: int) -> float:
 	return exp_base * pow(level, exp_exponent)
@@ -452,12 +452,12 @@ var enemy_stats: Dictionary = {
 	# 第一阶段：自然虫害
 	"beetle": {
 		"name": "甲虫", "hp": 22, "speed": 120.0, "damage": 3.0,
-		"exp_drop": 2.0, "phase": 1
+		"exp_drop": 3.0, "phase": 1
 	},
 	# 第二阶段：哺乳动物
 	"beaver": {
 		"name": "河狸", "hp": 120, "speed": 60.0, "damage": 8.0,
-		"exp_drop": 5.0, "phase": 2
+		"exp_drop": 7.0, "phase": 2
 	},
 	# 第三阶段：人类
 	"lumberjack": {
@@ -466,7 +466,7 @@ var enemy_stats: Dictionary = {
 	},
 	"mech_boss": {
 		"name": "伐木机甲", "hp": 700, "speed": 60.0, "damage": 14.0,
-		"exp_drop": 12.0, "phase": 3
+		"exp_drop": 13.0, "phase": 3
 	},
 }
 

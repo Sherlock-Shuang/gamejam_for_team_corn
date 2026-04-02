@@ -1,8 +1,9 @@
 extends Node
 
-# 🟢 将 @export 改为固定的变量，并使用 preload 直接加载文件
-# ⚠️ 注意：请务必把引号里的路径，换成你实际存放音频的路径！
 var UI交互_sfx :AudioStream = preload("res://assets/audio/sfx/UI交互3.wav")
+
+func _ready() -> void:
+    process_mode = Node.PROCESS_MODE_ALWAYS
 
 func _enter_tree() -> void:
     get_tree().node_added.connect(_on_node_added)

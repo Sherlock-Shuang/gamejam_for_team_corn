@@ -6,6 +6,10 @@
 # Ignore keep file in .godot caches if somehow generated
 .godot
 
+# Godot export builds
+*.exe
+*.pck
+
 # OS generated files
 .DS_Store
 Thumbs.db

@@ -24,9 +24,9 @@ func _ready() -> void:
 	
 	if not GameData.is_endless_mode:
 		match GameData.current_playing_stage:
-			1: base_wave_interval = 12.0
-			2: base_wave_interval = 10.0
-			3: base_wave_interval = 7.5
+			1: base_wave_interval = 9.0
+			2: base_wave_interval = 8.0
+			3: base_wave_interval = 7.0
 			4: base_wave_interval = 6.0
 			_: base_wave_interval = 6.0
 	else:
@@ -94,10 +94,10 @@ func _on_wave_timeout() -> void:
 	
 	var base_count = 25
 	match GameData.current_playing_stage:
-		1: base_count = 12
-		2: base_count = 18
+		1: base_count = 16
+		2: base_count = 20
 		3: base_count = 23
-		4: base_count = 25
+		4: base_count = 22
 	
 	var difficulty_mult = GameData.current_playing_stage
 	if GameData.is_endless_mode:

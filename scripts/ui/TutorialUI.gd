@@ -27,6 +27,23 @@ func _ready():
 		instruction_panel.visible = false
 		show_endless_hint()
 
+var _is_transitioning: bool = false
+
+func _input(event: InputEvent) -> void:
+	if not visible or _is_transitioning:
+		return
+	if (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or event.is_action_pressed("ui_accept"):
+		get_viewport().set_input_as_handled()
+		UiSoundManager._play_click_sound()
+		if instruction_panel.visible:
+			_on_close_pressed()
+		elif hp_hint_panel.visible:
+			_on_hp_hint_closed()
+		elif skill_hint_panel.visible:
+			_on_skill_hint_closed()
+		elif endless_hint_panel.visible:
+			_on_endless_hint_closed()
+
 func show_tutorial():
 	visible = true
 	GameData.call_deferred("set_game_paused", true) # 延后一帧暂停，确保覆盖 Main.gd 的初始化
@@ -37,11 +54,14 @@ func show_tutorial():
 		close_button.pressed.connect(_on_close_pressed)
 
 func _on_close_pressed():
+	if _is_transitioning: return
+	_is_transitioning = true
 	# 第一阶段关闭，转场到 HP 提示
 	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(instruction_panel, "modulate:a", 0.0, 0.3)
 	await tween.finished
 	instruction_panel.visible = false
+	_is_transitioning = false
 	
 	show_hp_hint()
 
@@ -55,11 +75,14 @@ func show_hp_hint():
 		hp_close_button.pressed.connect(_on_hp_hint_closed)
 
 func _on_hp_hint_closed():
+	if _is_transitioning: return
+	_is_transitioning = true
 	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(hp_hint_panel, "modulate:a", 0.0, 0.3)
 	await tween.finished
 	hp_hint_panel.visible = false
 	visible = false
+	_is_transitioning = false
 	GameData.set_game_paused(false)
 
 func show_skill_hint():
@@ -75,10 +98,13 @@ func show_skill_hint():
 		skill_close_button.pressed.connect(_on_skill_hint_closed)
 
 func _on_skill_hint_closed():
+	if _is_transitioning: return
+	_is_transitioning = true
 	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	await tween.finished
 	visible = false
+	_is_transitioning = false
 	GameData.set_game_paused(false)
 	queue_free()
 
@@ -95,9 +121,12 @@ func show_endless_hint():
 		endless_close_button.pressed.connect(_on_endless_hint_closed)
 
 func _on_endless_hint_closed():
+	if _is_transitioning: return
+	_is_transitioning = true
 	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	await tween.finished
 	visible = false
+	_is_transitioning = false
 	GameData.set_game_paused(false)
 	queue_free()
