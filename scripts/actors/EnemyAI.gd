@@ -197,9 +197,9 @@ func _physics_process(delta: float) -> void:
 	# ==========================================
 	var nav_target = target_tree.global_position
 	
-	# 🔥【性能优化】：河道检测改为隔5帧执行一次，削减多边形碰撞查询开销
+	# 🔥【性能优化】：河道检测改为隔10帧执行一次
 	frame_count += 1
-	if frame_count % 5 == 0:
+	if frame_count % 10 == 0:
 		if GameData.is_in_river(nav_target):
 			nav_target = GameData.clamp_to_river_bank(nav_target, river_avoid_margin)
 		_cached_river_force = _calculate_river_avoidance_force()
@@ -228,15 +228,15 @@ func _physics_process(delta: float) -> void:
 
 	# 执行 Godot 内部移动逻辑
 	move_and_slide()
-	# 🔥【性能优化】：河道兆底也隄5帧
-	if frame_count % 5 == 0:
+	# 🔥【性能优化】：河道边界强制修正也隔10帧
+	if frame_count % 10 == 0:
 		_enforce_river_boundary()
 
 	# 🔥【性能优化】：行走音效降频，只有20%的怪物会播放脚步声（通过帧号取模实现，0 GC）
 	if can_move and not is_attacking and velocity.length() > 1.0:
 		walk_sfx_timer -= delta
 		if walk_sfx_timer <= 0.0:
-			if 行走_sfx and frame_count % 5 == 0: # 只有特定帧的怪物才发出声音
+			if 行走_sfx and frame_count % 10 == 0: # 只有特定帧的怪物才发出声音
 				AudioManager.play_sfx(行走_sfx, 10, false, 3)
 			walk_sfx_timer = WALK_SFX_COOLDOWN
 
@@ -403,7 +403,9 @@ func play_death_animation(attack_source_position: Vector2) -> void:
 	# 重置属性的回调
 	var reset_func = func():
 		anim.rotation = 0.0
-		anim.scale = base_scale # 恢复他们各自原本的缩放率
+		# 【关键修复】：必须恢复到最初的出厂缩放率，不能恢复到死亡瞬间的（可能是精英怪的）缩放率
+		var original_s = get_meta("original_anim_scale", Vector2.ONE)
+		anim.scale = original_s
 		PoolManager.return_enemy(self)
 		
 	tween.chain().tween_callback(reset_func)

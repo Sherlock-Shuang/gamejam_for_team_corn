@@ -103,45 +103,46 @@ func _on_area_entered(area: Area2D) -> void:
 				_destroy_sting()
 
 func _trigger_local_slowmo(enemy: Node) -> void:
-	# 1. 暂停物理处理
+	# 1. 暂停物理处理 (子弹和敌人双重定格，营造打击感)
 	set_physics_process(false)
 	if enemy.has_method("set_physics_process"):
 		enemy.set_physics_process(false)
 	
-	# 2. 视觉冲击：极致高亮 (甚至可以超过 1.0 产生辉光感)
-	sprite.modulate = Color(5, 5, 5, 1)
+	# 2. 视觉表现初始化
+	sprite.modulate = Color(5, 5, 5, 1) # 子弹爆亮
+	var enemy_anim = enemy.get("anim")
 	var original_enemy_mod = Color.WHITE
-	if "anim" in enemy:
-		original_enemy_mod = enemy.anim.modulate
-		enemy.anim.modulate = Color(4, 4, 4, 1)
+	var true_original_scale = Vector2.ONE
 	
-	# 3. 形状冲击：匕首轻微缩短，敌人在受击点轻微形变
+	if is_instance_valid(enemy_anim):
+		original_enemy_mod = enemy_anim.modulate
+		enemy_anim.modulate = Color(4, 4, 4, 1) # 敌人高亮
+		true_original_scale = enemy.get_meta("original_anim_scale", enemy_anim.scale)
+		enemy_anim.scale = true_original_scale * 1.1 # 瞬间膨胀
+	
+	# 3. 子弹自身形变
 	var old_scale = sprite.scale
-	sprite.scale = old_scale * Vector2(0.7, 1.3) # 挤压感
+	sprite.scale = old_scale * Vector2(0.7, 1.3)
 	
-	var enemy_anim = null
-	var old_enemy_scale = Vector2.ONE
-	if "anim" in enemy:
-		enemy_anim = enemy.anim
-		old_enemy_scale = enemy_anim.scale
-		enemy_anim.scale = old_enemy_scale * 1.1 # 轻微膨胀
-	
-	# 4. 0.12 秒的“灵魂定格” (Game Jam 经验值)
+	# 4. 【核心修复】：计时器必须在 `if` 之外，确保无论如何物理都会恢复！
 	var freeze_time = 0.12
-	var timer = get_tree().create_timer(freeze_time, false) # 不受全局 TimeScale 影响
-	timer.timeout.connect(func():
-		# 恢复物理
+	get_tree().create_timer(freeze_time, false).timeout.connect(func():
+		# 恢复子弹自身的物理
 		set_physics_process(true)
-		if is_instance_valid(enemy):
-			enemy.set_physics_process(true)
-			if enemy_anim:
-				enemy_anim.modulate = original_enemy_mod
-				enemy_anim.scale = old_enemy_scale
 		
-		# 恢复视觉和形状
-		var recover_tween = create_tween().set_parallel(true)
-		recover_tween.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.1)
-		recover_tween.tween_property(sprite, "scale", old_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		# 恢复敌人物理（如果依然活着）
+		if is_instance_valid(enemy):
+			if enemy.has_method("set_physics_process"):
+				enemy.set_physics_process(true)
+			if is_instance_valid(enemy_anim):
+				enemy_anim.modulate = original_enemy_mod
+				enemy_anim.scale = true_original_scale
+		
+		# 恢复子弹视觉
+		if is_instance_valid(sprite):
+			var recover_tween = create_tween().set_parallel(true)
+			recover_tween.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.1)
+			recover_tween.tween_property(sprite, "scale", old_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	)
 
 # ==========================================

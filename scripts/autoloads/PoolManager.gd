@@ -155,7 +155,7 @@ func _apply_enemy_stats(enemy: Node, enemy_type: String, is_elite: bool = false)
 	if is_elite:
 		final_hp *= 5.0      # 【难度提升 C】：精英血量 5 倍
 		final_speed *= 1.3   
-		final_scale = 1.8    
+		final_scale = 1.2    # 保持精英怪比普通怪稍微大一点点（1.2倍），且已通过元数据重置彻底防膨胀
 		final_exp *= 6.0     # 经验也对应给多一点平衡
 		enemy.modulate = Color(2.5, 0.4, 0.4, 1.0) # 极高浓度的狂暴深红 (警告色)
 	else:
