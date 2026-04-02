@@ -209,7 +209,7 @@ func _physics_process(delta: float) -> void:
 	
 	var desired_velocity = seek_force + _cached_river_force
 	var final_speed = desired_velocity.limit_length(speed) * speed_multiplier
-	velocity = velocity.lerp(final_speed, 0.1)
+	velocity = velocity.lerp(final_speed, minf(1.0, 6.0 * delta))
 
 	# ==========================================
 	# 2. 视线与朝向控制 (完美分离飞行与地面单位)

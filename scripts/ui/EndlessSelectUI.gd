@@ -30,22 +30,26 @@ func _apply_styles():
 	poem.add_theme_color_override("font_color", Color(0.8, 0.75, 0.6, 0.7))
 	poem.add_theme_constant_override("line_spacing", 12)
 	
-	# 初始状态
-	title1.modulate.a = 0.0
-	title2.modulate.a = 0.0
-	subtitle.modulate.a = 0.0
-	poem.modulate.a = 0.0
-	buttons_hbox.modulate.a = 0.0
-	
-	# 剧场演出：文字按韵律浮现
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(title1, "modulate:a", 1.0, 1.5).set_trans(Tween.TRANS_SINE)
-	# “是现在”延迟2秒出现
-	tween.tween_property(title2, "modulate:a", 1.0, 1.5).set_delay(2.0)
-	
-	tween.tween_property(subtitle, "modulate:a", 1.0, 2.0).set_delay(4.0)
-	tween.tween_property(poem, "modulate:a", 1.0, 3.0).set_delay(5.5) 
-	tween.tween_property(buttons_hbox, "modulate:a", 1.0, 1.2).set_delay(7.5)
+	if GameData.has_seen_endless_intro:
+		title1.modulate.a = 1.0
+		title2.modulate.a = 1.0
+		subtitle.modulate.a = 1.0
+		poem.modulate.a = 1.0
+		buttons_hbox.modulate.a = 1.0
+	else:
+		GameData.has_seen_endless_intro = true
+		title1.modulate.a = 0.0
+		title2.modulate.a = 0.0
+		subtitle.modulate.a = 0.0
+		poem.modulate.a = 0.0
+		buttons_hbox.modulate.a = 0.0
+		
+		var tween = create_tween().set_parallel(true)
+		tween.tween_property(title1, "modulate:a", 1.0, 1.5).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(title2, "modulate:a", 1.0, 1.5).set_delay(2.0)
+		tween.tween_property(subtitle, "modulate:a", 1.0, 2.0).set_delay(4.0)
+		tween.tween_property(poem, "modulate:a", 1.0, 3.0).set_delay(5.5)
+		tween.tween_property(buttons_hbox, "modulate:a", 1.0, 1.2).set_delay(7.5)
 	
 	# 按钮样式统一 (复用复古原木风)
 	var btn_normal = StyleBoxFlat.new()

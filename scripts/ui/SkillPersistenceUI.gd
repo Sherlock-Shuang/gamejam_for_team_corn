@@ -76,8 +76,7 @@ func _create_skill_slot(skill_id: String, level: int) -> Control:
 	if icon_path != "":
 		icon_rect.texture = load(icon_path)
 	
-	# 设置锚点枢轴，以便缩放动画
-	slot.pivot_offset = Vector2(140, 25)
+	slot.pivot_offset = Vector2(150, 30)
 	
 	return slot
 

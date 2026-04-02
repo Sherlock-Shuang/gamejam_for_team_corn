@@ -47,6 +47,15 @@ func _ready():
 	else:
 		GameData.reset_stage()
 	
+	# 从年轮选关进入第 2+ 关时，技能被 reset_run 清空；从历史存档恢复前关技能
+	if not GameData.is_endless_mode and GameData.current_playing_stage >= 2 and GameData.current_run_skill_ids.is_empty():
+		GameData.apply_historical_skills()
+	
+	# HUD._ready() 先于 Main._ready() 执行，可能读到上一局残留的 current_level
+	if hud and hud.has_node("HUDMargin/HUDContainer/RingContainer/LevelLabel"):
+		hud.get_node("HUDMargin/HUDContainer/RingContainer/LevelLabel").text = "Lv." + str(GameData.current_level)
+		hud.get_node("HUDMargin/HUDContainer/RingContainer/ExpRing").value = 0.0
+	
 	# 根据当前正在游玩的关卡，让树苗直接长到对应的第二/第三种形态
 	if tree.has_method("evolve_to_stage"):
 		if GameData.is_endless_mode:
@@ -61,7 +70,7 @@ func _ready():
 	else:
 		match GameData.current_playing_stage:
 			1: level_timer = 50.0
-			2: level_timer = 60.0
+			2: level_timer = 55.0
 			3: level_timer = 80.0
 			4: level_timer = 100.0
 			_: level_timer = 60.0
@@ -100,6 +109,9 @@ func _ready():
 	
 	# 监听死亡结束请求
 	SignalBus.on_game_over.connect(_on_game_over)
+	
+	# 监听首个精英怪出现
+	SignalBus.on_first_elite_spawned.connect(_on_first_elite_spawned)
 
 
 func _level_up():
@@ -690,3 +702,62 @@ func _show_game_over_ui():
 	
 	var ui_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	ui_tween.tween_property(root_control, "modulate:a", 1.0, 1.2).set_trans(Tween.TRANS_QUAD)
+
+func _on_first_elite_spawned():
+	if not is_level_active:
+		return
+	_show_elite_hint()
+
+func _show_elite_hint():
+	var hint_layer = CanvasLayer.new()
+	hint_layer.layer = 90
+	
+	var panel = PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	panel.position = Vector2(-200, 30)
+	panel.custom_minimum_size = Vector2(400, 0)
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.5, 0.08, 0.08, 0.92)
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(1.0, 0.3, 0.2, 1.0)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_right = 12
+	style.corner_radius_bottom_left = 12
+	style.content_margin_left = 20
+	style.content_margin_right = 20
+	style.content_margin_top = 14
+	style.content_margin_bottom = 14
+	panel.add_theme_stylebox_override("panel", style)
+	
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
+	panel.add_child(vb)
+	
+	var title = Label.new()
+	title.text = "⚠ 精英怪出现！"
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(title)
+	
+	var desc = Label.new()
+	desc.text = "红色发光的敌人是精英单位\n血量极高、体型更大、经验丰厚\n击败它们可快速升级！"
+	desc.add_theme_font_size_override("font_size", 20)
+	desc.add_theme_color_override("font_color", Color(0.95, 0.9, 0.85))
+	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(desc)
+	
+	hint_layer.add_child(panel)
+	add_child(hint_layer)
+	
+	panel.modulate.a = 0.0
+	var tw = create_tween()
+	tw.tween_property(panel, "modulate:a", 1.0, 0.3)
+	tw.tween_interval(3.5)
+	tw.tween_property(panel, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(hint_layer.queue_free)

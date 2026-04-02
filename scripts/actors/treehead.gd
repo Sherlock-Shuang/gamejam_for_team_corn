@@ -49,10 +49,10 @@ var base_hit_shape_scales: Array[Vector2] = []
 @export var hit_knockback: float = 120.0           
 
 @export_group("Charge Damage Tiers")
-@export var tier_damage_perfect: float = 40
-@export var tier_damage_high: float = 15.0
-@export var tier_damage_mid: float = 9.0
-@export var tier_damage_low: float = 5.0
+@export var tier_damage_perfect: float = 65
+@export var tier_damage_high: float = 30.0
+@export var tier_damage_mid: float = 15.0
+@export var tier_damage_low: float = 8.0
 
 # ==========================================
 # 音乐参数
@@ -85,6 +85,9 @@ var stored_thrust_power: float = 0.0
 # 记录每次松手时的“锁定伤害”，保证打击全程伤害一致
 var locked_attack_damage: float = 0.0 
 
+@export var attack_cooldown: float = 0.45
+var attack_cooldown_timer: float = 0.0
+
 func _ready() -> void:
 	can_sleep = false 
 	_set_hitbox_active(false)
@@ -112,6 +115,9 @@ func apply_hit_shape_scale_multiplier(mult: float) -> void:
 func _process(delta: float) -> void:
 	if not is_instance_valid(trunk_line) or not is_instance_valid(tree_root) or not is_instance_valid(crown_target):
 		return
+	
+	if attack_cooldown_timer > 0.0:
+		attack_cooldown_timer -= delta
 		
 	_handle_virtual_inputs()
 		
@@ -218,18 +224,24 @@ func _release_drag():
 	charge_audio.stop() 
 	AudioManager.play_sfx(释放破空_sfx, -10.0, false)
 	
+	var can_deal_damage = attack_cooldown_timer <= 0.0
+	
 	if is_thrust_charging:
 		locked_attack_damage = calculate_tier_damage(stored_thrust_power)
 		is_thrust_charging = false
 		is_thrust_releasing = true
-		_set_hitbox_active(true)
+		if can_deal_damage:
+			_set_hitbox_active(true)
+			attack_cooldown_timer = attack_cooldown
 	else:
 		var current_angle = wrapf(global_transform.get_rotation(), -PI, PI)
 		var max_rad = deg_to_rad(max_drag_angle_deg)
 		var current_charge_ratio = clamp(abs(current_angle) / max_rad, 0.0, 1.0)
 		locked_attack_damage = calculate_tier_damage(current_charge_ratio)
 		fake_target_angle = -current_angle * whip_overshoot_ratio
-		_set_hitbox_active(true)
+		if can_deal_damage:
+			_set_hitbox_active(true)
+			attack_cooldown_timer = attack_cooldown
 
 func _handle_virtual_inputs() -> void:
 	var kb_dir = Vector2.ZERO

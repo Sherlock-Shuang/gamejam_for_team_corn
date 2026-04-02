@@ -25,8 +25,8 @@ func _ready() -> void:
 	if not GameData.is_endless_mode:
 		match GameData.current_playing_stage:
 			1: base_wave_interval = 12.0
-			2: base_wave_interval = 7.5
-			3: base_wave_interval = 6.0
+			2: base_wave_interval = 10.0
+			3: base_wave_interval = 7.5
 			4: base_wave_interval = 6.0
 			_: base_wave_interval = 6.0
 	else:
@@ -93,13 +93,19 @@ func _on_wave_timeout() -> void:
 		return
 	
 	var base_count = 25
-	if GameData.current_playing_stage == 1: base_count = 15
+	match GameData.current_playing_stage:
+		1: base_count = 12
+		2: base_count = 18
+		3: base_count = 23
+		4: base_count = 25
 	
 	var difficulty_mult = GameData.current_playing_stage
-	if GameData.is_endless_mode: difficulty_mult = 6 
+	if GameData.is_endless_mode:
+		difficulty_mult = 6
+		base_count = 25
 	
-	var wave_bonus = int(3.0 * log(maxf(current_wave, 1.0)) * 15.0) 
-	var enemies_to_spawn = mini(base_count + wave_bonus + (difficulty_mult * 10), MAX_PER_WAVE)
+	var wave_bonus = int(4.0 * log(maxf(current_wave, 1.0)) + current_wave * 1.5)
+	var enemies_to_spawn = mini(base_count + wave_bonus + (difficulty_mult * 3), MAX_PER_WAVE)
 	
 	enemies_to_spawn = mini(enemies_to_spawn, MAX_ALIVE_ENEMIES - alive_count)
 	if enemies_to_spawn <= 0:
@@ -169,24 +175,26 @@ func get_enemy_type_for_wave(wave: int, roll: float) -> String:
 			return "beetle"
 			
 		2:
-			# 第二关：河狸初现
+			# 第二关：河狸初现（纯甲虫+河狸，无伐木工）
 			if wave == 1: 
-				return "beetle" if roll < 0.8 else "beaver"
+				return "beetle"
 			if wave == 2: 
-				return "beetle" if roll < 0.4 else "beaver"
-			else: # 第三波决战
-				if roll < 0.6: return "beaver"
-				return "lumberjack" # 第三波如约加入少量人类
+				return "beetle" if roll < 0.7 else "beaver"
+			else:
+				return "beetle" if roll < 0.5 else "beaver"
 				
 		3:
-			# 第三关：伐木工的主场
+			# 第三关：伐木工登场（温和过渡）
 			if wave == 1:
-				return "beaver" if roll < 0.7 else "beetle"
+				return "beetle" if roll < 0.6 else "beaver"
 			if wave == 2:
-				return "beaver" if roll < 0.4 else "lumberjack"
-			else: # 第三波决战
-				if roll < 0.8: return "lumberjack"
-				return "beaver"
+				if roll < 0.3: return "beetle"
+				if roll < 0.6: return "beaver"
+				return "lumberjack"
+			else:
+				if roll < 0.5: return "lumberjack"
+				if roll < 0.8: return "beaver"
+				return "beetle"
 				
 		4:
 			# 第四关：机甲末日

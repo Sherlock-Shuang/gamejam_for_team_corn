@@ -81,11 +81,12 @@ func _ready():
 	# 【核心逻辑】：判断是否刚从最终战归来，触发史诗级过场
 	if GameData.just_finished_final_stage:
 		_start_reversal_cinematic()
-		GameData.just_finished_final_stage = false # 重置状态，防止反复触发
+		GameData.just_finished_final_stage = false
 	elif GameData.is_endless_unlocked:
-		# 如果已经通关过，保持常态慢速旋转
 		for i in range(4):
 			ring_speeds[i] = 0.15 + (i * 0.05)
+	
+	
 
 
 func _process(delta):
@@ -115,6 +116,9 @@ func _process(delta):
 		var alpha = (sin(time_elapsed * 2.0) + 1.0) / 2.0 * 0.4 + 0.3
 		subtitle.modulate.a = alpha
 
+	
+	if is_cinematic_playing:
+		return
 	
 	# 鼠标悬停判定
 	var mouse_pos = get_global_mouse_position()
@@ -154,7 +158,10 @@ func _on_hover_changed(new_stage: int):
 	elif hovered_stage != -1:
 		subtitle.text = "点击进入 关卡 " + str(hovered_stage)
 	else:
-		subtitle.text = "悬停选择年轮节点，点击进入挑战"
+		if GameData.is_endless_unlocked:
+			subtitle.text = "悬停选择年轮，或点击中心进入无尽模式"
+		else:
+			subtitle.text = "悬停选择年轮节点，点击进入挑战"
 
 func _set_node_state(stage_id: int, active: bool):
 	if stage_id == -1: return
@@ -249,6 +256,9 @@ func _play_ending_video():
 
 
 func _input(event):
+	if is_cinematic_playing:
+		return
+		
 	# 调试快捷键
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_R:

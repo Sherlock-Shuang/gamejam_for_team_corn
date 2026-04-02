@@ -52,3 +52,7 @@ signal on_game_restart()
 signal on_return_requested()
 ## 玩家请求暂停游戏
 signal on_pause_requested()
+
+# ── 精英怪事件 ─────────────────────────────────────────────────
+## 本局首次出现精英怪时广播
+signal on_first_elite_spawned()

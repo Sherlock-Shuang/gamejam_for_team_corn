@@ -317,7 +317,8 @@ func _cast_chain_lightning(start_node: Node2D, start_pos: Vector2, chain_damage:
 	var lightning_line = PoolManager.get_effect("lightning_enchant")
 	if not (lightning_line is Line2D):
 		return
-		
+	
+	lightning_line.clear_points()
 	lightning_line.top_level = true
 	lightning_line.global_position = Vector2.ZERO
 	lightning_line.z_index = 100

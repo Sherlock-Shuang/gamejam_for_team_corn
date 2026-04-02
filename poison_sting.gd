@@ -103,42 +103,41 @@ func _on_area_entered(area: Area2D) -> void:
 				_destroy_sting()
 
 func _trigger_local_slowmo(enemy: Node) -> void:
-	# 1. 暂停物理处理 (子弹和敌人双重定格，营造打击感)
+	# 防止同一敌人被多发毒刺反复定格导致速度抖动
+	if enemy.has_meta("_thorn_frozen") and enemy.get_meta("_thorn_frozen"):
+		return
+	
 	set_physics_process(false)
 	if enemy.has_method("set_physics_process"):
 		enemy.set_physics_process(false)
+	enemy.set_meta("_thorn_frozen", true)
 	
-	# 2. 视觉表现初始化
-	sprite.modulate = Color(5, 5, 5, 1) # 子弹爆亮
+	sprite.modulate = Color(5, 5, 5, 1)
 	var enemy_anim = enemy.get("anim")
 	var original_enemy_mod = Color.WHITE
 	var true_original_scale = Vector2.ONE
 	
 	if is_instance_valid(enemy_anim):
 		original_enemy_mod = enemy_anim.modulate
-		enemy_anim.modulate = Color(4, 4, 4, 1) # 敌人高亮
+		enemy_anim.modulate = Color(4, 4, 4, 1)
 		true_original_scale = enemy.get_meta("original_anim_scale", enemy_anim.scale)
-		enemy_anim.scale = true_original_scale * 1.1 # 瞬间膨胀
+		enemy_anim.scale = true_original_scale * 1.1
 	
-	# 3. 子弹自身形变
 	var old_scale = sprite.scale
 	sprite.scale = old_scale * Vector2(0.7, 1.3)
 	
-	# 4. 【核心修复】：计时器必须在 `if` 之外，确保无论如何物理都会恢复！
-	var freeze_time = 0.12
+	var freeze_time = 0.10
 	get_tree().create_timer(freeze_time, false).timeout.connect(func():
-		# 恢复子弹自身的物理
 		set_physics_process(true)
 		
-		# 恢复敌人物理（如果依然活着）
 		if is_instance_valid(enemy):
 			if enemy.has_method("set_physics_process"):
 				enemy.set_physics_process(true)
+			enemy.set_meta("_thorn_frozen", false)
 			if is_instance_valid(enemy_anim):
 				enemy_anim.modulate = original_enemy_mod
 				enemy_anim.scale = true_original_scale
 		
-		# 恢复子弹视觉
 		if is_instance_valid(sprite):
 			var recover_tween = create_tween().set_parallel(true)
 			recover_tween.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.1)

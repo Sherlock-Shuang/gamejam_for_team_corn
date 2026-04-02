@@ -15,8 +15,20 @@ shadow_color = Color(0, 0, 0, 0.2)
 shadow_size = 4
 shadow_offset = Vector2(2, 2)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_bg"]
+bg_color = Color(0.12, 0.08, 0.05, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.42, 0.3, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="SkillSlot" type="PanelContainer"]
-custom_minimum_size = Vector2(280, 52)
+custom_minimum_size = Vector2(300, 60)
 theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
 
 [node name="HBox" type="HBoxContainer" parent="."]
@@ -28,8 +40,14 @@ alignment = 0
 custom_minimum_size = Vector2(5, 0)
 layout_mode = 2
 
-[node name="Icon" type="TextureRect" parent="HBox"]
-custom_minimum_size = Vector2(40, 40)
+[node name="IconBg" type="PanelContainer" parent="HBox"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_icon_bg")
+
+[node name="Icon" type="TextureRect" parent="HBox/IconBg"]
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
@@ -38,13 +56,13 @@ stretch_mode = 5
 [node name="NameLabel" type="Label" parent="HBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.85, 0.7, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 22
 text = "技能名称"
 
 [node name="LevelLabel" type="Label" parent="HBox"]
 layout_mode = 2
 size_flags_horizontal = 10
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "Lv.1 "
 horizontal_alignment = 2

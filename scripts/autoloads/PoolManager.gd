@@ -81,6 +81,8 @@ func prewarm(enemy_type: String, count: int) -> void:
 		
 	print("[PoolManager] 成功预热 %d 个 %s" % [count, enemy_type])
 
+var _has_shown_elite_hint: bool = false
+
 ## 获取怪物（供 WaveManager 调用）
 func get_enemy(enemy_type: String, spawn_pos: Vector2, is_elite: bool = false) -> Node2D:
 	if not _pools.has(enemy_type):
@@ -123,6 +125,10 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2, is_elite: bool = false) -
 	# 初始化血量和状态
 	if enemy.has_method("reset"):
 		enemy.reset()
+	
+	if is_elite and not _has_shown_elite_hint:
+		_has_shown_elite_hint = true
+		SignalBus.on_first_elite_spawned.emit()
 		
 	return enemy
 
@@ -142,11 +148,11 @@ func _apply_enemy_stats(enemy: Node, enemy_type: String, is_elite: bool = false)
 	
 	# 【难度提升计划 D】：基于剧情模式关卡的全局速度倍率
 	var stage_speed_mult = 1.0
-	if not GameData.is_endless_mode: # 无尽模式不适用固定倍率，因为它自己有增长
+	if not GameData.is_endless_mode:
 		if GameData.current_playing_stage == 3:
-			stage_speed_mult = 1.2
+			stage_speed_mult = 1.1
 		elif GameData.current_playing_stage >= 4:
-			stage_speed_mult = 1.4
+			stage_speed_mult = 1.2
 	final_speed *= stage_speed_mult
 	
 	var final_scale = 1.0
