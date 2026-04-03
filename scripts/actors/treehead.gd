@@ -85,7 +85,7 @@ var stored_thrust_power: float = 0.0
 # 记录每次松手时的“锁定伤害”，保证打击全程伤害一致
 var locked_attack_damage: float = 0.0 
 
-@export var attack_cooldown: float = 0.45
+
 var attack_cooldown_timer: float = 0.0
 
 func _ready() -> void:
@@ -232,7 +232,7 @@ func _release_drag():
 		is_thrust_releasing = true
 		if can_deal_damage:
 			_set_hitbox_active(true)
-			attack_cooldown_timer = attack_cooldown
+			attack_cooldown_timer = get_current_attack_cooldown()
 	else:
 		var current_angle = wrapf(global_transform.get_rotation(), -PI, PI)
 		var max_rad = deg_to_rad(max_drag_angle_deg)
@@ -241,7 +241,7 @@ func _release_drag():
 		fake_target_angle = -current_angle * whip_overshoot_ratio
 		if can_deal_damage:
 			_set_hitbox_active(true)
-			attack_cooldown_timer = attack_cooldown
+			attack_cooldown_timer = get_current_attack_cooldown()
 
 func _handle_virtual_inputs() -> void:
 	var kb_dir = Vector2.ZERO
@@ -258,9 +258,10 @@ func _handle_virtual_inputs() -> void:
 		kb_dir = kb_dir.normalized()
 		
 	if kb_dir.length() > 0.1:
-		is_controller_dragging = true
-		if not is_dragging:
-			_start_drag()
+		if attack_cooldown_timer <= 0.0:
+			is_controller_dragging = true
+			if not is_dragging:
+				_start_drag()
 	else:
 		if is_controller_dragging:
 			is_controller_dragging = false
@@ -284,7 +285,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		var dist = global_position.distance_to(get_global_mouse_position())
 		if event.pressed:
-			if dist <= grab_radius:
+			if dist <= grab_radius and attack_cooldown_timer <= 0.0:
 				is_mouse_dragging = true
 				if not is_dragging:
 					_start_drag()
@@ -425,3 +426,8 @@ func _trigger_mass_kill_hitstop() -> void:
 ## 保留旧函数签名以防其它地方调用
 func trigger_hit_stop() -> void:
 	pass # 不再每次击中都全局定格
+
+func get_current_attack_cooldown() -> float:
+	var base_cd = GameData.player_base_stats.get("base_attack_cooldown", 0.45)
+	var atk_speed = GameData.player_base_stats.get("attack_speed", 1.0)
+	return base_cd / atk_speed

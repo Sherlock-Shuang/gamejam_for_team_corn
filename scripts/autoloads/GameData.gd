@@ -88,6 +88,7 @@ const DEFAULT_PLAYER_BASE_STATS: Dictionary = {
 	"attack_power": 10.0,
 	"attack_range": 1.0,   # 倍率
 	"attack_speed": 1.0,   # 倍率
+	"base_attack_cooldown": 0.35, # 基础普攻 CD
 	"hp_regen": 0.0,       # 每秒恢复
 	"move_speed": 1.0,     # 倍率
 	"skill_damage_mult": 1.0, # 全局技能伤害倍率 (光合强化等触发)
