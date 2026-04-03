@@ -43,7 +43,7 @@ func _ready():
 func _count_frames() -> int:
 	var count := 0
 	while true:
-		var path := "%s/frame_%04d.jpg" % [frames_folder, count + 1]
+		var path := "%s/frame_%04d.jpg_raw" % [frames_folder, count + 1]
 		if not FileAccess.file_exists(path):
 			break
 		count += 1
@@ -79,7 +79,7 @@ func _process(delta: float):
 
 
 func _show_frame(index: int):
-	var path := "%s/frame_%04d.jpg" % [frames_folder, index + 1]
+	var path := "%s/frame_%04d.jpg_raw" % [frames_folder, index + 1]
 	var file := FileAccess.open(path, FileAccess.READ)
 	if not file:
 		return
