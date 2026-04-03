@@ -412,7 +412,7 @@ func _play_true_ending_cinematic():
 	scene_1_box.add_theme_constant_override("separation", 30)
 	scene_1_center.add_child(scene_1_box)
 	
-	var custom_font = load("res://assets/fonts/DongLiShanZhouLiangTongShuZhengKai（FanTi）-2.ttf")
+	var custom_font = load("res://assets/fonts/朝华标题A.ttf")
 	
 	var scene_1_title = Label.new()
 	scene_1_title.text = "神树降下神罚"

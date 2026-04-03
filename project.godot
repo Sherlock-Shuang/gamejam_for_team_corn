@@ -48,6 +48,10 @@ config_version=4
 
 Tree=""
 
+[gui]
+
+theme/custom_font="res://assets/fonts/朝华标题A.ttf"
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true

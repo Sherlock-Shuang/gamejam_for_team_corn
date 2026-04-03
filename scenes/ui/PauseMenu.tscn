@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://t281jy7ip7c6" path="res://assets/sprites/暂停.png" id="2_n5dsq"]
 [ext_resource type="Texture2D" uid="uid://bb1mkf87gud0o" path="res://assets/sprites/播放.png" id="3_5twic"]
 [ext_resource type="Texture2D" uid="uid://dnrwekegphpha" path="res://assets/sprites/按钮.png" id="4_5twic"]
-[ext_resource type="FontFile" uid="uid://font_kaiti_uid" path="res://assets/fonts/DongLiShanZhouLiangTongShuZhengKai（FanTi）-2.ttf" id="Font_kaiti"]
+[ext_resource type="FontFile" uid="uid://font_kaiti_uid" path="res://assets/fonts/朝华标题A.ttf" id="Font_kaiti"]
 
 [sub_resource type="FontVariation" id="FontVariation_kaiti"]
 base_font = ExtResource("Font_kaiti")
