@@ -30,6 +30,7 @@ var level_timer: float = 30.0
 var is_level_active: bool = true
 var _hp_regen_accumulator: float = 0.0
 const HP_REGEN_TICK: float = 0.5 # 每 0.5 秒回血一次
+var _last_timer_sec: int = -1 # 用于节流 UI 时钟更新
 
 func _ready():
 	Engine.time_scale = 1.0
@@ -185,13 +186,19 @@ func _process(delta):
 		level_timer += delta
 		GameData.endless_time = level_timer # 同步到全局数据供难度缩放使用
 		if hud.has_method("update_timer"):
-			hud.update_timer(level_timer)
+			var current_sec = floori(level_timer)
+			if current_sec != _last_timer_sec:
+				_last_timer_sec = current_sec
+				hud.update_timer(float(current_sec))
 		return
 		
 	if level_timer > 0:
 		level_timer -= delta
 		if hud.has_method("update_timer"):
-			hud.update_timer(max(level_timer, 0.0))
+			var current_sec = floori(maxf(level_timer, 0.0))
+			if current_sec != _last_timer_sec:
+				_last_timer_sec = current_sec
+				hud.update_timer(float(current_sec))
 			
 		if level_timer <= 0:
 			_level_completed()
@@ -575,7 +582,7 @@ func _on_pause_requested():
 func _on_enemy_died(exp_value: float, position: Vector2, cause: String = ""):
 	if not is_level_active: return # 关卡停止后不再产生新经验
 	
-	print("[Main] 敌人死亡，获得经验: ", exp_value)
+
 
 	# 增加经验值
 	GameData.current_exp += exp_value

@@ -30,8 +30,8 @@ colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_ga87b"]
 gradient = SubResource("Gradient_ouenp")
-width = 50
-height = 50
+width = 70
+height = 70
 fill = 1
 fill_from = Vector2(0.50427353, 0.5320513)
 fill_to = Vector2(1, 0.5)
@@ -53,7 +53,6 @@ curve = SubResource("Curve_ga87b")
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_qd0j6"]
 particle_flag_align_y = true
 particle_flag_disable_z = true
-emission_shape_scale = Vector3(10, 10, 4)
 emission_shape = 3
 emission_box_extents = Vector3(30, 30, 30)
 inherit_velocity_ratio = 0.027
@@ -157,6 +156,7 @@ scale = Vector2(0.1920189, 0.15904239)
 texture = ExtResource("1_8y28y")
 
 [node name="HeadSprite2" type="Sprite2D" parent="treehead" unique_id=1434424522]
+visible = false
 position = Vector2(-3, -161.00002)
 scale = Vector2(0.23, 0.191)
 texture = ExtResource("7_ffmh2")
@@ -184,6 +184,7 @@ position = Vector2(-24, -21)
 polygon = PackedVector2Array(-1, -194, -28, -151, 23, 17, 81, -148, 14, -232)
 
 [node name="Shape2" type="CollisionPolygon2D" parent="treehead/hitbox" unique_id=308933481]
+visible = false
 position = Vector2(-2, -29)
 scale = Vector2(1.1, 1.1)
 polygon = PackedVector2Array(1, -254, -98, -217, -134, -153, -141, -70, 141, -78, 138, -194)
@@ -214,10 +215,10 @@ z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(1.0000007, -206)
 scale = Vector2(0.1, 0.1)
-amount = 5555
-amount_ratio = 0.2322
+amount = 4000
+amount_ratio = 0.5
 texture = SubResource("GradientTexture2D_ga87b")
-lifetime = 4.779999999999999
+lifetime = 5.0
 process_material = SubResource("ParticleProcessMaterial_qd0j6")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=288142139]
@@ -271,7 +272,7 @@ z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(186.99997, -175)
 scale = Vector2(0.1, 0.1)
-amount = 5555
+amount = 555
 amount_ratio = 0.2322
 texture = SubResource("GradientTexture2D_ga87b")
 lifetime = 4.779999999999999
@@ -282,7 +283,7 @@ z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(-187, -174)
 scale = Vector2(0.1, 0.1)
-amount = 5555
+amount = 555
 amount_ratio = 0.2322
 texture = SubResource("GradientTexture2D_ga87b")
 lifetime = 4.779999999999999
@@ -293,7 +294,7 @@ z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(-104, -332)
 scale = Vector2(0.1, 0.1)
-amount = 5555
+amount = 555
 amount_ratio = 0.2322
 texture = SubResource("GradientTexture2D_ga87b")
 lifetime = 4.779999999999999
@@ -304,7 +305,7 @@ z_index = -2
 material = SubResource("CanvasItemMaterial_exg44")
 position = Vector2(128, -329)
 scale = Vector2(0.1, 0.1)
-amount = 5555
+amount = 555
 amount_ratio = 0.2322
 texture = SubResource("GradientTexture2D_ga87b")
 lifetime = 4.779999999999999

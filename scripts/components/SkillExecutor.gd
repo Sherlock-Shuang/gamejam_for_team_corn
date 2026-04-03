@@ -7,6 +7,7 @@ class_name SkillExecutor
 
 var active_skills: Dictionary = {}
 var active_skill_levels: Dictionary = {}
+var cached_skill_effects: Dictionary = {} # 🔥【性能优化】：缓存当前等级的技能数值，避免普攻/命中时频繁查询
 @onready var tree_owner = get_parent()
 const VINE_TENTACLE_SCENE = preload("res://scenes/effects/vine_tentacle.tscn")
 
@@ -38,11 +39,13 @@ func _sync_on_ready():
 			if skill_id == "ice_enchant": _set_tree_ice_enchant_fx(true, lv)
 			
 			# 初始化衍生攻击计数器
+			var effects = GameData.get_skill_effects(skill_id, lv)
+			cached_skill_effects[skill_id] = effects
+			
 			var category = data.get("category", "")
 			if category == "衍生攻击":
 				_setup_derived_attack(skill_id)
 			elif category == "基础数值":
-				var effects = GameData.get_skill_effects(skill_id, lv)
 				# 🔥【关键修复】：同步到新场景的 Node 属性，但跳过 GameData 的增量计算（避免叠加两次数值）
 				_apply_base_stats(skill_id, {}, effects, false)
 			
@@ -85,6 +88,7 @@ func _on_skill_unlocked(skill_id: String):
 	var new_effects = upgrade_result.get("effects", {})
 	active_skill_levels[real_skill_id] = new_level
 	active_skills[real_skill_id] = data
+	cached_skill_effects[real_skill_id] = new_effects # 更新缓存
 	SignalBus.on_skill_actived.emit(real_skill_id)
 	if real_skill_id == "fire_enchant":
 		_set_tree_fire_enchant_fx(true, new_level)
@@ -132,7 +136,11 @@ func _get_skill_level(skill_id: String) -> int:
 	return int(active_skill_levels.get(skill_id, 1))
 
 func _get_skill_effects(skill_id: String) -> Dictionary:
-	return GameData.get_skill_effects(skill_id, _get_skill_level(skill_id))
+	if cached_skill_effects.has(skill_id):
+		return cached_skill_effects[skill_id]
+	var effects = GameData.get_skill_effects(skill_id, _get_skill_level(skill_id))
+	cached_skill_effects[skill_id] = effects
+	return effects
 
 func _fire_thorn():
 	var nearest = _get_nearest_target()
@@ -382,7 +390,7 @@ func _apply_chain_hit_feedback(target: Node2D, damage: float, is_first: bool):
 		target.trigger_local_freeze(0.05)
 
 func _get_nearest_target_from(pos: Vector2, exclude_list: Array, max_dist: float) -> Node2D:
-	var enemies = get_tree().get_nodes_in_group("Enemy")
+	var enemies = PoolManager.active_enemies
 	var closest_dist = max_dist
 	var nearest_enemy = null
 	for e in enemies:
@@ -528,7 +536,7 @@ func _apply_base_stats(skill_id: String, prev_eff: Dictionary, new_eff: Dictiona
 
 # ── 工具函数 ──
 func _get_nearest_target() -> Node2D:
-	var enemies = get_tree().get_nodes_in_group("Enemy")
+	var enemies = PoolManager.active_enemies
 	var closest_dist = 999999.0
 	var nearest_enemy = null
 	
@@ -547,7 +555,7 @@ func _get_nearest_target() -> Node2D:
 
 func _get_active_enemies_in_radius(radius: float) -> Array:
 	var result: Array = []
-	for enemy in get_tree().get_nodes_in_group("Enemy"):
+	for enemy in PoolManager.active_enemies:
 		if not is_instance_valid(enemy):
 			continue
 		if enemy.process_mode == Node.PROCESS_MODE_DISABLED:

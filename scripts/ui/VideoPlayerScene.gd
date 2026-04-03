@@ -19,6 +19,9 @@ var current_frame_idx: int = -1
 var total_frames: int = 0
 var _display_texture: ImageTexture
 
+var skip_hold_timer: float = 0.0
+const SKIP_THRESHOLD: float = 1.2 # 长按 1.2 秒跳过
+
 func _ready():
 	if skip_label:
 		skip_label.visible = false
@@ -76,6 +79,26 @@ func _process(delta: float):
 	if target != current_frame_idx:
 		current_frame_idx = target
 		_show_frame(current_frame_idx)
+		
+	# --- 🔥【新增】：长按空格跳过逻辑 ---
+	if Input.is_key_pressed(KEY_SPACE):
+		skip_hold_timer += delta
+		if skip_label:
+			skip_label.visible = true
+			var progress = clampf(skip_hold_timer / SKIP_THRESHOLD, 0.0, 1.0)
+			var dot_count = int(progress * 4.0)
+			var dots = ""
+			for i in range(dot_count): dots += "."
+			skip_label.text = "跳过中" + dots
+			skip_label.modulate.a = lerpf(0.3, 1.0, progress)
+			
+		if skip_hold_timer >= SKIP_THRESHOLD:
+			_transition_to_next()
+	else:
+		if skip_hold_timer > 0.0:
+			skip_hold_timer = 0.0
+			if skip_label:
+				skip_label.visible = false
 
 
 func _show_frame(index: int):

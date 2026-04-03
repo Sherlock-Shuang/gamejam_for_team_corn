@@ -20,6 +20,9 @@ var _pools: Dictionary = {
 	"mech_boss": []
 }
 
+# --- 🔥【性能优化】：主动管理活跃敌人列表，彻底干掉 get_tree().get_nodes_in_group() ---
+var active_enemies: Array[Node2D] = []
+
 # 3. 预加载所有特效/抛射物场景
 var effect_scenes: Dictionary = {
 	"thorn_shot": preload("res://scenes/effects/PoisonSting.tscn"),
@@ -54,6 +57,8 @@ func _ready() -> void:
 	prewarm_effect("lightning_enchant", 15)
 	prewarm_effect("seed_bomb", 15)
 	prewarm_effect("vine_tentacle", 15)
+	
+	active_enemies.clear()
 
 
 
@@ -130,6 +135,7 @@ func get_enemy(enemy_type: String, spawn_pos: Vector2, is_elite: bool = false) -
 		_has_shown_elite_hint = true
 		SignalBus.on_first_elite_spawned.emit()
 		
+	active_enemies.append(enemy)
 	return enemy
 
 func _apply_enemy_stats(enemy: Node, enemy_type: String, is_elite: bool = false) -> void:
@@ -140,9 +146,10 @@ func _apply_enemy_stats(enemy: Node, enemy_type: String, is_elite: bool = false)
 	
 	# 【动态难度】：根据无尽模式的时长提升敌人属性
 	var mult = GameData.get_endless_multiplier()
+	var hp_mult = GameData.get_endless_hp_multiplier()
 	
 	# === 基础属性应用 ===
-	var final_hp = float(stats["hp"]) * mult
+	var final_hp = float(stats["hp"]) * hp_mult
 	var final_speed = float(stats["speed"]) * mult
 	var final_damage = float(stats["damage"]) * mult
 	
@@ -227,19 +234,24 @@ func return_enemy(node: Node) -> void:
 	if node.has_node("AnimatedSprite2D"):
 		node.get_node("AnimatedSprite2D").modulate = Color(1, 1, 1, 1)
 		
+	active_enemies.erase(node)
 	pool_array.append(node)
 
 ## 新关卡重置：强制回收所有正在活动的敌人与特效
+## 🔥【性能优化】：统计当前场上活跃敌人数量 (变成 O(1) 操作)
+func _count_alive_enemies() -> int:
+	return active_enemies.size()
+
 ## 🔥【性能优化】：单次遍历 O(n) 替代原 O(n²) 双层循环
 func reset_pools() -> void:
+	var enemies_to_return = active_enemies.duplicate()
+	for enemy in enemies_to_return:
+		return_enemy(enemy)
+		
 	for child in get_children():
 		if not is_instance_valid(child):
 			continue
-		if child.has_meta("pool_key"):
-			var key = child.get_meta("pool_key")
-			if _pools.has(key) and not _pools[key].has(child):
-				return_enemy(child)
-		elif child.has_meta("effect_key"):
+		if child.has_meta("effect_key"):
 			var key = child.get_meta("effect_key")
 			if _effect_pools.has(key) and not _effect_pools[key].has(child):
 				return_effect(child, key)

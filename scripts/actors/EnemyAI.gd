@@ -197,9 +197,10 @@ func _physics_process(delta: float) -> void:
 	# ==========================================
 	var nav_target = target_tree.global_position
 	
-	# 🔥【性能优化】：河道检测改为隔10帧执行一次
+	# 🔥【性能优化】：河道检测改为隔10帧执行一次，并使用 ID 偏移打散执行时机，防止同帧高峰
 	frame_count += 1
-	if frame_count % 10 == 0:
+	var spread_frame = (frame_count + get_instance_id()) % 10
+	if spread_frame == 0:
 		if GameData.is_in_river(nav_target):
 			nav_target = GameData.clamp_to_river_bank(nav_target, river_avoid_margin)
 		_cached_river_force = _calculate_river_avoidance_force()
@@ -228,8 +229,8 @@ func _physics_process(delta: float) -> void:
 
 	# 执行 Godot 内部移动逻辑
 	move_and_slide()
-	# 🔥【性能优化】：河道边界强制修正也隔10帧
-	if frame_count % 10 == 0:
+	# 🔥【性能优化】：河道边界强制修正也隔10帧 (同样使用偏移打散)
+	if spread_frame == 0:
 		_enforce_river_boundary()
 
 	# 🔥【性能优化】：行走音效降频，只有20%的怪物会播放脚步声（通过帧号取模实现，0 GC）
