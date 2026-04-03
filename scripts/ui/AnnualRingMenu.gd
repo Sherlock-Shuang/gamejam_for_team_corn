@@ -55,6 +55,10 @@ func _ready():
 	reversal_player.volume_db = 0  # 正常音量，可根据需要调整，可根据需要修改
 	
 	quit_button.pressed.connect(func(): get_tree().quit())
+	
+	if OS.has_feature("web"):
+		quit_button.hide()
+		
 	GameData.is_endless_mode = false
 	
 	# 初始化纹理缓存 (对应 assets 目录下的资源)

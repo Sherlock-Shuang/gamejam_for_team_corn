@@ -24,6 +24,9 @@ func _ready():
 		_on_quit_pressed()
 	)
 	
+	if OS.has_feature("web"):
+		quit_btn.hide()
+	
 	# 为所有按钮添加悬停缩放效果
 	var buttons = [continue_btn, return_btn, quit_btn]
 	for btn in buttons:
