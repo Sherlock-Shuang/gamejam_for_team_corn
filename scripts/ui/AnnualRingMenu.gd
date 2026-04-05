@@ -256,7 +256,9 @@ func _play_ending_video():
 	AudioManager.stop_all()
 	
 	# 真正进入结尾视频场景
-	get_tree().change_scene_to_file("res://scenes/ui/EndingVideo.tscn")
+	# get_tree().change_scene_to_file("res://scenes/ui/EndingVideo.tscn")
+	# 🔥【Web优化】：直接跳转到无尽模式选择界面
+	get_tree().change_scene_to_file("res://scenes/ui/EndlessSelectUI.tscn")
 
 
 func _input(event):
