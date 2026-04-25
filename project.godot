@@ -13,6 +13,7 @@ config_version=5
 config/name="树独"
 run/main_scene="res://scenes/ui/SplashScreen.tscn"
 config/features=PackedStringArray("4.6", "4.6.1")
+boot_splash/image="res://assets/队标2.png"
 description="gamejam_for_team_corn project"
 
 [audio]

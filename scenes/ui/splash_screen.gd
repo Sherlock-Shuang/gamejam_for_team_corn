@@ -10,6 +10,9 @@ extends Control
 var can_skip: bool = false
 
 func _ready():
+	# 🎵 显式加载队标，防止 UID 冲突导致显示默认图标
+	logo.texture = load("res://assets/队标2.png")
+	
 	# 🎵 新增：游戏一启动，立刻让管家播放前置音乐！
 	if 前置_bgm:
 		AudioManager.play_music(前置_bgm)
